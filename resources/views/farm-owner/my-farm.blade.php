@@ -1,10 +1,10 @@
 @extends('farm-owner.layouts.app')
 
 @php
-    $title = 'My Farm';
+    $title = 'Farm';
 @endphp
 
-@section('title', 'My Farm - BrewHub')
+@section('title', 'Farm - BrewHub')
 
 @section('content')
 <div class="mb-8">
@@ -12,6 +12,19 @@
         Farm <span class="italic text-[#4A6741]">Profile</span>
     </h1>
     <p class="text-[#9E8C78] text-sm font-medium">Manage your farm details</p>
+
+    @if(($managedFarms ?? collect())->count() > 1)
+        <form method="GET" action="{{ route('farm-owner.my-farm') }}" class="mt-4 inline-flex items-center gap-2">
+            <label for="farm-switch" class="text-xs font-semibold text-[#6B5B4A]">Switch Farm</label>
+            <select id="farm-switch" name="farm_id" onchange="this.form.submit()" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                @foreach(($managedFarms ?? collect()) as $farmOption)
+                    <option value="{{ $farmOption->id }}" @selected((int) $farmOption->id === (int) ($establishment->id ?? 0))>
+                        {{ $farmOption->name }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+    @endif
 </div>
 
 @if(session('status'))
@@ -138,6 +151,10 @@
     <form method="POST" action="{{ route('farm-owner.my-farm') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PATCH')
+
+        <input type="hidden" name="farm_id" value="{{ $establishment->id ?? '' }}">
+        <input type="hidden" name="latitude" value="{{ old('latitude', $establishment->latitude) }}">
+        <input type="hidden" name="longitude" value="{{ old('longitude', $establishment->longitude) }}">
 
         <input type="hidden" name="banner_focus_x" :value="Math.round(bannerFitX)">
         <input type="hidden" name="banner_focus_y" :value="Math.round(bannerFitY)">

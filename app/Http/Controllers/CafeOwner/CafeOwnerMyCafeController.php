@@ -16,15 +16,34 @@ class CafeOwnerMyCafeController extends Controller
     {
         $userId = Auth::id();
 
-        $query = Establishment::query()->with('varieties');
+        $baseQuery = Establishment::query()->with('varieties');
 
         if (Schema::hasColumn('establishments', 'user_id')) {
-            $query->where('user_id', $userId);
+            $baseQuery->where('user_id', $userId);
         } else {
-            $query->where('owner_id', $userId);
+            $baseQuery->where('owner_id', $userId);
         }
 
-        $establishment = $query->first();
+        $activeEstablishmentId = (int) session('cafe_owner_active_establishment_id', 0);
+        $establishment = null;
+
+        if ($activeEstablishmentId > 0) {
+            $establishment = (clone $baseQuery)
+                ->whereKey($activeEstablishmentId)
+                ->first();
+        }
+
+        if (!$establishment) {
+            $establishment = (clone $baseQuery)
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        if ($establishment) {
+            session(['cafe_owner_active_establishment_id' => $establishment->id]);
+        }
+
         $allVarieties = CoffeeVariety::query()->orderBy('name')->get();
         $selectedVarietyIds = $establishment?->varieties?->pluck('id')->all() ?? [];
         $primaryVarietyId = optional($establishment?->varieties?->firstWhere('pivot.is_primary', true))->id;
@@ -42,6 +61,7 @@ class CafeOwnerMyCafeController extends Controller
         $userId = Auth::id();
 
         $validated = $request->validate([
+            'establishment_id' => 'nullable|integer|exists:establishments,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'address' => 'nullable|string|max:255',
@@ -69,7 +89,14 @@ class CafeOwnerMyCafeController extends Controller
             $query->where('owner_id', $userId);
         }
 
-        $establishment = $query->firstOrFail();
+        if (!empty($validated['establishment_id'])) {
+            $query->whereKey((int) $validated['establishment_id']);
+        }
+
+        $establishment = $query
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->firstOrFail();
 
         $payload = [];
 
@@ -118,6 +145,7 @@ class CafeOwnerMyCafeController extends Controller
 
         // Always bump profile timestamp after a successful profile update flow.
         $establishment->touch();
+        session(['cafe_owner_active_establishment_id' => $establishment->id]);
 
         return redirect()
             ->route('cafe-owner.my-cafe')

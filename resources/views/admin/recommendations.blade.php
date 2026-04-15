@@ -192,9 +192,15 @@
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-[#800000] p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div>
+                        @php
+                            $needsAttentionKey = $overallAnalytics['needs_attention'] ?? null;
+                            $needsAttentionAverage = filled($needsAttentionKey)
+                                ? data_get($overallAnalytics, 'averages.' . $needsAttentionKey, 0)
+                                : 0;
+                        @endphp
                         <p class="text-[#9E8C78] text-sm font-medium">Needs Most Attention</p>
-                        <p class="text-lg font-bold text-[#3A2E22] mt-1">{{ ucfirst($overallAnalytics['needs_attention']) }}</p>
-                        <p class="text-sm text-[#9E8C78] mt-1">Avg {{ number_format($overallAnalytics['averages'][$overallAnalytics['needs_attention']], 1) }} ★</p>
+                        <p class="text-lg font-bold text-[#3A2E22] mt-1">{{ filled($needsAttentionKey) ? ucfirst($needsAttentionKey) : 'N/A' }}</p>
+                        <p class="text-sm text-[#9E8C78] mt-1">Avg {{ number_format((float) $needsAttentionAverage, 1) }} ★</p>
                     </div>
                     <div class="w-12 h-12 bg-[#800000]/15 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -151,14 +151,47 @@
         $sidebarProfileX = 50;
         $sidebarProfileY = 50;
         $sidebarUserId = auth()->id();
+        $sidebarManagedFarms = collect();
+        $sidebarActiveFarmId = (int) request('farm_id', 0);
+        $sidebarRouteParams = [];
         if ($sidebarUserId) {
             $sidebarEstablishmentQuery = \App\Models\Establishment::query();
-            if (\Illuminate\Support\Facades\Schema::hasColumn('establishments', 'user_id')) {
+            $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('establishments', 'owner_id');
+            $hasUserId = \Illuminate\Support\Facades\Schema::hasColumn('establishments', 'user_id');
+
+            if ($hasOwnerId && $hasUserId) {
+                $sidebarEstablishmentQuery->where(function ($ownerQuery) use ($sidebarUserId) {
+                    $ownerQuery->where('owner_id', $sidebarUserId)
+                        ->orWhere('user_id', $sidebarUserId);
+                });
+            } elseif ($hasOwnerId) {
+                $sidebarEstablishmentQuery->where('owner_id', $sidebarUserId);
+            } elseif ($hasUserId) {
                 $sidebarEstablishmentQuery->where('user_id', $sidebarUserId);
             } else {
-                $sidebarEstablishmentQuery->where('owner_id', $sidebarUserId);
+                $sidebarEstablishmentQuery->whereRaw('1 = 0');
             }
-            $sidebarEstablishment = $sidebarEstablishmentQuery->first();
+
+            if (\Illuminate\Support\Facades\Schema::hasColumn('establishments', 'type')) {
+                $sidebarEstablishmentQuery->where('type', 'farm');
+            }
+
+            $sidebarManagedFarms = (clone $sidebarEstablishmentQuery)
+                ->orderBy('name')
+                ->get(['id', 'name']);
+
+            if ($sidebarActiveFarmId <= 0 || !$sidebarManagedFarms->contains('id', $sidebarActiveFarmId)) {
+                $sidebarActiveFarmId = (int) ($sidebarManagedFarms->first()->id ?? 0);
+            }
+
+            $sidebarEstablishment = $sidebarActiveFarmId > 0
+                ? (clone $sidebarEstablishmentQuery)->whereKey($sidebarActiveFarmId)->first()
+                : null;
+
+            if ($sidebarActiveFarmId > 0) {
+                $sidebarRouteParams = ['farm_id' => $sidebarActiveFarmId];
+            }
+
             $sidebarImage = optional($sidebarEstablishment)->image;
             $sidebarProfileX = (int) (optional($sidebarEstablishment)->profile_focus_x ?? 50);
             $sidebarProfileY = (int) (optional($sidebarEstablishment)->profile_focus_y ?? 50);
@@ -174,32 +207,45 @@
                     <span class="text-lg font-display font-bold">BrewHub</span>
                 </div>
 
+                @if($sidebarManagedFarms->count() > 1)
+                    <form method="GET" action="{{ route('farm-owner.dashboard') }}" class="mb-4">
+                        <label for="sidebar-farm-switch" class="block text-[11px] font-semibold text-[#D9C9B2] mb-1">Switch Farm</label>
+                        <select id="sidebar-farm-switch" name="farm_id" onchange="this.form.submit()" class="w-full rounded-lg border border-[#6B5B4A] bg-[#4E3D2B] text-[#F5F0E8] px-2 py-1.5 text-xs focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                            @foreach($sidebarManagedFarms as $farmOption)
+                                <option value="{{ $farmOption->id }}" @selected((int) $farmOption->id === (int) $sidebarActiveFarmId)>
+                                    {{ $farmOption->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
+
                 <nav class="space-y-1">
-                    <a href="{{ route('farm-owner.dashboard') }}" class="flex items-center {{ request()->routeIs('farm-owner.dashboard') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.dashboard', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.dashboard') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('farm-owner.my-farm') }}" class="flex items-center {{ request()->routeIs('farm-owner.my-farm') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.my-farm', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.my-farm') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        My Farm
+                        Farm
                     </a>
-                    <a href="{{ route('farm-owner.marketplace') }}" class="flex items-center {{ request()->routeIs('farm-owner.marketplace') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.marketplace', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.marketplace') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
                         Marketplace
                     </a>
-                    <a href="{{ route('farm-owner.map') }}" class="flex items-center {{ request()->routeIs('farm-owner.map') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.map', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.map') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
                         </svg>
                         Map
                     </a>
-                    <a href="{{ route('farm-owner.messages') }}" class="flex items-center {{ request()->routeIs('farm-owner.messages*') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.messages', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.messages*') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>
@@ -223,9 +269,9 @@
 
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center min-w-0">
-                <div class="w-10 h-10 bg-[#4A6741] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm mr-3">
+                <div class="w-10 h-10 shrink-0 bg-[#4A6741] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm mr-3">
                     @if($sidebarImage)
-                        <img src="{{ $sidebarImage }}" alt="Profile" class="w-full h-full object-cover" style="object-position: {{ $sidebarProfileX }}% {{ $sidebarProfileY }}%;" />
+                        <img src="{{ $sidebarImage }}" alt="Profile" class="block w-full h-full object-cover" style="object-position: {{ $sidebarProfileX }}% {{ $sidebarProfileY }}%;" />
                     @else
                         {{ strtoupper(substr(auth()->user()->name ?? 'F', 0, 1)) }}
                     @endif

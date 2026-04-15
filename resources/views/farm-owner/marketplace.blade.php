@@ -8,6 +8,7 @@
 
 @section('content')
 @php
+    $activeFarmId = (int) request('farm_id', 0);
     $productsMeta = $products->map(function ($product) {
         return [
             'id' => $product->id,
@@ -297,6 +298,9 @@
 
 <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
     <form method="GET" action="{{ route('farm-owner.marketplace') }}" class="flex flex-col md:flex-row gap-3 md:items-center">
+        @if($activeFarmId > 0)
+            <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+        @endif
         <div class="relative flex-1">
             <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -622,6 +626,9 @@
                                     <form method="POST" action="{{ route('farm-owner.marketplace.orders.update', $order) }}" class="flex items-center gap-2">
                                         @csrf
                                         @method('PATCH')
+                                        @if($activeFarmId > 0)
+                                            <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+                                        @endif
                                         <select name="status" class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
                                             <option value="pending" @selected($status === 'pending')>Pending</option>
                                             <option value="confirmed" @selected($status === 'confirmed')>Confirmed</option>
@@ -725,6 +732,9 @@
         <form method="POST" :action="formAction()" enctype="multipart/form-data" class="grid grid-cols-2 md:grid-cols-3 gap-1.5">
             @csrf
             @method('PATCH')
+            @if($activeFarmId > 0)
+                <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+            @endif
 
             <div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Name *</label>
@@ -801,6 +811,9 @@
 
         <form method="POST" action="{{ route('farm-owner.marketplace.products.store') }}" enctype="multipart/form-data" class="grid grid-cols-2 md:grid-cols-3 gap-1.5">
             @csrf
+            @if($activeFarmId > 0)
+                <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+            @endif
 
             <div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Name *</label>

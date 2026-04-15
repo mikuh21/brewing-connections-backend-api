@@ -341,6 +341,13 @@
         }
      }"
 >
+    @php
+        $dashboardQuickActionFarmId = (int) request('farm_id', 0);
+        $dashboardQuickActionRouteParams = $dashboardQuickActionFarmId > 0
+            ? ['farm_id' => $dashboardQuickActionFarmId]
+            : [];
+    @endphp
+
     <div class="bg-white rounded-xl shadow-sm p-8">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
             Quick <span class="italic text-[#4A6741]">Actions</span>
@@ -348,17 +355,17 @@
         <p class="text-[#9E8C78] text-sm mb-6">Common tasks and shortcuts</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <a href="{{ route('farm-owner.my-farm') }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+            <a href="{{ route('farm-owner.my-farm', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                 <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                     <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
-                <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">Manage My Farm</h3>
+                <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">Manage Farm</h3>
                 <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Update farm profile</p>
             </a>
 
-            <a href="{{ route('farm-owner.marketplace') }}#orders" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+            <a href="{{ route('farm-owner.marketplace', $dashboardQuickActionRouteParams) }}#orders" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                 <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                     <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14l-1 12H6L5 8z"/>
@@ -369,7 +376,7 @@
                 <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Marketplace orders</p>
             </a>
 
-            <a href="{{ route('farm-owner.messages') }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+            <a href="{{ route('farm-owner.messages', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                 <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                     <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>

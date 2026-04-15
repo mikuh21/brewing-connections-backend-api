@@ -142,6 +142,8 @@
     <form method="POST" action="{{ route('cafe-owner.my-cafe.update') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
 
+        <input type="hidden" name="establishment_id" value="{{ $establishment?->id }}">
+
         <input type="hidden" name="banner_focus_x" :value="Math.round(bannerFitX)">
         <input type="hidden" name="banner_focus_y" :value="Math.round(bannerFitY)">
         <input type="hidden" name="profile_focus_x" :value="Math.round(profileFitX)">

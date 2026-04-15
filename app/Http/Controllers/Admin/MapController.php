@@ -7,9 +7,26 @@ use Illuminate\Http\Request;
 use App\Models\Establishment;
 use App\Models\User;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 
 class MapController extends Controller
 {
+    private const DEFAULT_FARM_OWNER_EMAIL = 'abm.arnoldbm@gmail.com';
+
+    protected function resolveOwnerIdForMappedEstablishment(Request $request): ?int
+    {
+        if ($request->input('type') !== 'farm') {
+            return optional($request->user())->id;
+        }
+
+        $farmOwner = User::query()
+            ->where('role', 'farm_owner')
+            ->whereRaw('LOWER(email) = ?', [strtolower(self::DEFAULT_FARM_OWNER_EMAIL)])
+            ->first();
+
+        return $farmOwner?->id ?? optional($request->user())->id;
+    }
+
     protected function getVerifiedResellersForMapping()
     {
         return User::query()
@@ -129,8 +146,14 @@ class MapController extends Controller
         ], [
             'type.in' => 'The selected type is invalid. Choose Farm, Cafe, or Roaster.',
         ]);
+
+        $resolvedOwnerId = $this->resolveOwnerIdForMappedEstablishment($request);
+
         $establishment = new Establishment();
-        $establishment->owner_id = optional($request->user())->id;
+        $establishment->owner_id = $resolvedOwnerId;
+        if (Schema::hasColumn('establishments', 'user_id')) {
+            $establishment->user_id = $resolvedOwnerId;
+        }
         $establishment->name = $request->name;
         $establishment->type = $request->type;
         $establishment->description = $request->description;

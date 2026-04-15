@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\EstablishmentGeoJsonController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
 
@@ -12,7 +13,12 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'me']);
+    Route::get('/orders', [MarketplaceController::class, 'orders']);
+    Route::post('/orders', [MarketplaceController::class, 'storeOrder']);
+    Route::patch('/orders/{order}', [MarketplaceController::class, 'updateOrder']);
 });
+
+Route::get('/products', [MarketplaceController::class, 'products']);
 
 // Admin-protected GeoJSON endpoint (session auth for web, admin only)
 Route::middleware(['auth', 'role:admin'])->group(function () {

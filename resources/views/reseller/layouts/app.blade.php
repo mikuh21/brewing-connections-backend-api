@@ -220,9 +220,9 @@
 
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center min-w-0">
-                <div class="w-10 h-10 bg-[#4A6741] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm mr-3">
+                <div class="w-10 h-10 shrink-0 bg-[#4A6741] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm mr-3">
                     @if($sidebarImage)
-                        <img src="{{ $sidebarImage }}" alt="Profile" class="w-full h-full object-cover" style="object-position: {{ $sidebarProfileX }}% {{ $sidebarProfileY }}%;" />
+                        <img src="{{ $sidebarImage }}" alt="Profile" class="block w-full h-full object-cover" style="object-position: {{ $sidebarProfileX }}% {{ $sidebarProfileY }}%;" />
                     @else
                         {{ strtoupper(substr(auth()->user()->name ?? 'R', 0, 1)) }}
                     @endif

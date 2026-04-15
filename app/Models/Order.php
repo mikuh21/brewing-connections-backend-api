@@ -12,7 +12,13 @@ class Order extends Model
         'quantity',
         'total_price',
         'status',
-        'notes'
+        'notes',
+        'pickup_date',
+        'pickup_time',
+    ];
+
+    protected $casts = [
+        'pickup_date' => 'date',
     ];
 
     public function user()

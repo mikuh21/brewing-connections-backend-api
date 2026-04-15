@@ -17,6 +17,90 @@ use Illuminate\Support\Facades\Storage;
 
 class FarmOwnerController extends Controller
 {
+    protected function farmOwnerEstablishmentsQuery(User $user)
+    {
+        $query = Establishment::query();
+
+        $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
+        $hasUserId = Schema::hasColumn('establishments', 'user_id');
+
+        if ($hasOwnerId && $hasUserId) {
+            $query->where(function ($ownerQuery) use ($user) {
+                $ownerQuery->where('owner_id', $user->id)
+                    ->orWhere('user_id', $user->id);
+            });
+        } elseif ($hasOwnerId) {
+            $query->where('owner_id', $user->id);
+        } elseif ($hasUserId) {
+            $query->where('user_id', $user->id);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        if (Schema::hasColumn('establishments', 'type')) {
+            $query->where('type', 'farm');
+        }
+
+        return $query;
+    }
+
+    protected function resolveActiveFarm(User $user, ?int $requestedFarmId = null, bool $createIfMissing = false): ?Establishment
+    {
+        $baseQuery = $this->farmOwnerEstablishmentsQuery($user)->with('varieties');
+
+        if (!empty($requestedFarmId)) {
+            $selectedFarm = (clone $baseQuery)
+                ->whereKey((int) $requestedFarmId)
+                ->first();
+
+            if ($selectedFarm) {
+                return $selectedFarm;
+            }
+        }
+
+        $fallbackFarm = (clone $baseQuery)
+            ->orderByDesc('updated_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($fallbackFarm || !$createIfMissing) {
+            return $fallbackFarm;
+        }
+
+        $createPayload = [
+            'name' => $user->name . "'s Farm",
+            'type' => 'farm',
+        ];
+
+        if (Schema::hasColumn('establishments', 'owner_id')) {
+            $createPayload['owner_id'] = $user->id;
+        }
+
+        if (Schema::hasColumn('establishments', 'user_id')) {
+            $createPayload['user_id'] = $user->id;
+        }
+
+        return Establishment::create($createPayload)->load('varieties');
+    }
+
+    protected function activeFarmIdFromRequest(Request $request): ?int
+    {
+        $farmId = (int) $request->input('farm_id', 0);
+
+        return $farmId > 0 ? $farmId : null;
+    }
+
+    protected function isFarmManagedByUser(Establishment $establishment, User $user): bool
+    {
+        $matchesOwner = Schema::hasColumn('establishments', 'owner_id')
+            && (int) $establishment->owner_id === (int) $user->id;
+
+        $matchesUser = Schema::hasColumn('establishments', 'user_id')
+            && (int) $establishment->user_id === (int) $user->id;
+
+        return $matchesOwner || $matchesUser;
+    }
+
     protected function getVerifiedResellersForMap()
     {
         return User::query()
@@ -45,7 +129,10 @@ class FarmOwnerController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        $establishment = $user?->establishment;
+        /** @var \App\Models\User|null $user */
+        $establishment = $user
+            ? $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest(request()))
+            : null;
 
         if (!$establishment) {
             return view('farm-owner.dashboard', [
@@ -199,19 +286,16 @@ class FarmOwnerController extends Controller
         $user = Auth::user();
         /** @var \App\Models\User $user */
 
-        $establishment = $user->establishment()->with('varieties')->first();
+        $activeFarmId = $this->activeFarmIdFromRequest(request());
+        $establishment = $this->resolveActiveFarm($user, $activeFarmId, true);
 
-        if (!$establishment) {
-            $establishment = Establishment::create([
-                'owner_id' => $user->id,
-                'name' => $user->name . "'s Farm",
-                'type' => 'farm',
-            ])->load('varieties');
-        }
-
-        if ((int) $establishment->owner_id !== (int) $user->id) {
+        if (!$this->isFarmManagedByUser($establishment, $user)) {
             abort(403);
         }
+
+        $managedFarms = $this->farmOwnerEstablishmentsQuery($user)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $allVarieties = CoffeeVariety::query()->orderBy('name')->get();
         $selectedVarietyIds = $establishment->varieties->pluck('id')->all();
@@ -221,7 +305,8 @@ class FarmOwnerController extends Controller
             'establishment',
             'allVarieties',
             'selectedVarietyIds',
-            'primaryVarietyId'
+            'primaryVarietyId',
+            'managedFarms'
         ));
     }
 
@@ -229,17 +314,19 @@ class FarmOwnerController extends Controller
     {
         $user = Auth::user();
         /** @var \App\Models\User $user */
-        $establishment = $user->establishment;
+        $requestedFarmId = $this->activeFarmIdFromRequest($request);
+        $establishment = $this->resolveActiveFarm($user, $requestedFarmId);
 
         if (!$establishment) {
             abort(404, 'Farm profile not found.');
         }
 
-        if ((int) $establishment->owner_id !== (int) $user->id) {
+        if (!$this->isFarmManagedByUser($establishment, $user)) {
             abort(403);
         }
 
         $validated = $request->validate([
+            'farm_id' => 'nullable|integer|exists:establishments,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:5120',
@@ -265,12 +352,19 @@ class FarmOwnerController extends Controller
             'description' => $validated['description'] ?? null,
             'address' => $validated['address'] ?? null,
             'barangay' => $validated['barangay'] ?? null,
-            'latitude' => $validated['latitude'] ?? null,
-            'longitude' => $validated['longitude'] ?? null,
             'contact_number' => $validated['contact_number'] ?? null,
             'email' => $validated['email'] ?? null,
             'website' => $validated['website'] ?? null,
         ];
+
+        // Keep existing coordinates unless the request explicitly sends non-null values.
+        if (array_key_exists('latitude', $validated) && $validated['latitude'] !== null) {
+            $updatePayload['latitude'] = $validated['latitude'];
+        }
+
+        if (array_key_exists('longitude', $validated) && $validated['longitude'] !== null) {
+            $updatePayload['longitude'] = $validated['longitude'];
+        }
 
         foreach (['banner_focus_x', 'banner_focus_y', 'profile_focus_x', 'profile_focus_y'] as $field) {
             if (Schema::hasColumn('establishments', $field) && array_key_exists($field, $validated)) {
@@ -308,7 +402,7 @@ class FarmOwnerController extends Controller
         $establishment->touch();
 
         return redirect()
-            ->route('farm-owner.my-farm')
+            ->route('farm-owner.my-farm', ['farm_id' => $establishment->id])
             ->with('status', 'Farm profile updated successfully.');
     }
 
@@ -317,11 +411,11 @@ class FarmOwnerController extends Controller
         $user = Auth::user();
         /** @var \App\Models\User $user */
 
-        $establishment = $user->establishment;
+        $establishment = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest(request()));
 
         $productsQuery = Product::query()->whereRaw('1 = 0');
 
-        if ($establishment && (int) $establishment->owner_id === (int) $user->id) {
+        if ($establishment && $this->isFarmManagedByUser($establishment, $user)) {
             $productsQuery = Product::query()
                 ->where('establishment_id', $establishment->id)
                 ->latest();
@@ -434,9 +528,9 @@ class FarmOwnerController extends Controller
         $user = Auth::user();
         /** @var \App\Models\User $user */
 
-        $establishment = $user->establishment;
+        $establishment = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest($request));
 
-        if (!$establishment || (int) $establishment->owner_id !== (int) $user->id) {
+        if (!$establishment || !$this->isFarmManagedByUser($establishment, $user)) {
             abort(403);
         }
 
@@ -464,12 +558,12 @@ class FarmOwnerController extends Controller
         $user = Auth::user();
         /** @var \App\Models\User $user */
 
-        $establishment = $user->establishment;
+        $establishment = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest(request()));
 
         $orderNotifications = collect();
         $pendingOrdersCount = 0;
 
-        if ($establishment && (int) $establishment->owner_id === (int) $user->id) {
+        if ($establishment && $this->isFarmManagedByUser($establishment, $user)) {
             $orderQuery = Order::with(['user:id,name', 'product:id,name,establishment_id'])
                 ->whereHas('product', function ($query) use ($establishment) {
                     $query->where('establishment_id', $establishment->id);
@@ -483,7 +577,7 @@ class FarmOwnerController extends Controller
                 ->latest()
                 ->limit(5)
                 ->get()
-                ->map(function (Order $order) {
+                ->map(function (Order $order) use ($establishment) {
                     return [
                         'id' => 'order-' . $order->id . '-' . strtolower((string) $order->status),
                         'type' => 'order',
@@ -492,7 +586,7 @@ class FarmOwnerController extends Controller
                         'status' => strtolower((string) $order->status),
                         'time' => optional($order->created_at)->diffForHumans(),
                         'timestamp' => optional($order->created_at)?->timestamp ?? 0,
-                        'url' => route('farm-owner.marketplace') . '#orders',
+                        'url' => route('farm-owner.marketplace', ['farm_id' => $establishment->id]) . '#orders',
                     ];
                 });
         }
@@ -551,7 +645,7 @@ class FarmOwnerController extends Controller
                 'time' => optional($latestIncoming->created_at)->diffForHumans(),
                 'timestamp' => optional($latestIncoming->created_at)?->timestamp ?? 0,
                 'unread_count' => $unread,
-                'url' => route('farm-owner.messages.show', $conversation),
+                'url' => route('farm-owner.messages.show', ['conversation' => $conversation->id, 'farm_id' => $establishment?->id]),
             ]);
         }
 
@@ -577,9 +671,9 @@ class FarmOwnerController extends Controller
         $user = Auth::user();
         /** @var \App\Models\User $user */
 
-        $establishment = $user->establishment;
+        $establishment = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest($request));
 
-        if (!$establishment || (int) $establishment->owner_id !== (int) $user->id) {
+        if (!$establishment || !$this->isFarmManagedByUser($establishment, $user)) {
             abort(403);
         }
 
@@ -627,9 +721,9 @@ class FarmOwnerController extends Controller
         $user = Auth::user();
         /** @var \App\Models\User $user */
 
-        $establishment = $user->establishment;
+        $establishment = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest($request));
 
-        if (!$establishment || (int) $establishment->owner_id !== (int) $user->id) {
+        if (!$establishment || !$this->isFarmManagedByUser($establishment, $user)) {
             abort(403);
         }
 

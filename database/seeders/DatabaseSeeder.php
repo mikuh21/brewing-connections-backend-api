@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,70 +26,27 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // ─────────────────────────────────────────
-        // 2. CONSUMER USERS
-        // ─────────────────────────────────────────
-        \App\Models\User::firstOrCreate(
-            ['email' => 'jane@example.com'],
-            [
-                'name' => 'Jane Smith',
-                'email_verified_at' => now(),
-                'password' => bcrypt('password123'),
-                'role' => 'consumer',
-                'status' => 'active',
-                'deactivated_at' => null,
-                'is_verified_reseller' => false,
-            ]
-        );
+        // Ensure only the three required user accounts are kept.
+        $this->call([
+            CafeOwnerSeeder::class,
+            ResellerUserSeeder::class,
+        ]);
 
-        \App\Models\User::firstOrCreate(
-            ['email' => 'diana@example.com'],
-            [
-                'name' => 'Diana Davis',
-                'email_verified_at' => now(),
-                'password' => bcrypt('password123'),
-                'role' => 'consumer',
-                'status' => 'active',
-                'deactivated_at' => null,
-                'is_verified_reseller' => false,
-            ]
-        );
+        $this->cleanupSeededDummyData([
+            'admin@example.com',
+            'cafeowner@brewhub.com',
+            'reseller@brewhub.com',
+        ]);
 
         // ─────────────────────────────────────────
-        // 3. COFFEE VARIETIES
+        // 2. COFFEE VARIETIES
         // ─────────────────────────────────────────
-        $varieties = [
-            [
-                'name' => 'Liberica',
-                'color' => '#4A6741',
-                'description' => 'A rare coffee species native to the Philippines, known for its distinctive smoky, woody, and floral flavor with a full body and irregular-shaped beans.',
-            ],
-            [
-                'name' => 'Excelsa',
-                'color' => '#D4AF37',
-                'description' => 'Grown mostly in Southeast Asia, Excelsa produces a tart, fruity, and complex flavor profile. It is often used to add depth and character to coffee blends.',
-            ],
-            [
-                'name' => 'Robusta',
-                'color' => '#8B4513',
-                'description' => 'A hardy and widely cultivated coffee species known for its strong, bitter taste and high caffeine content. Commonly used in espresso blends and instant coffee.',
-            ],
-            [
-                'name' => 'Arabica',
-                'color' => '#C0392B',
-                'description' => 'The most popular coffee species worldwide, prized for its smooth, mild flavor with hints of sweetness and acidity. Grown at high altitudes for optimal quality.',
-            ],
-        ];
-
-        foreach ($varieties as $variety) {
-            \App\Models\CoffeeVariety::firstOrCreate(
-                ['name' => $variety['name']],
-                $variety
-            );
-        }
+        $this->call([
+            CoffeeVarietySeeder::class,
+        ]);
 
         // ─────────────────────────────────────────
-        // 4. ESTABLISHMENTS
+        // 3. ESTABLISHMENTS
         // ─────────────────────────────────────────
         $admin = \App\Models\User::where('email', 'admin@example.com')->first();
 
@@ -142,55 +101,12 @@ class DatabaseSeeder extends Seeder
         }
 
         // ─────────────────────────────────────────
-        // 5. RATINGS
         // ─────────────────────────────────────────
-        $diana = \App\Models\User::where('email', 'diana@example.com')->first();
-        $jane = \App\Models\User::where('email', 'jane@example.com')->first();
+        // 4. COUPON PROMOS
+        // ─────────────────────────────────────────
         $freya = \App\Models\Establishment::where('name', 'Freya Studio Café & Bakery')->first();
         $gratia = \App\Models\Establishment::where('name', 'Grātia by: Abbey\'s Kitchenette')->first();
-        $katys = \App\Models\Establishment::where('name', 'Katy\'s Farm')->first();
 
-        if (\App\Models\Rating::count() === 0) {
-            // Diana reviews Freya - high rating green
-            \App\Models\Rating::create([
-                'user_id' => $diana->id,
-                'establishment_id' => $freya->id,
-                'taste_rating' => 5,
-                'environment_rating' => 5,
-                'cleanliness_rating' => 4,
-                'service_rating' => 5,
-                'image' => 'ratings/sample1.jpg',
-                'owner_response' => 'Thank you so much for your kind words, Diana! We are thrilled you enjoyed your experience at Freya Studio. Hope to see you again soon!',
-            ]);
-
-            // Diana reviews Gratia - low rating red
-            \App\Models\Rating::create([
-                'user_id' => $diana->id,
-                'establishment_id' => $gratia->id,
-                'taste_rating' => 2,
-                'environment_rating' => 2,
-                'cleanliness_rating' => 3,
-                'service_rating' => 2,
-                'image' => null,
-                'owner_response' => 'We are sorry to hear about your experience, Diana. Please reach out to us directly so we can make it right for you.',
-            ]);
-
-            // Jane reviews Katy's Farm - medium rating yellow
-            \App\Models\Rating::create([
-                'user_id' => $jane->id,
-                'establishment_id' => $katys->id,
-                'taste_rating' => 3,
-                'environment_rating' => 3,
-                'cleanliness_rating' => 3,
-                'service_rating' => 3,
-                'image' => null,
-                'owner_response' => null,
-            ]);
-        }
-
-        // ─────────────────────────────────────────
-        // 6. COUPON PROMOS
-        // ─────────────────────────────────────────
         \App\Models\CouponPromo::firstOrCreate(
             ['title' => '20% Off Premium Barako Beans'],
             [
@@ -239,13 +155,112 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // ─────────────────────────────────────────
-        // 7. MARKETPLACE DATA
-        // ─────────────────────────────────────────
         $this->call([
             MarketplaceSeeder::class,
-            CafeOwnerSeeder::class,
-            ResellerUserSeeder::class,
         ]);
+    }
+
+    private function cleanupSeededDummyData(array $allowedEmails): void
+    {
+        $allowedUserIds = DB::table('users')
+            ->whereIn('email', $allowedEmails)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (empty($allowedUserIds)) {
+            return;
+        }
+
+        $allowedEstablishmentIds = [];
+        if (Schema::hasTable('establishments')) {
+            $establishmentQuery = DB::table('establishments');
+
+            if (Schema::hasColumn('establishments', 'owner_id')) {
+                $establishmentQuery->whereIn('owner_id', $allowedUserIds);
+            } elseif (Schema::hasColumn('establishments', 'user_id')) {
+                $establishmentQuery->whereIn('user_id', $allowedUserIds);
+            } else {
+                $establishmentQuery->whereRaw('1 = 0');
+            }
+
+            $allowedEstablishmentIds = $establishmentQuery
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+        }
+
+        if (Schema::hasTable('orders')) {
+            DB::table('orders')->delete();
+        }
+
+        if (Schema::hasTable('bulk_orders')) {
+            DB::table('bulk_orders')->delete();
+        }
+
+        if (Schema::hasTable('reseller_products')) {
+            DB::table('reseller_products')->delete();
+        }
+
+        if (Schema::hasTable('products')) {
+            DB::table('products')->delete();
+        }
+
+        if (Schema::hasTable('recommendations')) {
+            if (Schema::hasColumn('recommendations', 'establishment_id') && !empty($allowedEstablishmentIds)) {
+                DB::table('recommendations')->whereNotIn('establishment_id', $allowedEstablishmentIds)->delete();
+            } else {
+                DB::table('recommendations')->delete();
+            }
+        }
+
+        if (Schema::hasTable('rating')) {
+            if (Schema::hasColumn('rating', 'user_id')) {
+                DB::table('rating')->whereNotIn('user_id', $allowedUserIds)->delete();
+            }
+        }
+
+        if (Schema::hasTable('coffee_trails')) {
+            if (Schema::hasColumn('coffee_trails', 'user_id')) {
+                DB::table('coffee_trails')->whereNotIn('user_id', $allowedUserIds)->delete();
+            } else {
+                DB::table('coffee_trails')->delete();
+            }
+        }
+
+        if (Schema::hasTable('coupon_promos')) {
+            if (Schema::hasColumn('coupon_promos', 'establishment_id') && !empty($allowedEstablishmentIds)) {
+                DB::table('coupon_promos')->whereNotIn('establishment_id', $allowedEstablishmentIds)->delete();
+            } else {
+                DB::table('coupon_promos')->delete();
+            }
+        }
+
+        if (Schema::hasTable('messages')) {
+            DB::table('messages')->delete();
+        }
+
+        if (Schema::hasTable('conversation_participants')) {
+            DB::table('conversation_participants')->whereNotIn('user_id', $allowedUserIds)->delete();
+        }
+
+        if (Schema::hasTable('conversations')) {
+            if (Schema::hasTable('conversation_participants') && Schema::hasColumn('conversation_participants', 'conversation_id')) {
+                $conversationIds = DB::table('conversation_participants')
+                    ->distinct()
+                    ->pluck('conversation_id')
+                    ->all();
+
+                if (empty($conversationIds)) {
+                    DB::table('conversations')->delete();
+                } else {
+                    DB::table('conversations')->whereNotIn('id', $conversationIds)->delete();
+                }
+            } else {
+                DB::table('conversations')->delete();
+            }
+        }
+
+        DB::table('users')->whereNotIn('email', $allowedEmails)->delete();
     }
 }

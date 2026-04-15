@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 
 class AuthController extends Controller
@@ -25,11 +27,18 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
+        $normalizedEmail = Str::lower(trim((string) $validated['email']));
+        $user = User::query()
+            ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+            ->first();
+
+        if (!$user || !$this->passwordMatchesAndUpgradeIfNeeded($user, (string) $validated['password'])) {
             return back()
                 ->withErrors(['email' => 'Invalid credentials. Please try again.'])
                 ->withInput($request->except('password'));
         }
+
+        Auth::login($user);
 
         // Regenerate session
         $request->session()->regenerate();
@@ -84,5 +93,25 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect('/login');
+    }
+
+    private function passwordMatchesAndUpgradeIfNeeded(User $user, string $inputPassword): bool
+    {
+        $storedPassword = (string) ($user->password ?? '');
+
+        if (Hash::check($inputPassword, $storedPassword)) {
+            return true;
+        }
+
+        // Compatibility path for manually inserted plain-text passwords.
+        if ($storedPassword !== '' && hash_equals(trim($storedPassword), trim($inputPassword))) {
+            $user->forceFill([
+                'password' => Hash::make($inputPassword),
+            ])->save();
+
+            return true;
+        }
+
+        return false;
     }
 }

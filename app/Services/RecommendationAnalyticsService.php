@@ -21,25 +21,30 @@ class RecommendationAnalyticsService
             ')
             ->first();
 
+        if ($stats->total_reviews == 0) {
+            return [
+                'averages' => ['taste' => 0, 'environment' => 0, 'cleanliness' => 0, 'service' => 0],
+                'overall_average' => 0,
+                'total_reviews' => 0,
+                'needs_attention' => null,
+                'impact_percentages' => ['taste' => 0, 'environment' => 0, 'cleanliness' => 0, 'service' => 0],
+            ];
+        }
+
         $categories = [
-            'taste' => $stats->taste_avg,
-            'environment' => $stats->environment_avg,
-            'cleanliness' => $stats->cleanliness_avg,
-            'service' => $stats->service_avg,
+            'taste' => (float) ($stats->taste_avg ?? 0),
+            'environment' => (float) ($stats->environment_avg ?? 0),
+            'cleanliness' => (float) ($stats->cleanliness_avg ?? 0),
+            'service' => (float) ($stats->service_avg ?? 0),
         ];
 
         $lowestCategory = array_keys($categories, min($categories))[0];
 
-        // Percentage impact: since overall is average of 4, each category impacts 25%
-        // But to make it more meaningful, perhaps the contribution to overall
-        $impactPercentages = [];
-        foreach ($categories as $cat => $avg) {
-            $impactPercentages[$cat] = round(($avg / $stats->overall_avg) * 25, 2); // normalized to 25% each
-        }
+        $impactPercentages = $this->calculateImpactPercentages($categories, $stats->overall_avg);
 
         return [
             'averages' => $categories,
-            'overall_average' => $stats->overall_avg,
+            'overall_average' => (float) ($stats->overall_avg ?? 0),
             'total_reviews' => $stats->total_reviews,
             'needs_attention' => $lowestCategory,
             'impact_percentages' => $impactPercentages,
@@ -71,22 +76,19 @@ class RecommendationAnalyticsService
         }
 
         $categories = [
-            'taste' => $stats->taste_avg,
-            'environment' => $stats->environment_avg,
-            'cleanliness' => $stats->cleanliness_avg,
-            'service' => $stats->service_avg,
+            'taste' => (float) ($stats->taste_avg ?? 0),
+            'environment' => (float) ($stats->environment_avg ?? 0),
+            'cleanliness' => (float) ($stats->cleanliness_avg ?? 0),
+            'service' => (float) ($stats->service_avg ?? 0),
         ];
 
         $lowestCategory = array_keys($categories, min($categories))[0];
 
-        $impactPercentages = [];
-        foreach ($categories as $cat => $avg) {
-            $impactPercentages[$cat] = round(($avg / $stats->overall_avg) * 25, 2);
-        }
+        $impactPercentages = $this->calculateImpactPercentages($categories, $stats->overall_avg);
 
         return [
             'averages' => $categories,
-            'overall_average' => $stats->overall_avg,
+            'overall_average' => (float) ($stats->overall_avg ?? 0),
             'total_reviews' => $stats->total_reviews,
             'needs_attention' => $lowestCategory,
             'impact_percentages' => $impactPercentages,
@@ -144,6 +146,27 @@ class RecommendationAnalyticsService
                 ]
             );
         }
+    }
+
+    private function calculateImpactPercentages(array $categories, $overallAvg): array
+    {
+        $overallAvg = (float) ($overallAvg ?? 0);
+
+        if ($overallAvg <= 0) {
+            return [
+                'taste' => 0,
+                'environment' => 0,
+                'cleanliness' => 0,
+                'service' => 0,
+            ];
+        }
+
+        $impactPercentages = [];
+        foreach ($categories as $category => $average) {
+            $impactPercentages[$category] = round(((float) $average / $overallAvg) * 25, 2);
+        }
+
+        return $impactPercentages;
     }
 
     private function calculatePriority($avg)

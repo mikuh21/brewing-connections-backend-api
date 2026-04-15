@@ -158,7 +158,23 @@
             } else {
                 $sidebarEstablishmentQuery->where('owner_id', $sidebarUserId);
             }
-            $sidebarEstablishment = $sidebarEstablishmentQuery->first();
+
+            $sidebarActiveEstablishmentId = (int) session('cafe_owner_active_establishment_id', 0);
+            $sidebarEstablishment = null;
+
+            if ($sidebarActiveEstablishmentId > 0) {
+                $sidebarEstablishment = (clone $sidebarEstablishmentQuery)
+                    ->whereKey($sidebarActiveEstablishmentId)
+                    ->first();
+            }
+
+            if (!$sidebarEstablishment) {
+                $sidebarEstablishment = (clone $sidebarEstablishmentQuery)
+                    ->orderByDesc('updated_at')
+                    ->orderByDesc('id')
+                    ->first();
+            }
+
             $sidebarImage = optional($sidebarEstablishment)->image;
             $sidebarProfileX = (int) (optional($sidebarEstablishment)->profile_focus_x ?? 50);
             $sidebarProfileY = (int) (optional($sidebarEstablishment)->profile_focus_y ?? 50);
@@ -235,9 +251,9 @@
 
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center min-w-0">
-                <div class="w-10 h-10 bg-[#4A6741] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm mr-3">
+                <div class="w-10 h-10 shrink-0 bg-[#4A6741] rounded-full overflow-hidden flex items-center justify-center text-white font-bold text-sm mr-3">
                     @if($sidebarImage)
-                        <img src="{{ $sidebarImage }}" alt="Profile" class="w-full h-full object-cover" style="object-position: {{ $sidebarProfileX }}% {{ $sidebarProfileY }}%;" />
+                        <img src="{{ $sidebarImage }}" alt="Profile" class="block w-full h-full object-cover" style="object-position: {{ $sidebarProfileX }}% {{ $sidebarProfileY }}%;" />
                     @else
                         {{ strtoupper(substr(auth()->user()->name ?? 'F', 0, 1)) }}
                     @endif

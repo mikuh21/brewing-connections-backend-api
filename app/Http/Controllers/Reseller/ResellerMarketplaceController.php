@@ -292,6 +292,50 @@ class ResellerMarketplaceController extends Controller
         return back()->with('status', 'Product updated successfully.');
     }
 
+    public function updateProductVisibility(Request $request, ResellerProduct $product)
+    {
+        $userId = (int) Auth::id();
+
+        if ((int) $product->reseller_id !== $userId) {
+            abort(403);
+        }
+
+        $productModel = Product::query()->find($product->product_id);
+        if (!$productModel) {
+            abort(404);
+        }
+
+        if (Schema::hasColumn('products', 'seller_type') && (string) $productModel->seller_type !== 'reseller') {
+            abort(403);
+        }
+
+        if (!Schema::hasColumn('products', 'is_active')) {
+            return response()->json([
+                'message' => 'Product visibility is not supported in this environment.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $productModel->update([
+            'is_active' => (bool) $validated['is_active'],
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Product visibility updated successfully.',
+                'product' => [
+                    'id' => (int) $productModel->id,
+                    'is_active' => (bool) $productModel->is_active,
+                ],
+            ]);
+        }
+
+        return back()->with('status', 'Product visibility updated successfully.');
+    }
+
     public function updateOrder(Request $request, Order $order)
     {
         $userId = (int) Auth::id();

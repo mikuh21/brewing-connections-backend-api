@@ -768,6 +768,48 @@ class FarmOwnerController extends Controller
         return back()->with('status', 'Product updated successfully.');
     }
 
+    public function updateMarketplaceProductVisibility(Request $request, Product $product)
+    {
+        $user = Auth::user();
+        /** @var \App\Models\User $user */
+
+        $establishment = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest($request));
+
+        if (!$establishment || !$this->isFarmManagedByUser($establishment, $user)) {
+            abort(403);
+        }
+
+        if ((int) $product->establishment_id !== (int) $establishment->id) {
+            abort(403);
+        }
+
+        if (!Schema::hasColumn('products', 'is_active')) {
+            return response()->json([
+                'message' => 'Product visibility is not supported in this environment.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $product->update([
+            'is_active' => (bool) $validated['is_active'],
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Product visibility updated successfully.',
+                'product' => [
+                    'id' => (int) $product->id,
+                    'is_active' => (bool) $product->is_active,
+                ],
+            ]);
+        }
+
+        return back()->with('status', 'Product visibility updated successfully.');
+    }
+
     public function map()
     {
         $mapboxToken = env('MAPBOX_API_KEY');

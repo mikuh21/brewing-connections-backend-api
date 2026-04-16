@@ -114,6 +114,7 @@ Route::prefix('cafe-owner')
         Route::get('/marketplace', [CafeOwnerMarketplaceController::class, 'index'])->name('marketplace');
         Route::post('/marketplace/products', [CafeOwnerMarketplaceController::class, 'store'])->name('marketplace.products.store');
         Route::patch('/marketplace/products/{product}', [CafeOwnerMarketplaceController::class, 'updateProduct'])->name('marketplace.products.update');
+        Route::patch('/marketplace/products/{product}/visibility', [CafeOwnerMarketplaceController::class, 'updateProductVisibility'])->name('marketplace.products.visibility');
         Route::patch('/marketplace/orders/{order}', [CafeOwnerMarketplaceController::class, 'updateOrder'])->name('marketplace.orders.update');
         Route::get('/recommendations', [CafeOwnerRecommendationsController::class, 'index'])->name('recommendations');
         Route::patch('/recommendations/reviews/{rating}/owner-response', [CafeOwnerRecommendationsController::class, 'updateOwnerResponse'])->name('recommendations.reviews.owner-response');
@@ -136,6 +137,7 @@ Route::prefix('reseller')
         Route::get('/marketplace', 'App\\Http\\Controllers\\Reseller\\ResellerMarketplaceController@index')->name('marketplace');
         Route::post('/marketplace/products', 'App\\Http\\Controllers\\Reseller\\ResellerMarketplaceController@store')->name('marketplace.products.store');
         Route::patch('/marketplace/products/{product}', 'App\\Http\\Controllers\\Reseller\\ResellerMarketplaceController@updateProduct')->name('marketplace.products.update');
+        Route::patch('/marketplace/products/{product}/visibility', 'App\\Http\\Controllers\\Reseller\\ResellerMarketplaceController@updateProductVisibility')->name('marketplace.products.visibility');
         Route::patch('/marketplace/orders/{order}', 'App\\Http\\Controllers\\Reseller\\ResellerMarketplaceController@updateOrder')->name('marketplace.orders.update');
         Route::get('/map', 'App\\Http\\Controllers\\Reseller\\ResellerMapController@index')->name('map');
         Route::get('/messages', 'App\\Http\\Controllers\\Reseller\\ResellerMessagesController@index')->name('messages');
@@ -156,6 +158,7 @@ Route::prefix('farm-owner')
         Route::get('/notifications', [FarmOwnerController::class, 'notifications'])->name('notifications');
         Route::post('/marketplace/products', [FarmOwnerController::class, 'storeMarketplaceProduct'])->name('marketplace.products.store');
         Route::patch('/marketplace/products/{product}', [FarmOwnerController::class, 'updateMarketplaceProduct'])->name('marketplace.products.update');
+        Route::patch('/marketplace/products/{product}/visibility', [FarmOwnerController::class, 'updateMarketplaceProductVisibility'])->name('marketplace.products.visibility');
         Route::patch('/marketplace/orders/{order}', [FarmOwnerController::class, 'updateMarketplaceOrder'])->name('marketplace.orders.update');
         Route::get('/map', [FarmOwnerController::class, 'map'])->name('map');
         Route::get('/messages', [FarmOwnerController::class, 'messages'])->name('messages');

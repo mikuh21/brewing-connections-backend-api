@@ -31,6 +31,7 @@
             'seller_type' => $product->seller_type,
             'seller_name' => $product->seller_name,
             'reseller_name' => $product->reseller_name,
+            'is_active' => $product->is_active,
         ];
     })->values();
 @endphp
@@ -49,6 +50,7 @@
         hiddenProductIds: [],
         productsMeta: {{ Js::from($productsMeta) }},
         updateUrlTemplate: '{{ route('reseller.marketplace.products.update', ['product' => '__PRODUCT_ID__']) }}',
+        visibilityUrlTemplate: '{{ route('reseller.marketplace.products.visibility', ['product' => '__PRODUCT_ID__']) }}',
         createForm: {
             name: '',
             description: '',
@@ -162,32 +164,61 @@
             applyHashTab();
             window.addEventListener('hashchange', applyHashTab);
 
-            try {
-                const savedIds = JSON.parse(localStorage.getItem('resellerHiddenProducts') || '[]');
-                this.hiddenProductIds = Array.isArray(savedIds)
-                    ? savedIds.map((id) => Number(id)).filter((id) => Number.isFinite(id))
-                    : [];
-            } catch (_error) {
-                this.hiddenProductIds = [];
-            }
-        },
-        saveHiddenProducts() {
-            localStorage.setItem('resellerHiddenProducts', JSON.stringify(this.hiddenProductIds));
+            this.hiddenProductIds = this.productsMeta
+                .filter((product) => product.is_active === false)
+                .map((product) => Number(product.id))
+                .filter((id) => Number.isFinite(id));
         },
         isHidden(productId) {
             return this.hiddenProductIds.includes(Number(productId));
         },
-        hideProduct(productId) {
+        async updateProductVisibility(productId, isActive) {
             const normalizedId = Number(productId);
-            if (!this.hiddenProductIds.includes(normalizedId)) {
-                this.hiddenProductIds.push(normalizedId);
-                this.saveHiddenProducts();
+            const url = this.visibilityUrlTemplate.replace('__PRODUCT_ID__', String(normalizedId));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ is_active: isActive }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update product visibility.');
+            }
+
+            this.productsMeta = this.productsMeta.map((product) => {
+                if (Number(product.id) === normalizedId) {
+                    return { ...product, is_active: isActive };
+                }
+                return product;
+            });
+        },
+        async hideProduct(productId) {
+            const normalizedId = Number(productId);
+            try {
+                await this.updateProductVisibility(normalizedId, false);
+                if (!this.hiddenProductIds.includes(normalizedId)) {
+                    this.hiddenProductIds.push(normalizedId);
+                }
+            } catch (_error) {
+                alert('Unable to hide product right now.');
             }
         },
-        unhideProduct(productId) {
+        async unhideProduct(productId) {
             const normalizedId = Number(productId);
-            this.hiddenProductIds = this.hiddenProductIds.filter((id) => id !== normalizedId);
-            this.saveHiddenProducts();
+            try {
+                await this.updateProductVisibility(normalizedId, true);
+                this.hiddenProductIds = this.hiddenProductIds.filter((id) => id !== normalizedId);
+            } catch (_error) {
+                alert('Unable to unhide product right now.');
+            }
         },
         stockMeta(product) {
             const stock = Number(product.stock_quantity || 0);

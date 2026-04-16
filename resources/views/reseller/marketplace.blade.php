@@ -631,7 +631,10 @@
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->quantity }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">PHP {{ number_format((float) $order->total_price, 2) }}</td>
                                 <td class="px-4 py-3">
-                                    @php $status = strtolower((string) $order->status); @endphp
+                                    @php
+                                        $status = strtolower((string) $order->status);
+                                        $isCanceled = in_array($status, ['canceled', 'cancelled'], true);
+                                    @endphp
                                     @if($status === 'pending')
                                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Pending</span>
                                     @elseif($status === 'confirmed')
@@ -646,13 +649,13 @@
                                     <form method="POST" action="{{ route('reseller.marketplace.orders.update', $order) }}" class="flex items-center gap-2">
                                         @csrf
                                         @method('PATCH')
-                                        <select name="status" class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
+                                        <select name="status" @disabled($isCanceled) class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                             <option value="pending" @selected($status === 'pending')>Pending</option>
                                             <option value="confirmed" @selected($status === 'confirmed')>Confirmed</option>
                                             <option value="completed" @selected($status === 'completed')>Completed</option>
                                             <option value="canceled" @selected(in_array($status, ['canceled', 'cancelled'], true))>Canceled</option>
                                         </select>
-                                        <button type="submit" class="px-2.5 py-1 text-xs rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] transition-colors">Save</button>
+                                        <button type="submit" @disabled($isCanceled) class="px-2.5 py-1 text-xs rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">Save</button>
                                     </form>
                                 </td>
                             </tr>

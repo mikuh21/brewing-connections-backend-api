@@ -540,6 +540,12 @@ class FarmOwnerController extends Controller
             abort(403);
         }
 
+        if (in_array(strtolower((string) $order->status), ['canceled', 'cancelled'], true)) {
+            return back()->withErrors([
+                'status' => 'Cancelled orders can no longer be updated.',
+            ]);
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,completed,canceled,cancelled',
         ]);

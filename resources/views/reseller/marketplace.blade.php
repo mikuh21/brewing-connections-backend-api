@@ -175,7 +175,7 @@
         async updateProductVisibility(productId, isActive) {
             const normalizedId = Number(productId);
             const url = this.visibilityUrlTemplate.replace('__PRODUCT_ID__', String(normalizedId));
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
 
             const response = await fetch(url, {
                 method: 'PATCH',

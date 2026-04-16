@@ -277,7 +277,7 @@ class CafeOwnerMarketplaceController extends Controller
             'status' => 'required|in:pending,confirmed,completed,canceled,cancelled',
         ]);
 
-        $status = $validated['status'] === 'cancelled' ? 'canceled' : $validated['status'];
+        $status = $validated['status'] === 'canceled' ? 'cancelled' : $validated['status'];
 
         $order->update([
             'status' => $status,

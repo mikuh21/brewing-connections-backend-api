@@ -548,7 +548,7 @@
 
                 <div class="p-3">
                     <div class="flex items-start justify-between gap-2 mb-1">
-                        <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate">{{ $product->name }}</h3>
+                        <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate" style="font-family: 'Poppins', sans-serif;">{{ $product->name }}</h3>
                         <button
                             type="button"
                             @click='openViewer({{ json_encode([

@@ -352,7 +352,7 @@
 
                 <div class="p-3">
                     <div class="flex items-start justify-between gap-2 mb-1">
-                        <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate">{{ $product->name }}</h3>
+                        <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate" style="font-family: 'Poppins', sans-serif;">{{ $product->name }}</h3>
                         <span class="text-xs px-2 py-0.5 rounded-full {{ $stockClass }} whitespace-nowrap">{{ $stockLabel }}</span>
                     </div>
 
@@ -607,7 +607,7 @@
                             >
                                 <td class="px-4 py-3 text-sm font-medium text-[#3A2E22]">#{{ $order->id }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->user->name ?? 'N/A' }}</td>
-                                <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->product->name ?? 'N/A' }}</td>
+                                <td class="px-4 py-3 text-sm text-[#6B5B4A]" style="font-family: 'Poppins', sans-serif;">{{ $order->product->name ?? 'N/A' }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->quantity }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">PHP {{ number_format((float) $order->total_price, 2) }}</td>
                                 <td class="px-4 py-3">

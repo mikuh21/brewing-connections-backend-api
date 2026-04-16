@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\CoffeeTrail;
 use App\Models\Establishment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -10,6 +11,62 @@ use Illuminate\Support\Facades\Http;
 
 class CoffeeTrailController extends Controller
 {
+    protected function normalizeStringList(array $values): array
+    {
+        return collect($values)
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->unique(fn ($value) => strtolower($value))
+            ->values()
+            ->all();
+    }
+
+    protected function inferRecommendationReason($establishment, array $selectedVarieties): string
+    {
+        $selectedLookup = collect($selectedVarieties)
+            ->map(fn ($name) => strtolower(trim((string) $name)))
+            ->filter()
+            ->values();
+
+        $matchedVarieties = collect($establishment->varieties ?? [])
+            ->pluck('name')
+            ->map(fn ($name) => trim((string) $name))
+            ->filter()
+            ->values();
+
+        $matchingNames = $matchedVarieties
+            ->filter(fn ($name) => $selectedLookup->contains(strtolower($name)))
+            ->values();
+
+        if ($matchingNames->isNotEmpty()) {
+            return 'Matches your preferred coffee varieties: ' . $matchingNames->join(', ') . '.';
+        }
+
+        $type = strtolower((string) ($establishment->type ?? 'establishment'));
+        return sprintf('Recommended based on your selected %s stops and nearby route fit.', $type);
+    }
+
+    protected function toTrailResponse(CoffeeTrail $trail): array
+    {
+        return [
+            'trail_id' => $trail->id,
+            'created_at' => optional($trail->created_at)->toIso8601String(),
+            'origin' => [
+                'latitude' => (float) ($trail->origin_lat ?? 0),
+                'longitude' => (float) ($trail->origin_lng ?? 0),
+            ],
+            'preferences' => [
+                'varieties' => array_values($trail->preferences['varieties'] ?? []),
+                'types' => array_values($trail->preferences['types'] ?? []),
+                'max_stops' => (int) ($trail->preferences['max_stops'] ?? 0),
+            ],
+            'stops' => array_values($trail->trail_data ?? []),
+            'route_geometry' => $trail->route_geometry,
+            'total_distance_km' => $trail->total_distance_km,
+            'total_duration_min' => $trail->total_duration_min,
+        ];
+    }
+
     public function generate(Request $request)
     {
         $data = $request->validate([
@@ -24,7 +81,7 @@ class CoffeeTrailController extends Controller
 
         $lat = (float) $data['lat'];
         $lng = (float) $data['lng'];
-        $varieties = array_values(array_filter($data['varieties'], fn ($v) => trim((string) $v) !== ''));
+        $varieties = $this->normalizeStringList($data['varieties']);
         $types = collect($data['types'] ?? [])
             ->map(fn ($type) => strtolower(trim((string) $type)))
             ->filter()
@@ -38,7 +95,8 @@ class CoffeeTrailController extends Controller
         }
 
         // Find candidate establishments (capped to max_stops * 2). We keep top 2x by distance.
-        $candidates = Establishment::getNearbyForTrail($lat, $lng, $varieties, $types, $maxStops * 2);
+        $candidates = Establishment::getNearbyForTrail($lat, $lng, $varieties, $types, $maxStops * 2)
+            ->load('varieties');
 
         if ($candidates->isEmpty()) {
             return response()->json(['message' => 'No coffee establishments found in range for selected varieties'], 404);
@@ -123,7 +181,7 @@ class CoffeeTrailController extends Controller
 
         $trip = $finalTrips[0];
 
-        $stops = $selectedStops->values()->map(function ($establishment, $index) {
+        $stops = $selectedStops->values()->map(function ($establishment, $index) use ($varieties) {
             return [
                 'sequence' => $index + 1,
                 'establishment_id' => $establishment->id,
@@ -133,14 +191,38 @@ class CoffeeTrailController extends Controller
                 'address' => $establishment->address,
                 'latitude' => $establishment->latitude,
                 'longitude' => $establishment->longitude,
+                'why_recommended' => $this->inferRecommendationReason($establishment, $varieties),
             ];
-        });
+        })->values();
 
-        return response()->json([
-            'stops' => $stops,
+        $trail = CoffeeTrail::create([
+            'user_id' => optional($request->user())->id,
+            'origin_lat' => $lat,
+            'origin_lng' => $lng,
+            'preferences' => [
+                'varieties' => $varieties,
+                'types' => $types,
+                'max_stops' => (int) $maxStops,
+            ],
+            'trail_data' => $stops,
             'route_geometry' => $trip['geometry'] ?? null,
             'total_distance_km' => isset($trip['distance']) ? round($trip['distance'] / 1000, 3) : null,
             'total_duration_min' => isset($trip['duration']) ? round($trip['duration'] / 60, 1) : null,
+        ]);
+
+        return response()->json($this->toTrailResponse($trail));
+    }
+
+    public function history(Request $request)
+    {
+        $trails = CoffeeTrail::query()
+            ->where('user_id', optional($request->user())->id)
+            ->latest()
+            ->limit(30)
+            ->get();
+
+        return response()->json([
+            'history' => $trails->map(fn (CoffeeTrail $trail) => $this->toTrailResponse($trail))->values(),
         ]);
     }
 }

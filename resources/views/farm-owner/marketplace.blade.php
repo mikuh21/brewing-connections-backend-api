@@ -45,6 +45,8 @@
         statusFilter: 'all',
         orderSearch: '',
         searchTerm: '',
+        csrfToken: '{{ csrf_token() }}',
+        activeFarmId: {{ $activeFarmId }},
         hiddenProductIds: [],
         productsMeta: {{ Js::from($productsMeta) }},
         updateUrlTemplate: '{{ route('farm-owner.marketplace.products.update', ['product' => '__PRODUCT_ID__']) }}',
@@ -173,18 +175,22 @@
         async updateProductVisibility(productId, isActive) {
             const normalizedId = Number(productId);
             const url = this.visibilityUrlTemplate.replace('__PRODUCT_ID__', String(normalizedId));
-            const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
+            const payload = { is_active: isActive };
+
+            if (Number(this.activeFarmId) > 0) {
+                payload.farm_id = Number(this.activeFarmId);
+            }
 
             const response = await fetch(url, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': this.csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
                 },
                 credentials: 'same-origin',
-                body: JSON.stringify({ is_active: isActive }),
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {

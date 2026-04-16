@@ -44,6 +44,7 @@
         statusFilter: 'all',
         orderSearch: '',
         searchTerm: '',
+        csrfToken: '{{ csrf_token() }}',
         hiddenProductIds: [],
         productsMeta: {{ Js::from($productsMeta) }},
         updateUrlTemplate: '{{ route('cafe-owner.marketplace.products.update', ['product' => '__PRODUCT_ID__']) }}',
@@ -172,13 +173,12 @@
         async updateProductVisibility(productId, isActive) {
             const normalizedId = Number(productId);
             const url = this.visibilityUrlTemplate.replace('__PRODUCT_ID__', String(normalizedId));
-            const csrfToken = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || '';
 
             const response = await fetch(url, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': this.csrfToken,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
                 },

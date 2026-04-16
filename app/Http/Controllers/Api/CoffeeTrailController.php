@@ -67,6 +67,112 @@ class CoffeeTrailController extends Controller
         ];
     }
 
+    protected function buildPreviewPayload(array $varieties, array $types, int $maxStops): array
+    {
+        $selectedVarietyNames = collect($varieties)->take(2)->join(' + ');
+        $selectedTypeLabels = collect($types)
+            ->map(function ($type) {
+                return match ($type) {
+                    'farm' => 'Farms',
+                    'cafe' => 'Cafes',
+                    'roaster' => 'Roasters',
+                    'reseller' => 'Resellers',
+                    default => ucfirst((string) $type),
+                };
+            })
+            ->take(2)
+            ->join(' + ');
+
+        $hasVarieties = count($varieties) > 0;
+        $hasTypes = count($types) > 0;
+
+        $headline = $hasVarieties && $hasTypes ? 'AI Recommendation Preview' : 'AI Setup Tip';
+        $summary = $hasVarieties && $hasTypes
+            ? sprintf(
+                'Your trail will prioritize %s across %s with %d stop%s.',
+                $selectedVarietyNames ?: 'your selected varieties',
+                $selectedTypeLabels ?: 'your selected stop types',
+                $maxStops,
+                $maxStops > 1 ? 's' : ''
+            )
+            : 'Select at least one variety and one visit type so AI can personalize your route.';
+
+        $routeHint = $maxStops >= 4
+            ? 'Longer trail mode: AI will optimize pacing for more stops.'
+            : 'Compact trail mode: AI will prioritize faster travel time between stops.';
+
+        $balanceHint = 'Balanced trail: includes both sourcing and tasting opportunities.';
+        if (count($types) === 1 && $types[0] === 'farm') {
+            $balanceHint = 'Farm-focused route: best for bean-origin discovery.';
+        } elseif (count($types) === 1 && $types[0] === 'cafe') {
+            $balanceHint = 'Cafe-focused route: best for tasting and atmosphere variety.';
+        }
+
+        $suggestion = 'Your setup looks balanced. You can generate now.';
+        if (!$hasVarieties) {
+            $suggestion = 'Add at least one coffee variety to improve recommendation quality.';
+        } elseif (!$hasTypes) {
+            $suggestion = 'Pick at least one visit type so AI can shape the route style.';
+        } elseif (count($types) === 1 && $types[0] === 'farm') {
+            $suggestion = 'Tip: add one cafe stop to improve tasting variety.';
+        } elseif (count($types) === 1 && $types[0] === 'cafe') {
+            $suggestion = 'Tip: add one farm stop to enrich origin learning.';
+        } elseif ($maxStops <= 2) {
+            $suggestion = 'Tip: try 3-4 stops for better route diversity.';
+        } elseif ($maxStops >= 5) {
+            $suggestion = 'Tip: reduce to 4 stops if you want a shorter overall trip.';
+        }
+
+        $score = 20;
+        if ($hasVarieties) {
+            $score += 30;
+        }
+        if ($hasTypes) {
+            $score += 30;
+        }
+        if ($maxStops >= 3 && $maxStops <= 4) {
+            $score += 10;
+        }
+        if (in_array('farm', $types, true) && in_array('cafe', $types, true)) {
+            $score += 5;
+        }
+        $score = max(20, min(95, $score));
+
+        $confidenceLabel = $score >= 75 ? 'High confidence' : ($score >= 50 ? 'Medium confidence' : 'Low confidence');
+
+        return [
+            'headline' => $headline,
+            'summary' => $summary,
+            'route_hint' => $routeHint,
+            'balance_hint' => $balanceHint,
+            'suggestion' => $suggestion,
+            'confidence_score' => $score,
+            'confidence_label' => $confidenceLabel,
+        ];
+    }
+
+    public function preview(Request $request)
+    {
+        $data = $request->validate([
+            'varieties' => 'nullable|array',
+            'varieties.*' => 'required|string|max:100',
+            'types' => 'nullable|array',
+            'types.*' => 'required|string|in:farm,cafe,roaster,reseller',
+            'max_stops' => 'nullable|integer|min:2|max:5',
+        ]);
+
+        $varieties = $this->normalizeStringList($data['varieties'] ?? []);
+        $types = collect($data['types'] ?? [])
+            ->map(fn ($type) => strtolower(trim((string) $type)))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $maxStops = (int) ($data['max_stops'] ?? 2);
+
+        return response()->json($this->buildPreviewPayload($varieties, $types, $maxStops));
+    }
+
     public function generate(Request $request)
     {
         $data = $request->validate([

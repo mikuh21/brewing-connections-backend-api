@@ -33,6 +33,7 @@ Route::get('/mobile/establishments/geojson', [PublicEstablishmentGeoJsonControll
 Route::middleware(['auth'])->put('/user-location', [\App\Http\Controllers\UserLocationController::class, 'update']);
 
 // Coffee trail generation via Mapbox Optimization
+Route::middleware(['auth:api'])->post('/coffee-trail/preview', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'preview']);
 Route::middleware(['auth:api'])->post('/coffee-trail/generate', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'generate']);
 Route::middleware(['auth:api'])->get('/coffee-trail/history', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'history']);
 

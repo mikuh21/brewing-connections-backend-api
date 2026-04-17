@@ -10,8 +10,10 @@ use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
-Route::post('/password/email', [PasswordResetController::class, 'sendResetLink']);
+Route::post('/password/forgot', [PasswordResetController::class, 'sendOtp']);
+Route::post('/password/reset', [PasswordResetController::class, 'resetWithOtp']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);
+Route::post('/password/email', [PasswordResetController::class, 'sendOtp']);
 
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

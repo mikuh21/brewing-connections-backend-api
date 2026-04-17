@@ -3,6 +3,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ResellerRegistrationController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\MapController;
@@ -29,6 +30,8 @@ Route::get('/', function () {
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.reset.submit');
 Route::post('/reseller/register', [ResellerRegistrationController::class, 'store'])->name('reseller.register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 

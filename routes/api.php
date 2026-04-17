@@ -4,11 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\EstablishmentGeoJsonController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MarketplaceController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendTemporaryPassword']);
+Route::post('/password/email', [PasswordResetController::class, 'sendTemporaryPassword']);
 
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

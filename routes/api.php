@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\EstablishmentGeoJsonController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\RatingController;
@@ -18,6 +19,10 @@ Route::post('/password/email', [PasswordResetController::class, 'sendOtp']);
 Route::middleware(['auth:api'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'me']);
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'sendOtp'])
+        ->middleware(['throttle:6,1']);
+    Route::post('/email/verify-otp', [EmailVerificationController::class, 'verifyOtp'])
+        ->middleware(['throttle:6,1']);
     Route::get('/orders', [MarketplaceController::class, 'orders']);
     Route::post('/orders', [MarketplaceController::class, 'storeOrder']);
     Route::patch('/orders/{order}', [MarketplaceController::class, 'updateOrder']);

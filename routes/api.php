@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\EstablishmentGeoJsonController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\PasswordResetController;
@@ -26,6 +27,12 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/orders', [MarketplaceController::class, 'orders']);
     Route::post('/orders', [MarketplaceController::class, 'storeOrder']);
     Route::patch('/orders/{order}', [MarketplaceController::class, 'updateOrder']);
+    Route::get('/conversations', [ChatController::class, 'conversations']);
+    Route::get('/conversations/{conversation}/messages', [ChatController::class, 'messages']);
+    Route::post('/conversations', [ChatController::class, 'storeConversation']);
+    Route::post('/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
+    Route::get('/chat/recipients', [ChatController::class, 'recipients']);
+    Route::post('/messages', [ChatController::class, 'sendMessage']);
 });
 
 Route::get('/products', [MarketplaceController::class, 'products']);

@@ -242,7 +242,9 @@
 
                     <!-- Messages Area -->
                     <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
-                        @php($lastMessageDate = null)
+                        @php
+                            $lastMessageDate = null;
+                        @endphp
                         @foreach($messages as $message)
                             @php
                                 $isOwn = $message->sender_id === Auth::id();
@@ -255,7 +257,9 @@
                                     <span class="text-[11px] font-medium text-gray-500">{{ $message->created_at->format('M j, Y') }}</span>
                                     <div class="h-px flex-1 bg-gray-200"></div>
                                 </div>
-                                @php($lastMessageDate = $messageDateKey)
+                                @php
+                                    $lastMessageDate = $messageDateKey;
+                                @endphp
                             @endif
 
                             <div class="space-y-1" data-message-group="1" data-message-date="{{ $messageDateKey }}">

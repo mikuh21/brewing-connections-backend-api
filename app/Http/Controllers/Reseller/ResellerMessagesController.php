@@ -101,7 +101,7 @@ class ResellerMessagesController extends Controller
             'body' => $message->body,
             'sender_id' => $message->sender_id,
             'sender_name' => Auth::user()->name,
-            'created_at' => $message->created_at->format('M d, Y h:i A'),
+            'created_at' => $message->created_at->toIso8601String(),
         ]);
     }
 }

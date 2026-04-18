@@ -114,21 +114,34 @@
                     </div>
 
                     <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container">
+                        @php($lastMessageDate = null)
                         @foreach($messages as $message)
                             @php
                                 $isOwn = $message->sender_id === Auth::id();
+                                $messageDateKey = $message->created_at->toDateString();
                             @endphp
 
-                            <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }}">
-                                <div class="max-w-xs {{ $isOwn ? 'bg-[#2C4A2E] text-white' : 'bg-gray-100 text-gray-900' }} rounded-2xl px-4 py-2">
-                                    <p class="text-sm">{{ $message->body }}</p>
+                            @if($lastMessageDate !== $messageDateKey)
+                                <div class="flex items-center gap-3 py-2">
+                                    <div class="h-px flex-1 bg-gray-200"></div>
+                                    <span class="text-[11px] font-medium text-gray-500">{{ $message->created_at->format('M j, Y') }}</span>
+                                    <div class="h-px flex-1 bg-gray-200"></div>
                                 </div>
-                            </div>
+                                @php($lastMessageDate = $messageDateKey)
+                            @endif
 
-                            <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }}">
-                                <p class="text-xs text-gray-500">
-                                    <span class="font-semibold">{{ $isOwn ? 'You' : $message->sender->name }}</span> • {{ $message->created_at->format('H:i') }}
-                                </p>
+                            <div class="space-y-1" data-message-group="1" data-message-date="{{ $messageDateKey }}">
+                                <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }}">
+                                    <div class="max-w-xs {{ $isOwn ? 'bg-[#2C4A2E] text-white' : 'bg-gray-100 text-gray-900' }} rounded-2xl px-4 py-2">
+                                        <p class="text-sm">{{ $message->body }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex {{ $isOwn ? 'justify-end' : 'justify-start' }}">
+                                    <p class="text-xs text-gray-500">
+                                        <span class="font-semibold">{{ $isOwn ? 'You' : $message->sender->name }}</span> • {{ $message->created_at->format('M j') }} • {{ $message->created_at->format('g:i A') }}
+                                    </p>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -280,6 +293,76 @@
 </style>
 
 <script>
+    const escapeHtml = (value = '') => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+
+    const formatChatTimestamp = (dateInput) => {
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+
+        const day = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        return `${day} • ${time}`;
+    };
+
+    const formatChatDateLabel = (dateInput) => {
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+
+    const formatDateKey = (dateInput) => {
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().slice(0, 10);
+    };
+
+    const appendDateDividerIfNeeded = (container, dateInput) => {
+        if (!container) return;
+
+        const nextDateKey = formatDateKey(dateInput);
+        const groups = container.querySelectorAll('[data-message-group]');
+        const lastGroup = groups.length ? groups[groups.length - 1] : null;
+        const lastDateKey = lastGroup?.getAttribute('data-message-date') || '';
+
+        if (nextDateKey && nextDateKey !== lastDateKey) {
+            const dividerHtml = `
+                <div class="flex items-center gap-3 py-2">
+                    <div class="h-px flex-1 bg-gray-200"></div>
+                    <span class="text-[11px] font-medium text-gray-500">${formatChatDateLabel(dateInput)}</span>
+                    <div class="h-px flex-1 bg-gray-200"></div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', dividerHtml);
+        }
+    };
+
+    const buildMessageGroupHtml = ({ isOwnMessage, senderName, body, createdAt }) => {
+        const safeBody = escapeHtml(body || '');
+        const safeSender = escapeHtml(senderName || 'User');
+        const safeDateKey = formatDateKey(createdAt);
+        const timestamp = formatChatTimestamp(createdAt);
+
+        return `
+            <div class="space-y-1" data-message-group="1" data-message-date="${safeDateKey}">
+                <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'}">
+                    <div class="max-w-xs ${isOwnMessage ? 'bg-[#2C4A2E] text-white' : 'bg-gray-100 text-gray-900'} rounded-2xl px-4 py-2">
+                        <p class="text-sm">${safeBody}</p>
+                    </div>
+                </div>
+                <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'}">
+                    <p class="text-xs text-gray-500">
+                        <span class="font-semibold">${isOwnMessage ? 'You' : safeSender}</span> • ${timestamp}
+                    </p>
+                </div>
+            </div>
+        `;
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         const messagesContainer = document.getElementById('messages-container');
         if (messagesContainer) {
@@ -309,28 +392,14 @@
                 const data = await response.json();
 
                 if (container) {
-                    const now = new Date();
-                    const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const safeBody = (data?.body ?? body)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#039;');
-
-                    const messageHtml = `
-                        <div class="flex justify-end">
-                            <div class="max-w-xs bg-[#2C4A2E] text-white rounded-2xl px-4 py-2">
-                                <p class="text-sm">${safeBody}</p>
-                            </div>
-                        </div>
-                        <div class="flex justify-end">
-                            <p class="text-xs text-gray-500">
-                                <span class="font-semibold">You</span> • ${timeLabel}
-                            </p>
-                        </div>
-                    `;
-
+                    const createdAt = data?.created_at || new Date().toISOString();
+                    appendDateDividerIfNeeded(container, createdAt);
+                    const messageHtml = buildMessageGroupHtml({
+                        isOwnMessage: true,
+                        senderName: 'You',
+                        body: data?.body ?? body,
+                        createdAt,
+                    });
                     container.insertAdjacentHTML('beforeend', messageHtml);
                     container.scrollTop = container.scrollHeight;
                 }
@@ -353,19 +422,14 @@
                 if (!container) return;
 
                 const isOwnMessage = e.sender_id === {{ Auth::id() }};
-                const messageHtml = `
-                    <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'}">
-                        <div class="max-w-xs ${isOwnMessage ? 'bg-[#2C4A2E] text-white' : 'bg-gray-100 text-gray-900'} rounded-2xl px-4 py-2">
-                            <p class="text-sm">${e.body}</p>
-                        </div>
-                    </div>
-                    <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'}">
-                        <p class="text-xs text-gray-500">
-                            <span class="font-semibold">${isOwnMessage ? 'You' : e.sender_name}</span> • ${new Date(e.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                    </div>
-                `;
-
+                const createdAt = e.created_at || new Date().toISOString();
+                appendDateDividerIfNeeded(container, createdAt);
+                const messageHtml = buildMessageGroupHtml({
+                    isOwnMessage,
+                    senderName: e.sender_name,
+                    body: e.body,
+                    createdAt,
+                });
                 container.insertAdjacentHTML('beforeend', messageHtml);
                 container.scrollTop = container.scrollHeight;
             });

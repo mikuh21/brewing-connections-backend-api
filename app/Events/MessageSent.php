@@ -44,7 +44,7 @@ class MessageSent implements ShouldBroadcast
             'sender_name' => $this->message->sender->name,
             'sender_role' => $this->message->sender->role ?? 'user',
             'conversation_id' => $this->message->conversation_id,
-            'created_at' => $this->message->created_at->format('M d, Y h:i A'),
+            'created_at' => $this->message->created_at->toIso8601String(),
         ];
     }
 }

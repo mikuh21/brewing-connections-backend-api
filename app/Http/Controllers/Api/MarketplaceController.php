@@ -5,12 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\OrderStockManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MarketplaceController extends Controller
 {
+    public function __construct(
+        private readonly OrderStockManager $orderStockManager,
+    ) {
+    }
+
     public function products(Request $request): JsonResponse
     {
         $search = trim((string) $request->query('search', ''));
@@ -130,6 +136,7 @@ class MarketplaceController extends Controller
                 'quantity' => $requestedQty,
                 'total_price' => $totalPrice,
                 'status' => 'pending',
+                'stock_reserved' => true,
                 'notes' => $validated['notes'] ?? null,
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,
@@ -170,17 +177,7 @@ class MarketplaceController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($order, $validated) {
-            $order->loadMissing('product:id,stock_quantity');
-
-            if ($order->product) {
-                $order->product->stock_quantity = max(0, (int) ($order->product->stock_quantity ?? 0)) + max(0, (int) ($order->quantity ?? 0));
-                $order->product->save();
-            }
-
-            $order->status = $validated['status'] === 'canceled' ? 'cancelled' : 'cancelled';
-            $order->save();
-        });
+        $order = $this->orderStockManager->applyStatusTransition($order, 'cancelled');
 
         $order->load([
             'product:id,name,category,price_per_unit,unit,image_url,seller_type,seller_id,establishment_id',

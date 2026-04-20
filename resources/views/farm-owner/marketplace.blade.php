@@ -39,6 +39,19 @@
         showCreateModal: false,
         showEditModal: false,
         showViewModal: false,
+        showReceiptModal: false,
+        receiptData: {
+            generatedAt: '-',
+            reservationId: '-',
+            product: '-',
+            quantity: '-',
+            customer: '-',
+            seller: 'Coffee Marketplace',
+            address: '-',
+            phone: '-',
+            status: '-',
+            total: '0.00'
+        },
         editImagePreview: '',
         createImagePreview: '',
         activeTab: 'my-listings',
@@ -102,6 +115,106 @@
                 owner_name: product.owner_name || 'Unknown',
             };
             this.showViewModal = true;
+        },
+        openReceiptViewer(payload) {
+            const now = new Date();
+            this.receiptData = {
+                generatedAt: payload?.generatedAt || now.toLocaleString(),
+                reservationId: payload?.reservationId || '-',
+                product: payload?.product || '-',
+                quantity: payload?.quantity ?? '-',
+                customer: payload?.customer || '-',
+                seller: payload?.seller || 'Coffee Marketplace',
+                address: payload?.address || '-',
+                phone: payload?.phone || '-',
+                status: payload?.status || '-',
+                total: payload?.total || '0.00',
+            };
+            this.showReceiptModal = true;
+        },
+        closeReceiptViewer() {
+            this.showReceiptModal = false;
+        },
+        printReceipt() {
+            const esc = (value) => String(value ?? '-')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            const receipt = {
+                seller: esc(this.receiptData?.seller),
+                generatedAt: esc(this.receiptData?.generatedAt),
+                reservationId: esc(this.receiptData?.reservationId),
+                product: esc(this.receiptData?.product),
+                status: esc(this.receiptData?.status),
+                quantity: esc(this.receiptData?.quantity),
+                total: esc(this.receiptData?.total),
+                customer: esc(this.receiptData?.customer),
+                address: esc(this.receiptData?.address),
+                phone: esc(this.receiptData?.phone),
+            };
+
+            const printWindow = window.open('', '_blank', 'width=900,height=700');
+            if (!printWindow) {
+                alert('Please allow pop-ups to print the receipt.');
+                return;
+            }
+
+            printWindow.document.write(
+                '<!doctype html><html><head><meta charset=\'utf-8\'><meta name=\'viewport\' content=\'width=device-width,initial-scale=1\'>' +
+                '<title>BrewHub Receipt</title>' +
+                '<style>' +
+                'body{margin:0;padding:24px;background:#F3E9D7;font-family:Poppins,Arial,sans-serif;color:#3A2E22;}' +
+                '.receipt-wrap{max-width:680px;margin:0 auto;background:#fff;border:1px solid #E6DDCF;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(58,46,34,.12);}' +
+                '.header{background:#3A2E22;color:#fff;padding:20px 22px;}' +
+                '.brand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(243,233,215,.8);margin:0;}' +
+                '.title{font-size:24px;line-height:1.25;margin:8px 0 0;font-weight:700;}' +
+                '.seller{font-size:13px;color:rgba(243,233,215,.85);margin:8px 0 0;}' +
+                '.chip{float:right;border:1px solid rgba(243,233,215,.3);background:rgba(243,233,215,.14);border-radius:10px;padding:8px 10px;text-align:right;}' +
+                '.chip-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,233,215,.8);margin:0;}' +
+                '.chip-value{font-size:11px;margin:4px 0 0;}' +
+                '.content{padding:20px 22px;background:#fff;}' +
+                '.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}' +
+                '.card{border:1px solid #D7C9B1;background:rgba(243,233,215,.45);border-radius:10px;padding:10px 12px;}' +
+                '.card-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#946042;margin:0;}' +
+                '.card-value{font-size:16px;font-weight:700;color:#3A2E22;margin:4px 0 0;}' +
+                '.table{border:1px solid #E2D5C1;border-radius:10px;overflow:hidden;}' +
+                '.row{display:grid;grid-template-columns:126px 1fr;gap:10px;padding:9px 12px;border-top:1px solid #E2D5C1;}' +
+                '.row:first-child{border-top:none;}' +
+                '.k{font-size:13px;color:#946042;}' +
+                '.v{font-size:13px;color:#3A2E22;word-break:break-word;}' +
+                '@media (max-width:640px){body{padding:10px}.grid{grid-template-columns:1fr}.row{grid-template-columns:104px 1fr;}}' +
+                '@media print{body{padding:0;background:#fff}.receipt-wrap{box-shadow:none;border:none;max-width:none}}' +
+                '</style>' +
+                '</head><body><div class=\'receipt-wrap\'>' +
+                '<div class=\'header\'>' +
+                '<div class=\'chip\'><p class=\'chip-label\'>Generated</p><p class=\'chip-value\'>' + receipt.generatedAt + '</p></div>' +
+                '<p class=\'brand\'>BrewHub</p>' +
+                '<h1 class=\'title\'>Official Reservation Receipt</h1>' +
+                '<p class=\'seller\'>Seller: ' + receipt.seller + '</p>' +
+                '</div>' +
+                '<div class=\'content\'>' +
+                '<div class=\'grid\'>' +
+                '<div class=\'card\'><p class=\'card-label\'>Reservation ID</p><p class=\'card-value\'>' + receipt.reservationId + '</p></div>' +
+                '<div class=\'card\'><p class=\'card-label\'>Product</p><p class=\'card-value\'>' + receipt.product + '</p></div>' +
+                '</div>' +
+                '<div class=\'table\'>' +
+                '<div class=\'row\'><div class=\'k\'>Status</div><div class=\'v\'>' + receipt.status + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Quantity</div><div class=\'v\'>' + receipt.quantity + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Total</div><div class=\'v\'>PHP ' + receipt.total + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Customer</div><div class=\'v\'>' + receipt.customer + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Address</div><div class=\'v\'>' + receipt.address + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Phone</div><div class=\'v\'>' + receipt.phone + '</div></div>' +
+                '</div>' +
+                '</div></div></body></html>'
+            );
+
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 250);
         },
         openEditor(product) {
             this.form.id = product.id;
@@ -651,6 +764,22 @@
                                     @php
                                         $status = strtolower((string) $order->status);
                                         $isCanceled = in_array($status, ['canceled', 'cancelled'], true);
+                                        $receiptMeta = json_decode((string) ($order->notes ?? ''), true);
+                                        $receiptMeta = is_array($receiptMeta) ? $receiptMeta : [];
+                                        $receiptProductName = $order->product->name ?? ($receiptMeta['product_name'] ?? 'N/A');
+                                        $reservationCode = 'BRH-ORDER-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT);
+                                        $receiptPayload = [
+                                            'generatedAt' => optional($order->created_at)->format('M d, Y h:i A') ?? now()->format('M d, Y h:i A'),
+                                            'reservationId' => $reservationCode,
+                                            'product' => $receiptProductName,
+                                            'quantity' => (int) $order->quantity,
+                                            'customer' => $receiptMeta['full_name'] ?? ($order->user->name ?? 'N/A'),
+                                            'seller' => $receiptMeta['seller'] ?? 'Coffee Marketplace',
+                                            'address' => $receiptMeta['address'] ?? 'N/A',
+                                            'phone' => $receiptMeta['phone'] ?? 'N/A',
+                                            'status' => ucfirst((string) $order->status),
+                                            'total' => number_format((float) $order->total_price, 2),
+                                        ];
                                     @endphp
                                     @if($status === 'pending')
                                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Pending</span>
@@ -663,7 +792,19 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
-                                    <form method="POST" action="{{ route('farm-owner.marketplace.orders.update', $order) }}" class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            @click="openReceiptViewer(@js($receiptPayload))"
+                                            title="View Receipt"
+                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-[#C8B69A] text-[#2E5A3D] hover:bg-[#EEF5F0] transition-colors"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                        <form method="POST" action="{{ route('farm-owner.marketplace.orders.update', $order) }}" class="flex items-center gap-2">
                                         @csrf
                                         @method('PATCH')
                                         @if($activeFarmId > 0)
@@ -677,6 +818,7 @@
                                         </select>
                                         <button type="submit" @disabled($isCanceled) class="px-2.5 py-1 text-xs rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] transition-colors disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">Save</button>
                                     </form>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -693,6 +835,85 @@
             <p class="text-sm text-gray-400 mt-1">Orders will appear here once customers purchase your products.</p>
         </div>
     @endif
+</div>
+
+<div
+    x-show="showReceiptModal"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+>
+    <div @click.away="closeReceiptViewer()" class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+        <div x-ref="receiptPrintContent">
+            <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 text-white">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs tracking-[0.2em] uppercase text-[#F3E9D7]/80 font-body">BrewHub</p>
+                        <h3 class="text-lg sm:text-xl font-semibold font-poppins leading-tight mt-1">Official Reservation Receipt</h3>
+                        <p class="text-xs sm:text-sm text-[#F3E9D7]/80 font-body mt-1" x-text="`Seller: ${receiptData.seller}`">Seller: Coffee Marketplace</p>
+                    </div>
+                    <button type="button" @click="closeReceiptViewer()" class="text-[#F3E9D7] hover:text-white text-2xl leading-none">&times;</button>
+                </div>
+            </div>
+            <div class="px-4 py-4 sm:px-5 sm:py-5 space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5">
+                        <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Reservation ID</p>
+                        <p class="text-sm sm:text-base text-[#3A2E22] font-poppins font-semibold mt-0.5" x-text="receiptData.reservationId"></p>
+                    </div>
+                    <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5">
+                        <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Product</p>
+                        <p class="text-sm sm:text-base text-[#3A2E22] font-poppins font-semibold mt-0.5" x-text="receiptData.product"></p>
+                    </div>
+                </div>
+
+                <div class="rounded-lg border border-[#E2D5C1] divide-y divide-[#E2D5C1] overflow-hidden">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Status</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.status"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Quantity</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.quantity"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Total</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.total"></span></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Customer</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.customer"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Address</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body break-words" x-text="receiptData.address"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.phone"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Created</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.generatedAt"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-4 py-2.5 sm:px-5 bg-[#FAF7F1] border-t border-[#E6DDCF] flex flex-col sm:flex-row sm:justify-end gap-2">
+            <button @click="closeReceiptViewer()" class="w-full sm:w-auto bg-white text-[#3A2E22] border border-[#C8B69A] px-3.5 py-2 rounded-lg text-sm font-body hover:bg-[#F3E9D7] transition-colors duration-200">
+                Close
+            </button>
+            <button @click="printReceipt()" class="w-full sm:w-auto bg-[#2E5A3D] text-white px-3.5 py-2 rounded-lg text-sm font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
+                Print Receipt
+            </button>
+        </div>
+    </div>
 </div>
 
     <div

@@ -22,20 +22,43 @@ use App\Http\Controllers\CafeOwner\CafeOwnerMapController;
 use App\Http\Controllers\CafeOwner\CafeOwnerMessagesController;
 use App\Http\Controllers\CafeOwner\CafeOwnerCouponPromoController;
 use App\Http\Controllers\Reseller\ResellerDashboardController;
+use App\Http\Controllers\Web\LandingReservationController;
+use App\Models\Establishment;
 use App\Models\Product;
 
 Route::get('/', function () {
     $farmProducts = Product::query()
         ->with(['establishment'])
         ->where('seller_type', 'farm_owner')
-        ->where('is_active', true)
-        ->where('stock_quantity', '>', 0)
         ->latest()
         ->take(8)
         ->get();
 
-    return view('landing', compact('farmProducts'));
+    $featuredFarms = Establishment::query()
+        ->whereNull('deleted_at')
+        ->where('type', 'farm')
+        ->latest()
+        ->take(3)
+        ->get();
+
+    $featuredCoffeeShops = Establishment::query()
+        ->whereNull('deleted_at')
+        ->where('type', 'cafe')
+        ->withAvg('reviews', 'overall_rating')
+        ->with(['couponPromos' => function ($query) {
+            $query->active()->latest('valid_until');
+        }])
+        ->latest()
+        ->take(3)
+        ->get();
+
+    return view('landing', compact('farmProducts', 'featuredFarms', 'featuredCoffeeShops'));
 });
+
+Route::post('/reservations/orders', [LandingReservationController::class, 'store'])
+    ->name('reservations.orders.store');
+Route::get('/reservations/orders/{order}/receipt', [LandingReservationController::class, 'showReceipt'])
+    ->name('reservations.orders.receipt');
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

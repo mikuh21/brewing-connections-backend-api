@@ -12,6 +12,7 @@ class Order extends Model
         'quantity',
         'total_price',
         'status',
+        'stock_reserved',
         'notes',
         'pickup_date',
         'pickup_time',
@@ -19,6 +20,7 @@ class Order extends Model
 
     protected $casts = [
         'pickup_date' => 'date',
+        'stock_reserved' => 'boolean',
     ];
 
     public function user()

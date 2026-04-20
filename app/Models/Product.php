@@ -23,6 +23,26 @@ class Product extends Model
         'is_active'
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Product $product): void {
+            $stock = max(0, (int) ($product->stock_quantity ?? 0));
+            $product->stock_quantity = $stock;
+
+            // Automatically mark products unavailable when stock is depleted.
+            if ($stock === 0) {
+                $product->is_active = false;
+                return;
+            }
+
+            // If a previously out-of-stock product is replenished, bring it back.
+            $originalStock = max(0, (int) ($product->getOriginal('stock_quantity') ?? 0));
+            if ($originalStock === 0 && $product->isDirty('stock_quantity') && $product->is_active === false) {
+                $product->is_active = true;
+            }
+        });
+    }
+
     public function seller()
     {
         return $this->belongsTo(User::class, 'seller_id');

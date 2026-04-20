@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ResellerProduct;
+use App\Services\OrderReceiptNotifier;
+use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +15,12 @@ use Illuminate\Support\Facades\Storage;
 
 class ResellerMarketplaceController extends Controller
 {
+    public function __construct(
+        private readonly OrderReceiptNotifier $orderReceiptNotifier,
+        private readonly OrderStockManager $orderStockManager,
+    ) {
+    }
+
     public function index()
     {
         $userId = (int) Auth::id();
@@ -362,9 +370,9 @@ class ResellerMarketplaceController extends Controller
 
         $status = $validated['status'] === 'canceled' ? 'cancelled' : $validated['status'];
 
-        $order->update([
-            'status' => $status,
-        ]);
+        $order = $this->orderStockManager->applyStatusTransition($order, $status);
+
+        $this->orderReceiptNotifier->sendStatusUpdated($order);
 
         return back()->with('status', 'Order status updated successfully.');
     }

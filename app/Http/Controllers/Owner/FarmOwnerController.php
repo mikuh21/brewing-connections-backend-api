@@ -9,6 +9,8 @@ use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\OrderReceiptNotifier;
+use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +19,12 @@ use Illuminate\Support\Facades\Storage;
 
 class FarmOwnerController extends Controller
 {
+    public function __construct(
+        private readonly OrderReceiptNotifier $orderReceiptNotifier,
+        private readonly OrderStockManager $orderStockManager,
+    ) {
+    }
+
     protected function farmOwnerEstablishmentsQuery(User $user)
     {
         $query = Establishment::query();
@@ -552,9 +560,9 @@ class FarmOwnerController extends Controller
 
         $status = $validated['status'] === 'canceled' ? 'cancelled' : $validated['status'];
 
-        $order->update([
-            'status' => $status,
-        ]);
+        $order = $this->orderStockManager->applyStatusTransition($order, $status);
+
+        $this->orderReceiptNotifier->sendStatusUpdated($order);
 
         return back()->with('status', 'Order status updated successfully.');
     }

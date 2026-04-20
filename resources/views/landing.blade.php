@@ -84,7 +84,7 @@
         font-weight: 600;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: #946042;
+        color: #2E5A3D;
     }
 
     .navbar-glass {
@@ -110,6 +110,7 @@
                 </div>
                 <div class="hidden md:flex items-center space-x-6 md:space-x-8">
                     <a href="#home" :class="active === 'home' ? 'nav-link text-white hover:text-[#F3E9D7] font-semibold' : 'nav-link text-white hover:text-[#F3E9D7]'" @click="active = 'home'" class="text-sm md:text-base">Home</a>
+                    <a href="#farm-products-list" :class="active === 'farm-products-list' ? 'nav-link text-white hover:text-[#F3E9D7] font-semibold' : 'nav-link text-white hover:text-[#F3E9D7]'" @click="active = 'farm-products-list'" class="text-sm md:text-base">Products</a>
                     <div class="relative group">
                         <button class="text-white hover:text-[#F3E9D7] text-sm md:text-base">Featured Establishments ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
@@ -139,6 +140,7 @@
             </div>
             <div x-show="open" class="md:hidden">
                 <a href="#home" class="block px-4 py-2 text-white hover:text-[#F3E9D7]">Home</a>
+                <a href="#farm-products-list" class="block px-4 py-2 text-white hover:text-[#F3E9D7]">Products</a>
                 <div class="px-4 py-2">
                     <p class="text-white font-semibold">Featured Establishments</p>
                     <a href="#coffee-farms" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7]">Coffee Farms</a>
@@ -190,14 +192,14 @@
                 </svg>
                 GIS Coffee Establishment Mapping
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"></path>
                 </svg>
                 AI-Enabled Coffee Trail
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h8a2 2 0 012 2v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-1a1 1 0 000-2v-1a2 2 0 012-2z"></path>
@@ -205,14 +207,14 @@
                 </svg>
                 Smart Coupon Promo Generator
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M8 15V9m4 6V6m4 9v-4"></path>
                 </svg>
                 Recommendation Insights
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l2 10h10l2-7H7"></path>
@@ -221,21 +223,21 @@
                 </svg>
                 Marketplace
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6l6-2 6 2v12l-6-2-6 2-6-2V4l6 2zm0 0v12m6-14v12"></path>
                 </svg>
                 GIS Coffee Establishment Mapping
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"></path>
                 </svg>
                 AI-Enabled Coffee Trail
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h8a2 2 0 012 2v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-1a1 1 0 000-2v-1a2 2 0 012-2z"></path>
@@ -243,14 +245,14 @@
                 </svg>
                 Smart Coupon Promo Generator
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M8 15V9m4 6V6m4 9v-4"></path>
                 </svg>
                 Recommendation Insights
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
             <span class="text-[#F3E9D7] font-body text-sm inline-flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h2l2 10h10l2-7H7"></path>
@@ -259,7 +261,7 @@
                 </svg>
                 Marketplace
             </span>
-            <span class="text-[#946042]">&diams;</span>
+            <span class="text-[#F3E9D7]">&diams;</span>
         </div>
     </div>
 
@@ -269,7 +271,7 @@
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p class="section-tag text-[#946042] text-center mb-4 reveal">
+            <p class="section-tag text-white text-center mb-4 reveal">
                 City of Lipa's Coffee Heritage
             </p>
 
@@ -300,15 +302,15 @@
                     </h3>
                     <ul class="space-y-2 font-body">
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#946042]">&diams;</span>
+                            <span class="text-[#F3E9D7]">&diams;</span>
                             Strong, bold, and intense
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#946042]">&diams;</span>
+                            <span class="text-[#F3E9D7]">&diams;</span>
                             Notes: smoky, nutty, slightly sweet
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#946042]">&diams;</span>
+                            <span class="text-[#F3E9D7]">&diams;</span>
                             Lingering aftertaste
                         </li>
                     </ul>
@@ -325,15 +327,15 @@
                     </h3>
                     <ul class="space-y-2 font-body">
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#946042]">&diams;</span>
+                            <span class="text-[#F3E9D7]">&diams;</span>
                             Grown mainly in Batangas and Cavite
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#946042]">&diams;</span>
+                            <span class="text-[#F3E9D7]">&diams;</span>
                             Known for large beans and strong aroma
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#946042]">&diams;</span>
+                            <span class="text-[#F3E9D7]">&diams;</span>
                             Cultural and heritage significance
                         </li>
                     </ul>
@@ -355,28 +357,54 @@
             </p>
             <h2 class="text-3xl md:text-4xl font-bold text-[#3A2E22] text-center mb-4 font-display leading-snug reveal">Featured Coffee Farms</h2>
             <p class="text-center text-[#3A2E22] mb-12 text-base md:text-lg font-body max-w-2xl mx-auto leading-relaxed reveal">Discover our curated selection of top-rated Coffee Farms</p>
+            @php
+                $farmCardOne = ($featuredFarms ?? collect())->get(0);
+                $farmCardTwo = ($featuredFarms ?? collect())->get(1);
+                $farmCardThree = ($featuredFarms ?? collect())->get(2);
+                $farmImageOne = $farmCardOne?->image
+                    ? (str_starts_with($farmCardOne->image, 'http')
+                        ? $farmCardOne->image
+                        : asset(ltrim($farmCardOne->image, '/')))
+                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image';
+                $farmImageTwo = $farmCardTwo?->image
+                    ? (str_starts_with($farmCardTwo->image, 'http')
+                        ? $farmCardTwo->image
+                        : asset(ltrim($farmCardTwo->image, '/')))
+                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image';
+                $farmImageThree = $farmCardThree?->image
+                    ? (str_starts_with($farmCardThree->image, 'http')
+                        ? $farmCardThree->image
+                        : asset(ltrim($farmCardThree->image, '/')))
+                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image';
+            @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-1">
-                    <img src="https://placehold.co/300x200/F3E9D7/3A2E22" alt="Farm 1" class="w-full h-48 object-cover rounded-md mb-4">
-                    <h3 class="text-xl font-semibold text-[#3A2E22]">Farm One</h3>
-                    <p class="text-[#946042]">Lipa, Batangas</p>
-                    <p class="text-[#3A2E22]">A premium coffee farm producing high-quality Philippine coffee.</p>
+                    <img src="{{ $farmImageOne }}" alt="{{ $farmCardOne?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image'">
+                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardOne?->name ?? 'Farm One' }}</h3>
+                    <p class="text-[#946042]">{{ $farmCardOne?->address ?? 'Lipa, Batangas' }}</p>
+                    @if(filled($farmCardOne?->description))
+                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farmCardOne->description, 120) }}</p>
+                    @endif
                 </div>
                 <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-2">
-                    <img src="https://placehold.co/300x200/F3E9D7/3A2E22" alt="Farm 2" class="w-full h-48 object-cover rounded-md mb-4">
-                    <h3 class="text-xl font-semibold text-[#3A2E22]">Farm Two</h3>
-                    <p class="text-[#946042]">Lipa, Batangas</p>
-                    <p class="text-[#3A2E22]">Specializing in organic Barako beans with rich flavor.</p>
+                    <img src="{{ $farmImageTwo }}" alt="{{ $farmCardTwo?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image'">
+                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardTwo?->name ?? 'Farm Two' }}</h3>
+                    <p class="text-[#946042]">{{ $farmCardTwo?->address ?? 'Lipa, Batangas' }}</p>
+                    @if(filled($farmCardTwo?->description))
+                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farmCardTwo->description, 120) }}</p>
+                    @endif
                 </div>
                 <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-3">
-                    <img src="https://placehold.co/300x200/F3E9D7/3A2E22" alt="Farm 3" class="w-full h-48 object-cover rounded-md mb-4">
-                    <h3 class="text-xl font-semibold text-[#3A2E22]">Farm Three</h3>
-                    <p class="text-[#946042]">Lipa, Batangas</p>
-                    <p class="text-[#3A2E22]">Award-winning farm known for exceptional coffee quality.</p>
+                    <img src="{{ $farmImageThree }}" alt="{{ $farmCardThree?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image'">
+                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardThree?->name ?? 'Farm Three' }}</h3>
+                    <p class="text-[#946042]">{{ $farmCardThree?->address ?? 'Lipa, Batangas' }}</p>
+                    @if(filled($farmCardThree?->description))
+                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farmCardThree->description, 120) }}</p>
+                    @endif
                 </div>
             </div>
             <div class="text-center mt-10">
-                <a href="#" class="inline-flex items-center gap-2 text-[#2E5A3D] font-body font-medium hover:gap-4 transition-all duration-300">
+                <a href="#farm-products-list" class="inline-flex items-center gap-2 text-[#2E5A3D] font-body font-medium hover:gap-4 transition-all duration-300">
                     See All Products
                     <span>→</span>
                 </a>
@@ -391,24 +419,95 @@
             </p>
             <h2 class="text-3xl md:text-4xl font-bold text-[#3A2E22] text-center mb-4 font-display leading-snug reveal">Featured Coffee Shops</h2>
             <p class="text-center text-[#3A2E22] mb-12 text-base md:text-lg font-body max-w-2xl mx-auto leading-relaxed reveal">Explore the best local cafés in Lipa, Batangas</p>
+            @php
+                $shopCardOne = ($featuredCoffeeShops ?? collect())->get(0);
+                $shopCardTwo = ($featuredCoffeeShops ?? collect())->get(1);
+                $shopCardThree = ($featuredCoffeeShops ?? collect())->get(2);
+                $shopImageOne = $shopCardOne?->image
+                    ? (str_starts_with($shopCardOne->image, 'http')
+                        ? $shopCardOne->image
+                        : asset(ltrim($shopCardOne->image, '/')))
+                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
+                $shopImageTwo = $shopCardTwo?->image
+                    ? (str_starts_with($shopCardTwo->image, 'http')
+                        ? $shopCardTwo->image
+                        : asset(ltrim($shopCardTwo->image, '/')))
+                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
+                $shopImageThree = $shopCardThree?->image
+                    ? (str_starts_with($shopCardThree->image, 'http')
+                        ? $shopCardThree->image
+                        : asset(ltrim($shopCardThree->image, '/')))
+                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
+                $shopPromoOne = $shopCardOne?->couponPromos?->first();
+                $shopPromoTwo = $shopCardTwo?->couponPromos?->first();
+                $shopPromoThree = $shopCardThree?->couponPromos?->first();
+            @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-1">
-                    <img src="https://placehold.co/300x200/F3E9D7/3A2E22" alt="Shop 1" class="w-full h-48 object-cover rounded-md mb-4">
-                    <h3 class="text-xl font-semibold text-[#3A2E22]">Shop One</h3>
-                    <p class="text-[#946042]">Lipa, Batangas</p>
-                    <p class="text-[#3A2E22]">Cozy café serving freshly brewed Barako coffee.</p>
+                    <img src="{{ $shopImageOne }}" alt="{{ $shopCardOne?->name ?? 'Featured Coffee Shop' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
+                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shopCardOne?->name ?? 'Shop One' }}</h3>
+                    <p class="text-[#946042]">{{ $shopCardOne?->address ?? 'Lipa, Batangas' }}</p>
+                    @if(is_numeric($shopCardOne?->reviews_avg_overall_rating))
+                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
+                            <span class="text-[#D19B3B]">★</span>
+                            <span class="font-semibold">{{ number_format((float) $shopCardOne->reviews_avg_overall_rating, 1) }}/5</span>
+                            <span class="text-[#3A2E22]/70">rating</span>
+                        </p>
+                    @else
+                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
+                    @endif
+                    @if($shopPromoOne)
+                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
+                            Promo: {{ \Illuminate\Support\Str::limit($shopPromoOne->title, 42) }}
+                        </div>
+                    @endif
+                    @if(filled($shopCardOne?->description))
+                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shopCardOne->description, 120) }}</p>
+                    @endif
                 </div>
                 <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-2">
-                    <img src="https://placehold.co/300x200/F3E9D7/3A2E22" alt="Shop 2" class="w-full h-48 object-cover rounded-md mb-4">
-                    <h3 class="text-xl font-semibold text-[#3A2E22]">Shop Two</h3>
-                    <p class="text-[#946042]">Lipa, Batangas</p>
-                    <p class="text-[#3A2E22]">Modern café with a variety of coffee specialties.</p>
+                    <img src="{{ $shopImageTwo }}" alt="{{ $shopCardTwo?->name ?? 'Featured Coffee Shop' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
+                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shopCardTwo?->name ?? 'Shop Two' }}</h3>
+                    <p class="text-[#946042]">{{ $shopCardTwo?->address ?? 'Lipa, Batangas' }}</p>
+                    @if(is_numeric($shopCardTwo?->reviews_avg_overall_rating))
+                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
+                            <span class="text-[#D19B3B]">★</span>
+                            <span class="font-semibold">{{ number_format((float) $shopCardTwo->reviews_avg_overall_rating, 1) }}/5</span>
+                            <span class="text-[#3A2E22]/70">rating</span>
+                        </p>
+                    @else
+                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
+                    @endif
+                    @if($shopPromoTwo)
+                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
+                            Promo: {{ \Illuminate\Support\Str::limit($shopPromoTwo->title, 42) }}
+                        </div>
+                    @endif
+                    @if(filled($shopCardTwo?->description))
+                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shopCardTwo->description, 120) }}</p>
+                    @endif
                 </div>
                 <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-3">
-                    <img src="https://placehold.co/300x200/F3E9D7/3A2E22" alt="Shop 3" class="w-full h-48 object-cover rounded-md mb-4">
-                    <h3 class="text-xl font-semibold text-[#3A2E22]">Shop Three</h3>
-                    <p class="text-[#946042]">Lipa, Batangas</p>
-                    <p class="text-[#3A2E22]">Artisan café focusing on local coffee culture.</p>
+                    <img src="{{ $shopImageThree }}" alt="{{ $shopCardThree?->name ?? 'Featured Coffee Shop' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
+                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shopCardThree?->name ?? 'Shop Three' }}</h3>
+                    <p class="text-[#946042]">{{ $shopCardThree?->address ?? 'Lipa, Batangas' }}</p>
+                    @if(is_numeric($shopCardThree?->reviews_avg_overall_rating))
+                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
+                            <span class="text-[#D19B3B]">★</span>
+                            <span class="font-semibold">{{ number_format((float) $shopCardThree->reviews_avg_overall_rating, 1) }}/5</span>
+                            <span class="text-[#3A2E22]/70">overall</span>
+                        </p>
+                    @else
+                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
+                    @endif
+                    @if($shopPromoThree)
+                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
+                            Promo: {{ \Illuminate\Support\Str::limit($shopPromoThree->title, 42) }}
+                        </div>
+                    @endif
+                    @if(filled($shopCardThree?->description))
+                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shopCardThree->description, 120) }}</p>
+                    @endif
                 </div>
             </div>
             <div class="text-center mt-10 reveal">
@@ -438,7 +537,7 @@
 
     <section id="farm-products-list" class="py-24 bg-[#3A2E22]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p class="section-tag text-[#946042] text-center mb-3 reveal">
+            <p class="section-tag text-white text-center mb-3 reveal">
                 Fresh From Farms
             </p>
             <h2 class="text-4xl md:text-5xl font-bold text-white font-display text-center mb-4 reveal">
@@ -451,6 +550,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 @forelse($farmProducts as $product)
                     @php
+                        $availableStock = max(0, (int) ($product->stock_quantity ?? 0));
+                        $isOutOfStock = $availableStock <= 0 || $product->is_active === false;
                         $imageSrc = $product->image_url
                             ? (str_starts_with($product->image_url, 'http')
                                 ? $product->image_url
@@ -472,6 +573,11 @@
                             <h3 class="text-lg font-bold text-[#3A2E22] font-display leading-tight">
                                 {{ $product->name }}
                             </h3>
+                            @if($isOutOfStock)
+                                <p class="mt-1 inline-flex items-center rounded-full bg-[#B43F3F]/10 text-[#B43F3F] border border-[#B43F3F]/30 px-2.5 py-1 text-[11px] font-semibold font-body">
+                                    Out of Stock
+                                </p>
+                            @endif
                             <p class="text-xs text-[#946042] font-body mt-1">
                                 {{ $product->category ?? 'Coffee Product' }}
                                 @if($product->establishment?->name)
@@ -486,7 +592,7 @@
                                 <p>Roast: <span class="text-[#3A2E22]">{{ $product->roast_level ?? 'N/A' }}</span></p>
                                 <p>Grind: <span class="text-[#3A2E22]">{{ $product->grind_type ?? 'N/A' }}</span></p>
                                 <p>MOQ: <span class="text-[#3A2E22]">{{ $product->moq ?? 1 }} {{ $product->unit ?? 'unit' }}</span></p>
-                                <p>Stock: <span class="text-[#3A2E22]">{{ $product->stock_quantity ?? 0 }}</span></p>
+                                <p>Stock: <span class="text-[#3A2E22]">{{ $availableStock }}</span></p>
                             </div>
 
                             <div class="flex items-center justify-between mt-4">
@@ -496,11 +602,15 @@
                                 </p>
                                 <button
                                     type="button"
-                                    class="reserve-product-btn bg-[#2E5A3D] text-white text-sm px-4 py-2 rounded-lg font-body hover:bg-[#1E3A2A] transition-colors duration-200"
+                                    class="reserve-product-btn text-sm px-4 py-2 rounded-lg font-body transition-colors duration-200 {{ $isOutOfStock ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-[#2E5A3D] text-white hover:bg-[#1E3A2A]' }}"
                                     data-product="{{ $product->name }}"
+                                    data-product-id="{{ $product->id }}"
                                     data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}"
+                                    data-seller="{{ $product->establishment?->name ?? 'Verified Farm Seller' }}"
+                                    data-stock="{{ $availableStock }}"
+                                    @disabled($isOutOfStock)
                                 >
-                                    Reserve
+                                    {{ $isOutOfStock ? 'Unavailable' : 'Reserve' }}
                                 </button>
                             </div>
                         </div>
@@ -520,7 +630,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div class="reveal-left">
-                    <p class="section-tag text-[#946042] mb-3">
+                    <p class="section-tag text-white mb-3">
                         Direct from Farm
                     </p>
                     <h2 class="text-4xl font-bold text-white font-display mb-4">
@@ -529,14 +639,12 @@
                     <p class="text-[#F3E9D7]/80 font-body mb-6 leading-relaxed">
                         Browse and reserve authentic coffee
                         products from local farms in Lipa,
-                        Batangas. This follows the same
-                        reservation flow as mobile, with
-                        website completion for full address.
+                        Batangas.
                     </p>
 
                     <ul class="space-y-3 font-body text-[#F3E9D7]">
                         <li class="flex items-center gap-2">
-                            <span class="text-[#2E5A3D] inline-flex items-center">
+                            <span class="text-[#F3E9D7] inline-flex items-center">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
@@ -544,7 +652,7 @@
                             Direct from local farmers
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="text-[#2E5A3D] inline-flex items-center">
+                            <span class="text-[#F3E9D7] inline-flex items-center">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
@@ -552,7 +660,7 @@
                             Fresh and authentic products
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="text-[#2E5A3D] inline-flex items-center">
+                            <span class="text-[#F3E9D7] inline-flex items-center">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
@@ -560,7 +668,7 @@
                             Mobile app order completion
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="text-[#2E5A3D] inline-flex items-center">
+                            <span class="text-[#F3E9D7] inline-flex items-center">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
@@ -575,51 +683,78 @@
                         Complete Reservation
                     </h3>
 
-                    <div class="space-y-4">
+                    <form id="reservationForm" class="space-y-4" novalidate>
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Select Product
                             </label>
-                            <select id="reservationProductSelect" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <select id="reservationProductSelect" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                                <option value="" selected disabled>Select a product</option>
                                 @forelse($farmProducts as $product)
-                                    <option value="{{ $product->name }}" data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}">{{ $product->name }}</option>
+                                    @php
+                                        $availableStock = max(0, (int) ($product->stock_quantity ?? 0));
+                                        $isOutOfStock = $availableStock <= 0 || $product->is_active === false;
+                                    @endphp
+                                    <option
+                                        value="{{ $product->name }}"
+                                        data-product-id="{{ $product->id }}"
+                                        data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}"
+                                        data-seller="{{ $product->establishment?->name ?? 'Verified Farm Seller' }}"
+                                        data-stock="{{ $availableStock }}"
+                                        @disabled($isOutOfStock)
+                                    >
+                                        {{ $product->name }}{{ $isOutOfStock ? ' - Out of Stock' : '' }}
+                                    </option>
                                 @empty
-                                    <option>Philippine Coffee (250g)</option>
-                                    <option>Philippine Coffee (500g)</option>
-                                    <option>Philippine Coffee (1kg)</option>
-                                    <option>Ground Coffee (250g)</option>
-                                    <option>Coffee Beans (500g)</option>
+                                    <option value="Philippine Coffee (250g)" data-product-id="" data-seller="Verified Farm Seller">Philippine Coffee (250g)</option>
+                                    <option value="Philippine Coffee (500g)" data-product-id="" data-seller="Verified Farm Seller">Philippine Coffee (500g)</option>
+                                    <option value="Philippine Coffee (1kg)" data-product-id="" data-seller="Verified Farm Seller">Philippine Coffee (1kg)</option>
+                                    <option value="Ground Coffee (250g)" data-product-id="" data-seller="Verified Farm Seller">Ground Coffee (250g)</option>
+                                    <option value="Coffee Beans (500g)" data-product-id="" data-seller="Verified Farm Seller">Coffee Beans (500g)</option>
                                 @endforelse
                             </select>
+                            <p id="reservationProductError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Quantity
                             </label>
-                            <input id="reservationQuantityInput" type="number" min="1" step="1" value="1" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
-                            <p id="reservationMoqHint" class="mt-1 text-xs text-[#3A2E22]/60 font-body">Minimum quantity: 1</p>
+                            <input id="reservationQuantityInput" type="number" min="1" step="1" value="" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                            <p id="reservationMoqHint" class="mt-1 text-xs text-[#3A2E22]/60 font-body">Select a product to see minimum quantity.</p>
+                            <p id="reservationQuantityError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Full Name
                             </label>
-                            <input type="text" placeholder="Enter your full name" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <input id="reservationFullNameInput" type="text" placeholder="Enter your full name" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                            <p id="reservationFullNameError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
-                                Delivery Address
+                                Email
                             </label>
-                            <textarea rows="2" placeholder="Enter complete delivery address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]"></textarea>
+                            <input id="reservationEmailInput" type="email" placeholder="Enter your email" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                            <p id="reservationEmailError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-[#3A2E22] font-body mb-1">
+                                Address
+                            </label>
+                            <textarea id="reservationAddressInput" rows="2" placeholder="Enter complete address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required></textarea>
+                            <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Phone Number
                             </label>
-                            <input type="tel" placeholder="e.g. 09XX XXX XXXX" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <input id="reservationPhoneInput" type="tel" placeholder="e.g. 09XXXXXXXXX" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                            <p id="reservationPhoneError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
                         <p class="text-xs text-[#3A2E22]/60 font-body inline-flex items-start gap-1.5">
@@ -637,10 +772,10 @@
                             </span>
                         </p>
 
-                        <button class="w-full bg-[#2E5A3D] text-white py-3 rounded-lg font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
+                        <button type="submit" class="w-full bg-[#2E5A3D] text-white py-3 rounded-lg font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
                             Confirm Reservation →
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1016,6 +1151,7 @@
     </footer>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
         // Intersection Observer for active nav links
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('nav a[href^="#"]');
@@ -1085,19 +1221,476 @@
 
         // Reserve button behavior for farm products
         const reserveButtons = document.querySelectorAll('.reserve-product-btn');
+        const reservationForm = document.getElementById('reservationForm');
         const reservationProductSelect = document.getElementById('reservationProductSelect');
         const reservationQuantityInput = document.getElementById('reservationQuantityInput');
+        const reservationFullNameInput = document.getElementById('reservationFullNameInput');
+        const reservationEmailInput = document.getElementById('reservationEmailInput');
+        const reservationAddressInput = document.getElementById('reservationAddressInput');
+        const reservationPhoneInput = document.getElementById('reservationPhoneInput');
         const reservationMoqHint = document.getElementById('reservationMoqHint');
         const reservationSection = document.getElementById('farm-products');
+        const reservationConfirmModal = document.getElementById('reservationConfirmModal');
+        const reservationConfirmModalPanel = document.getElementById('reservationConfirmModalPanel');
+        const reservationConfirmCancelButton = document.getElementById('reservationConfirmCancelButton');
+        const reservationConfirmProceedButton = document.getElementById('reservationConfirmProceedButton');
+        const reservationConfirmError = document.getElementById('reservationConfirmError');
+        const receiptModal = document.getElementById('receiptModal');
+        const receiptModalPanel = document.getElementById('receiptModalPanel');
+        const reservationToast = document.getElementById('reservationToast');
+        const reservationToastMessage = document.getElementById('reservationToastMessage');
+        let pendingReservationPayload = null;
+        let reservationConfirmModalCloseTimer = null;
+        let receiptModalCloseTimer = null;
+        let reservationToastTimer = null;
 
-        function applyReservationMoq(rawMoq) {
+        function hasVisibleModal(element) {
+            return !!element && !element.classList.contains('hidden');
+        }
+
+        function syncBodyScrollLock() {
+            const shouldLock = hasVisibleModal(reservationConfirmModal) || hasVisibleModal(receiptModal);
+            document.body.classList.toggle('overflow-hidden', shouldLock);
+        }
+
+        function setFieldError(field, errorElementId, message) {
+            const errorElement = document.getElementById(errorElementId);
+
+            if (field) {
+                field.classList.toggle('border-[#B43F3F]', !!message);
+                field.classList.toggle('ring-2', !!message);
+                field.classList.toggle('ring-[#B43F3F]/30', !!message);
+            }
+
+            if (errorElement) {
+                errorElement.textContent = message || '';
+                errorElement.classList.toggle('hidden', !message);
+            }
+        }
+
+        function generateReservationId() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const randomCode = String(Math.floor(Math.random() * 9000) + 1000);
+
+            return `BRH-${y}${m}${d}-${randomCode}`;
+        }
+
+        function openReservationConfirmModal(payload) {
+            if (!reservationConfirmModal) {
+                openReceiptModal(payload);
+                return;
+            }
+
+            pendingReservationPayload = payload;
+
+            const confirmProduct = document.getElementById('confirmReservationProduct');
+            const confirmQuantity = document.getElementById('confirmReservationQuantity');
+            const confirmSeller = document.getElementById('confirmReservationSeller');
+
+            if (confirmProduct) {
+                confirmProduct.textContent = payload.product;
+            }
+
+            if (confirmQuantity) {
+                confirmQuantity.textContent = payload.quantity;
+            }
+
+            if (confirmSeller) {
+                confirmSeller.textContent = payload.seller;
+            }
+
+            if (reservationConfirmError) {
+                reservationConfirmError.textContent = '';
+                reservationConfirmError.classList.add('hidden');
+            }
+
+            if (reservationConfirmModalCloseTimer) {
+                clearTimeout(reservationConfirmModalCloseTimer);
+                reservationConfirmModalCloseTimer = null;
+            }
+
+            reservationConfirmModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                reservationConfirmModal.classList.remove('opacity-0');
+                reservationConfirmModal.classList.add('opacity-100');
+
+                if (reservationConfirmModalPanel) {
+                    reservationConfirmModalPanel.classList.remove('opacity-0', 'scale-95');
+                    reservationConfirmModalPanel.classList.add('opacity-100', 'scale-100');
+                }
+            });
+
+            syncBodyScrollLock();
+        }
+
+        function closeReservationConfirmModal() {
+            if (!reservationConfirmModal) {
+                return;
+            }
+
+            reservationConfirmModal.classList.remove('opacity-100');
+            reservationConfirmModal.classList.add('opacity-0');
+
+            if (reservationConfirmModalPanel) {
+                reservationConfirmModalPanel.classList.remove('opacity-100', 'scale-100');
+                reservationConfirmModalPanel.classList.add('opacity-0', 'scale-95');
+            }
+
+            reservationConfirmModalCloseTimer = setTimeout(() => {
+                reservationConfirmModal.classList.add('hidden');
+                syncBodyScrollLock();
+            }, 200);
+        }
+
+        function proceedReservationConfirmation() {
+            if (!pendingReservationPayload) {
+                return;
+            }
+
+            const payload = pendingReservationPayload;
+
+            if (reservationConfirmProceedButton) {
+                reservationConfirmProceedButton.disabled = true;
+                reservationConfirmProceedButton.classList.add('opacity-70', 'cursor-not-allowed');
+                reservationConfirmProceedButton.textContent = 'Processing...';
+            }
+
+            if (reservationConfirmCancelButton) {
+                reservationConfirmCancelButton.disabled = true;
+            }
+
+            submitReservationOrder(payload)
+                .then((result) => {
+                    const persistedPayload = {
+                        ...payload,
+                        reservationId: result.reservation_id || `ORDER-${result.order_id}`,
+                        receiptUrl: result.receipt_url || '',
+                        orderId: result.order_id || null,
+                    };
+
+                    showReservationToast('Reservation submitted successfully. Seller can now see your order.');
+
+                    pendingReservationPayload = null;
+                    closeReservationConfirmModal();
+
+                    setTimeout(() => {
+                        openReceiptModal(persistedPayload);
+                    }, 180);
+                })
+                .catch((error) => {
+                    if (reservationConfirmError) {
+                        reservationConfirmError.textContent = error.message || 'Failed to place reservation. Please try again.';
+                        reservationConfirmError.classList.remove('hidden');
+                    }
+                })
+                .finally(() => {
+                    if (reservationConfirmProceedButton) {
+                        reservationConfirmProceedButton.disabled = false;
+                        reservationConfirmProceedButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                        reservationConfirmProceedButton.textContent = 'Continue';
+                    }
+
+                    if (reservationConfirmCancelButton) {
+                        reservationConfirmCancelButton.disabled = false;
+                    }
+                });
+        }
+
+        async function submitReservationOrder(payload) {
+            const response = await fetch('{{ route('reservations.orders.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    product_id: Number(payload.productId),
+                    quantity: Number(payload.quantity),
+                    full_name: payload.fullName,
+                    email: payload.email,
+                    address: payload.address,
+                    phone: payload.phone,
+                }),
+            });
+
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (_error) {
+                data = null;
+            }
+
+            if (!response.ok) {
+                if (data?.errors) {
+                    const firstErrorKey = Object.keys(data.errors)[0];
+                    const firstErrorMessage = data.errors[firstErrorKey]?.[0];
+                    throw new Error(firstErrorMessage || 'Failed to place reservation.');
+                }
+
+                throw new Error(data?.message || 'Failed to place reservation.');
+            }
+
+            return data || {};
+        }
+
+        function showReservationToast(message) {
+            if (!reservationToast) {
+                return;
+            }
+
+            if (reservationToastMessage) {
+                reservationToastMessage.textContent = message;
+            }
+
+            if (reservationToastTimer) {
+                clearTimeout(reservationToastTimer);
+                reservationToastTimer = null;
+            }
+
+            reservationToast.classList.remove('hidden', 'opacity-0', 'translate-y-2');
+            reservationToast.classList.add('opacity-100', 'translate-y-0');
+
+            reservationToastTimer = setTimeout(() => {
+                reservationToast.classList.remove('opacity-100', 'translate-y-0');
+                reservationToast.classList.add('opacity-0', 'translate-y-2');
+
+                setTimeout(() => {
+                    reservationToast.classList.add('hidden');
+                }, 250);
+            }, 2400);
+        }
+
+        function openReceiptModal(data) {
+            if (!receiptModal) {
+                return;
+            }
+
+            const receiptDateElement = document.getElementById('receiptDate');
+            const receiptIdElement = document.getElementById('receiptReservationId');
+            const receiptProductElement = document.getElementById('receiptProduct');
+            const receiptQuantityElement = document.getElementById('receiptQuantity');
+            const receiptNameElement = document.getElementById('receiptName');
+            const receiptAddressElement = document.getElementById('receiptAddress');
+            const receiptPhoneElement = document.getElementById('receiptPhone');
+            const receiptSellerElement = document.getElementById('receiptSeller');
+            const receiptSellerHeadlineElement = document.getElementById('receiptSellerHeadline');
+
+            const now = new Date();
+
+            if (receiptDateElement) {
+                receiptDateElement.textContent = now.toLocaleString();
+            }
+
+            if (receiptIdElement) {
+                receiptIdElement.textContent = data.reservationId;
+            }
+
+            if (receiptProductElement) {
+                receiptProductElement.textContent = data.product;
+            }
+
+            if (receiptQuantityElement) {
+                receiptQuantityElement.textContent = data.quantity;
+            }
+
+            if (receiptNameElement) {
+                receiptNameElement.textContent = data.fullName;
+            }
+
+            if (receiptAddressElement) {
+                receiptAddressElement.textContent = data.address;
+            }
+
+            if (receiptPhoneElement) {
+                receiptPhoneElement.textContent = data.phone;
+            }
+
+            if (receiptSellerElement) {
+                receiptSellerElement.textContent = data.seller;
+            }
+
+            if (receiptSellerHeadlineElement) {
+                receiptSellerHeadlineElement.textContent = `Seller: ${data.seller}`;
+            }
+
+            if (receiptModalCloseTimer) {
+                clearTimeout(receiptModalCloseTimer);
+                receiptModalCloseTimer = null;
+            }
+
+            receiptModal.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                receiptModal.classList.remove('opacity-0');
+                receiptModal.classList.add('opacity-100');
+
+                if (receiptModalPanel) {
+                    receiptModalPanel.classList.remove('opacity-0', 'scale-95', 'translate-y-3');
+                    receiptModalPanel.classList.add('opacity-100', 'scale-100', 'translate-y-0');
+                }
+            });
+            syncBodyScrollLock();
+        }
+
+        function closeReceiptModal() {
+            if (!receiptModal) {
+                return;
+            }
+
+            receiptModal.classList.remove('opacity-100');
+            receiptModal.classList.add('opacity-0');
+
+            if (receiptModalPanel) {
+                receiptModalPanel.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
+                receiptModalPanel.classList.add('opacity-0', 'scale-95', 'translate-y-3');
+            }
+
+            receiptModalCloseTimer = setTimeout(() => {
+                receiptModal.classList.add('hidden');
+                syncBodyScrollLock();
+            }, 300);
+        }
+
+        async function downloadReceipt() {
+            const receiptContent = document.getElementById('receiptContent');
+
+            if (!receiptContent || typeof html2canvas !== 'function') {
+                return;
+            }
+
+            const canvas = await html2canvas(receiptContent, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true
+            });
+
+            const link = document.createElement('a');
+            link.download = `brewhub-receipt-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        if (reservationForm) {
+            reservationForm.addEventListener('submit', event => {
+                event.preventDefault();
+
+                const productValue = String(reservationProductSelect?.value || '').trim();
+                const quantityValue = Number(reservationQuantityInput?.value || 0);
+                const minimumQuantity = Number(reservationQuantityInput?.min || 1);
+                const selectedProductOption = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+                const productIdValue = Number(selectedProductOption?.dataset?.productId || 0);
+                const selectedStock = Number(selectedProductOption?.dataset?.stock || 0);
+                const sellerValue = String(selectedProductOption?.dataset?.seller || 'Verified Farm Seller').trim();
+                const fullNameValue = String(reservationFullNameInput?.value || '').trim();
+                const emailValue = String(reservationEmailInput?.value || '').trim();
+                const addressValue = String(reservationAddressInput?.value || '').trim();
+                const phoneValue = String(reservationPhoneInput?.value || '').replace(/\s+/g, '');
+
+                let hasError = false;
+
+                if (!productValue) {
+                    setFieldError(reservationProductSelect, 'reservationProductError', 'Please select a product.');
+                    hasError = true;
+                } else if (!Number.isInteger(productIdValue) || productIdValue <= 0) {
+                    setFieldError(reservationProductSelect, 'reservationProductError', 'Selected product is not available for ordering.');
+                    hasError = true;
+                } else if ((selectedProductOption?.disabled ?? false) || selectedStock <= 0) {
+                    setFieldError(reservationProductSelect, 'reservationProductError', 'This product is out of stock. Please choose another product.');
+                    hasError = true;
+                } else {
+                    setFieldError(reservationProductSelect, 'reservationProductError', '');
+                }
+
+                if (!Number.isFinite(quantityValue) || quantityValue < minimumQuantity) {
+                    setFieldError(
+                        reservationQuantityInput,
+                        'reservationQuantityError',
+                        `Quantity must be at least ${minimumQuantity}.`
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationQuantityInput, 'reservationQuantityError', '');
+                }
+
+                if (fullNameValue.length < 3 || !/^[a-zA-Z\s.'-]+$/.test(fullNameValue)) {
+                    setFieldError(
+                        reservationFullNameInput,
+                        'reservationFullNameError',
+                        'Enter a valid full name (at least 3 characters).'
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationFullNameInput, 'reservationFullNameError', '');
+                }
+
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+                    setFieldError(
+                        reservationEmailInput,
+                        'reservationEmailError',
+                        'Enter a valid email address.'
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationEmailInput, 'reservationEmailError', '');
+                }
+
+                if (addressValue.length < 10) {
+                    setFieldError(
+                        reservationAddressInput,
+                        'reservationAddressError',
+                        'Enter a complete address (at least 10 characters).'
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationAddressInput, 'reservationAddressError', '');
+                }
+
+                if (!/^09\d{9}$/.test(phoneValue)) {
+                    setFieldError(
+                        reservationPhoneInput,
+                        'reservationPhoneError',
+                        'Use a valid PH mobile number format (09XXXXXXXXX).'
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationPhoneInput, 'reservationPhoneError', '');
+                }
+
+                if (hasError) {
+                    return;
+                }
+
+                const receiptPayload = {
+                    reservationId: generateReservationId(),
+                    productId: productIdValue,
+                    product: productValue,
+                    quantity: String(quantityValue),
+                    seller: sellerValue,
+                    fullName: fullNameValue,
+                    email: emailValue,
+                    address: addressValue,
+                    phone: phoneValue
+                };
+
+                openReservationConfirmModal(receiptPayload);
+            });
+        }
+
+        function applyReservationMoq(rawMoq, shouldAutoFillQuantity = false) {
             const minimumQuantity = Math.max(1, Number(rawMoq || 1));
 
             if (reservationQuantityInput) {
                 reservationQuantityInput.min = String(minimumQuantity);
 
-                const currentQuantity = Number(reservationQuantityInput.value || 0);
-                if (!Number.isFinite(currentQuantity) || currentQuantity < minimumQuantity) {
+                const currentValue = String(reservationQuantityInput.value || '').trim();
+                const currentQuantity = Number(currentValue || 0);
+
+                if (shouldAutoFillQuantity) {
+                    reservationQuantityInput.value = String(minimumQuantity);
+                } else if (currentValue !== '' && (!Number.isFinite(currentQuantity) || currentQuantity < minimumQuantity)) {
                     reservationQuantityInput.value = String(minimumQuantity);
                 }
             }
@@ -1112,9 +1705,6 @@
                 const selectedOption = reservationProductSelect.options[reservationProductSelect.selectedIndex];
                 applyReservationMoq(selectedOption?.dataset?.moq || 1);
             });
-
-            const initialOption = reservationProductSelect.options[reservationProductSelect.selectedIndex];
-            applyReservationMoq(initialOption?.dataset?.moq || 1);
         }
 
         if (reservationQuantityInput) {
@@ -1125,8 +1715,18 @@
 
         reserveButtons.forEach(button => {
             button.addEventListener('click', () => {
+                if (button.disabled) {
+                    setFieldError(reservationProductSelect, 'reservationProductError', 'This product is out of stock. Please choose another product.');
+                    if (reservationSection) {
+                        reservationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    return;
+                }
+
                 const selectedProduct = button.dataset.product;
+                const selectedProductId = Number(button.dataset.productId || 0);
                 const selectedMoq = button.dataset.moq || 1;
+                const selectedSeller = button.dataset.seller || 'Verified Farm Seller';
 
                 if (reservationProductSelect && selectedProduct) {
                     const optionExists = Array.from(reservationProductSelect.options)
@@ -1134,7 +1734,9 @@
 
                     if (!optionExists) {
                         const newOption = new Option(selectedProduct, selectedProduct);
+                        newOption.dataset.productId = String(selectedProductId || '');
                         newOption.dataset.moq = String(selectedMoq);
+                        newOption.dataset.seller = String(selectedSeller);
                         reservationProductSelect.add(newOption);
                     }
 
@@ -1142,7 +1744,7 @@
                     reservationProductSelect.dispatchEvent(new Event('change'));
                 }
 
-                applyReservationMoq(selectedMoq);
+                applyReservationMoq(selectedMoq, true);
 
                 if (reservationSection) {
                     reservationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1165,6 +1767,173 @@
 
         window.addEventListener('scroll', updateNavbar);
         updateNavbar(); // run on page load
+
+        const receiptModalCloseButton = document.getElementById('receiptModalCloseButton');
+        const receiptDownloadButton = document.getElementById('receiptDownloadButton');
+
+        if (receiptModalCloseButton) {
+            receiptModalCloseButton.addEventListener('click', closeReceiptModal);
+        }
+
+        if (receiptDownloadButton) {
+            receiptDownloadButton.addEventListener('click', downloadReceipt);
+        }
+
+        if (reservationConfirmCancelButton) {
+            reservationConfirmCancelButton.addEventListener('click', () => {
+                pendingReservationPayload = null;
+                closeReservationConfirmModal();
+            });
+        }
+
+        if (reservationConfirmProceedButton) {
+            reservationConfirmProceedButton.addEventListener('click', proceedReservationConfirmation);
+        }
+
+        if (receiptModal) {
+            receiptModal.addEventListener('click', event => {
+                if (event.target === receiptModal) {
+                    closeReceiptModal();
+                }
+            });
+        }
+
+        if (reservationConfirmModal) {
+            reservationConfirmModal.addEventListener('click', event => {
+                if (reservationConfirmModalPanel && !reservationConfirmModalPanel.contains(event.target)) {
+                    pendingReservationPayload = null;
+                    closeReservationConfirmModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Escape') {
+                return;
+            }
+
+            if (reservationConfirmModal && !reservationConfirmModal.classList.contains('hidden')) {
+                pendingReservationPayload = null;
+                closeReservationConfirmModal();
+                return;
+            }
+
+            if (receiptModal && !receiptModal.classList.contains('hidden')) {
+                closeReceiptModal();
+            }
+        });
+        });
     </script>
+
+    <!-- Reservation Confirm Modal -->
+    <div id="reservationConfirmModal" class="fixed inset-0 hidden flex items-center justify-center px-4 opacity-0 transition-opacity duration-200 ease-out" style="z-index: 3000;">
+        <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" style="z-index: 3000;"></div>
+
+        <div id="reservationConfirmModalPanel" class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full opacity-0 scale-95 transition-all duration-200 ease-out" style="z-index: 3001;">
+            <div class="p-6">
+                <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">Confirm reservation?</h2>
+                <p class="text-[#3A2E22] mb-4 font-body">Please review your reservation details before generating your receipt.</p>
+
+                <div class="rounded-lg border border-[#E2D5C1] bg-[#F8F3EA] p-3 mb-6 space-y-1 text-sm font-body text-[#3A2E22]">
+                    <p><span class="text-[#946042]">Product:</span> <span id="confirmReservationProduct">-</span></p>
+                    <p><span class="text-[#946042]">Quantity:</span> <span id="confirmReservationQuantity">-</span></p>
+                    <p><span class="text-[#946042]">Seller:</span> <span id="confirmReservationSeller">-</span></p>
+                </div>
+
+                <p id="reservationConfirmError" class="hidden text-sm text-[#B43F3F] font-body mb-4"></p>
+
+                <div class="flex gap-3">
+                    <button id="reservationConfirmCancelButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg border border-gray-300 text-gray-700 text-base font-semibold hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="reservationConfirmProceedButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#2E5A3D] text-white text-base font-semibold hover:bg-[#1E3A2A] transition-colors">
+                        Continue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal" class="fixed inset-0 z-[70] bg-[#3A2E22]/60 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 opacity-0 transition-opacity duration-300 ease-out">
+        <div id="receiptModalPanel" class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden opacity-0 scale-95 translate-y-3 transition-all duration-300 ease-out">
+            <div id="receiptContent" class="bg-white">
+                <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 text-white">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-xs tracking-[0.2em] uppercase text-[#F3E9D7]/80 font-body">BrewHub</p>
+                            <h3 class="text-lg sm:text-xl font-semibold font-poppins leading-tight mt-1">Reservation Receipt</h3>
+                            <p id="receiptSellerHeadline" class="text-xs sm:text-sm text-[#F3E9D7]/80 font-body mt-1">Seller: Verified Farm Seller</p>
+                        </div>
+                        <div class="rounded-lg bg-[#F3E9D7]/15 border border-[#F3E9D7]/30 px-2.5 py-1.5 text-right shrink-0">
+                            <p class="text-[10px] uppercase tracking-[0.14em] text-[#F3E9D7]/80 font-body">Generated</p>
+                            <p id="receiptDate" class="text-[11px] font-body mt-0.5">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 py-4 sm:px-5 sm:py-5 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5">
+                            <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Reservation ID</p>
+                            <p id="receiptReservationId" class="text-sm sm:text-base text-[#3A2E22] font-poppins font-semibold mt-0.5">-</p>
+                        </div>
+                        <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5">
+                            <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Product</p>
+                            <p id="receiptProduct" class="text-sm sm:text-base text-[#3A2E22] font-poppins font-semibold mt-0.5">-</p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg border border-[#E2D5C1] divide-y divide-[#E2D5C1] overflow-hidden">
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Quantity</p>
+                            <p id="receiptQuantity" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Customer Name</p>
+                            <p id="receiptName" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Seller</p>
+                            <p id="receiptSeller" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Address</p>
+                            <p id="receiptAddress" class="text-xs sm:text-sm text-[#3A2E22] font-body break-words">-</p>
+                        </div>
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
+                            <p id="receiptPhone" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                    </div>
+
+                    <p class="text-xs sm:text-sm text-[#3A2E22]/80 font-body leading-relaxed">
+                        Thank you for reserving with BrewHub. Please present this receipt during product pickup or transaction confirmation.
+                    </p>
+                </div>
+            </div>
+
+            <div class="px-4 py-2.5 sm:px-5 bg-[#FAF7F1] border-t border-[#E6DDCF] flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button id="receiptModalCloseButton" class="w-full sm:w-auto bg-white text-[#3A2E22] border border-[#C8B69A] px-3.5 py-2 rounded-lg text-sm font-body hover:bg-[#F3E9D7] transition-colors duration-200">
+                    Close
+                </button>
+                <button id="receiptDownloadButton" class="w-full sm:w-auto bg-[#2E5A3D] text-white px-3.5 py-2 rounded-lg text-sm font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
+                    Download Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reservationToast" class="hidden fixed bottom-4 right-4 z-[90] bg-[#2E5A3D] text-white px-4 py-3 rounded-xl shadow-xl opacity-0 translate-y-2 transition-all duration-300 ease-out">
+        <div class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <p id="reservationToastMessage" class="text-sm font-body">Reservation submitted successfully.</p>
+        </div>
+    </div>
+
+    <!-- Include html2canvas library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </div>
 @endsection

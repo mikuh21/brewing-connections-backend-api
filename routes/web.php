@@ -22,9 +22,19 @@ use App\Http\Controllers\CafeOwner\CafeOwnerMapController;
 use App\Http\Controllers\CafeOwner\CafeOwnerMessagesController;
 use App\Http\Controllers\CafeOwner\CafeOwnerCouponPromoController;
 use App\Http\Controllers\Reseller\ResellerDashboardController;
+use App\Models\Product;
 
 Route::get('/', function () {
-    return view('landing');
+    $farmProducts = Product::query()
+        ->with(['establishment'])
+        ->where('seller_type', 'farm_owner')
+        ->where('is_active', true)
+        ->where('stock_quantity', '>', 0)
+        ->latest()
+        ->take(8)
+        ->get();
+
+    return view('landing', compact('farmProducts'));
 });
 
 // Auth routes

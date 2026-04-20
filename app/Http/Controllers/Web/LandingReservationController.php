@@ -61,9 +61,6 @@ class LandingReservationController extends Controller
                 abort(Response::HTTP_UNPROCESSABLE_ENTITY, 'Not enough stock available for this order.');
             }
 
-            $product->stock_quantity = $availableStock - $requestedQty;
-            $product->save();
-
             $totalPrice = round(((float) ($product->price_per_unit ?? 0)) * $requestedQty, 2);
             $receiptToken = Str::random(40);
             $metadata = [
@@ -82,7 +79,7 @@ class LandingReservationController extends Controller
                 'quantity' => $requestedQty,
                 'total_price' => $totalPrice,
                 'status' => 'pending',
-                'stock_reserved' => true,
+                'stock_reserved' => false,
                 'notes' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
                 'pickup_date' => null,
                 'pickup_time' => null,

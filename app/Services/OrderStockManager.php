@@ -50,7 +50,7 @@ class OrderStockManager
             }
 
             $quantity = max(0, (int) ($lockedOrder->quantity ?? 0));
-            $isStockReserved = (bool) ($lockedOrder->stock_reserved ?? true);
+            $isStockReserved = (bool) ($lockedOrder->stock_reserved ?? false);
 
             if ($shouldReserveStock && !$isStockReserved) {
                 $availableStock = max(0, (int) ($lockedProduct->stock_quantity ?? 0));

@@ -125,9 +125,6 @@ class MarketplaceController extends Controller
                 abort(422, 'Not enough stock available for this order.');
             }
 
-            $product->stock_quantity = $availableStock - $requestedQty;
-            $product->save();
-
             $totalPrice = round(((float) $product->price_per_unit) * $requestedQty, 2);
 
             return Order::query()->create([
@@ -136,7 +133,7 @@ class MarketplaceController extends Controller
                 'quantity' => $requestedQty,
                 'total_price' => $totalPrice,
                 'status' => 'pending',
-                'stock_reserved' => true,
+                'stock_reserved' => false,
                 'notes' => $validated['notes'] ?? null,
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,

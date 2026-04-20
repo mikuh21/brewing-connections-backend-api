@@ -1583,6 +1583,7 @@
                 const selectedProductOption = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
                 const productIdValue = Number(selectedProductOption?.dataset?.productId || 0);
                 const selectedStock = Number(selectedProductOption?.dataset?.stock || 0);
+                const maximumQuantity = Number(reservationQuantityInput?.max || selectedStock || 0);
                 const sellerValue = String(selectedProductOption?.dataset?.seller || 'Verified Farm Seller').trim();
                 const fullNameValue = String(reservationFullNameInput?.value || '').trim();
                 const emailValue = String(reservationEmailInput?.value || '').trim();
@@ -1609,6 +1610,13 @@
                         reservationQuantityInput,
                         'reservationQuantityError',
                         `Quantity must be at least ${minimumQuantity}.`
+                    );
+                    hasError = true;
+                } else if (maximumQuantity > 0 && quantityValue > maximumQuantity) {
+                    setFieldError(
+                        reservationQuantityInput,
+                        'reservationQuantityError',
+                        `Only ${maximumQuantity} unit(s) are currently available.`
                     );
                     hasError = true;
                 } else {
@@ -1679,37 +1687,44 @@
             });
         }
 
-        function applyReservationMoq(rawMoq, shouldAutoFillQuantity = false) {
+        function applyReservationLimits(rawMoq, rawStock, shouldAutoFillQuantity = false) {
             const minimumQuantity = Math.max(1, Number(rawMoq || 1));
+            const availableStock = Math.max(0, Number(rawStock || 0));
+            const maximumQuantity = availableStock > 0 ? availableStock : minimumQuantity;
 
             if (reservationQuantityInput) {
                 reservationQuantityInput.min = String(minimumQuantity);
+                reservationQuantityInput.max = String(maximumQuantity);
 
                 const currentValue = String(reservationQuantityInput.value || '').trim();
                 const currentQuantity = Number(currentValue || 0);
+                const targetQuantity = Math.min(minimumQuantity, maximumQuantity);
 
                 if (shouldAutoFillQuantity) {
-                    reservationQuantityInput.value = String(minimumQuantity);
+                    reservationQuantityInput.value = String(targetQuantity);
                 } else if (currentValue !== '' && (!Number.isFinite(currentQuantity) || currentQuantity < minimumQuantity)) {
-                    reservationQuantityInput.value = String(minimumQuantity);
+                    reservationQuantityInput.value = String(targetQuantity);
+                } else if (currentValue !== '' && currentQuantity > maximumQuantity) {
+                    reservationQuantityInput.value = String(maximumQuantity);
                 }
             }
 
             if (reservationMoqHint) {
-                reservationMoqHint.textContent = `Minimum quantity: ${minimumQuantity}`;
+                reservationMoqHint.textContent = `Minimum quantity: ${minimumQuantity} • Available stock: ${availableStock}`;
             }
         }
 
         if (reservationProductSelect) {
             reservationProductSelect.addEventListener('change', () => {
                 const selectedOption = reservationProductSelect.options[reservationProductSelect.selectedIndex];
-                applyReservationMoq(selectedOption?.dataset?.moq || 1);
+                applyReservationLimits(selectedOption?.dataset?.moq || 1, selectedOption?.dataset?.stock || 0);
             });
         }
 
         if (reservationQuantityInput) {
             reservationQuantityInput.addEventListener('change', () => {
-                applyReservationMoq(reservationQuantityInput.min || 1);
+                const selectedOption = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+                applyReservationLimits(selectedOption?.dataset?.moq || reservationQuantityInput.min || 1, selectedOption?.dataset?.stock || reservationQuantityInput.max || 0);
             });
         }
 
@@ -1727,6 +1742,7 @@
                 const selectedProductId = Number(button.dataset.productId || 0);
                 const selectedMoq = button.dataset.moq || 1;
                 const selectedSeller = button.dataset.seller || 'Verified Farm Seller';
+                const selectedStock = Number(button.dataset.stock || 0);
 
                 if (reservationProductSelect && selectedProduct) {
                     const optionExists = Array.from(reservationProductSelect.options)
@@ -1737,6 +1753,7 @@
                         newOption.dataset.productId = String(selectedProductId || '');
                         newOption.dataset.moq = String(selectedMoq);
                         newOption.dataset.seller = String(selectedSeller);
+                        newOption.dataset.stock = String(selectedStock || 0);
                         reservationProductSelect.add(newOption);
                     }
 
@@ -1744,7 +1761,7 @@
                     reservationProductSelect.dispatchEvent(new Event('change'));
                 }
 
-                applyReservationMoq(selectedMoq, true);
+                applyReservationLimits(selectedMoq, selectedStock, true);
 
                 if (reservationSection) {
                     reservationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

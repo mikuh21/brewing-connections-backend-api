@@ -96,6 +96,27 @@
     .navbar-solid {
         background: #3A2E22 !important;
     }
+
+    /* Keep native date/time controls aligned with text inputs on mobile browsers */
+    .reservation-datetime-input {
+        min-height: 42px;
+        line-height: 1.25rem;
+        background-color: #ffffff !important;
+        color: #3A2E22 !important;
+        text-align: left;
+    }
+
+    .reservation-datetime-input::-webkit-date-and-time-value {
+        text-align: left;
+    }
+
+    .reservation-datetime-input::-webkit-datetime-edit {
+        padding: 0;
+    }
+
+    .reservation-datetime-input::-webkit-calendar-picker-indicator {
+        opacity: 0.75;
+    }
 </style>
 @endpush
 
@@ -749,7 +770,7 @@
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Pickup Date
                             </label>
-                            <input id="reservationPickupDateInput" type="date" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <input id="reservationPickupDateInput" type="date" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
                             <p id="reservationPickupDateError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
@@ -757,7 +778,7 @@
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Estimated Pickup Time
                             </label>
-                            <input id="reservationPickupTimeInput" type="time" step="300" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <input id="reservationPickupTimeInput" type="time" step="300" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
                             <p id="reservationPickupTimeError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 

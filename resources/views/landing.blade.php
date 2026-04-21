@@ -217,7 +217,7 @@
                     farm-to-cup excellence in 
                     Lipa, Batangas
                 </p>
-                <a href="#" class="bg-[#2E5A3D] text-white px-8 py-3 rounded-md text-lg hover:bg-[#1E3A2A] font-body inline-block animate-fade-in-up-delay-2">
+                <a href="#coffee-farms" class="js-smooth-scroll bg-[#2E5A3D] text-white px-8 py-3 rounded-md text-lg hover:bg-[#1E3A2A] font-body inline-block animate-fade-in-up-delay-2">
                     Explore →
                 </a>
             </div>
@@ -1297,9 +1297,9 @@
         // Intersection Observer for active nav links
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('nav a[href^="#"]');
-        const footerScrollLinks = document.querySelectorAll('.js-footer-scroll[href^="#"]');
+        const smoothScrollLinks = document.querySelectorAll('.js-footer-scroll[href^="#"], .js-smooth-scroll[href^="#"]');
 
-        footerScrollLinks.forEach((link) => {
+        smoothScrollLinks.forEach((link) => {
             link.addEventListener('click', (event) => {
                 const targetSelector = link.getAttribute('href');
                 if (!targetSelector || !targetSelector.startsWith('#')) {

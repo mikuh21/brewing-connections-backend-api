@@ -28,6 +28,8 @@ class LandingReservationController extends Controller
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
+            'pickup_date' => ['nullable', 'date_format:Y-m-d'],
+            'pickup_time' => ['nullable', 'date_format:H:i'],
             'full_name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email:rfc,dns', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
@@ -71,6 +73,8 @@ class LandingReservationController extends Controller
                 'receipt_email' => $validated['email'],
                 'address' => $validated['address'],
                 'phone' => $validated['phone'],
+                'pickup_date' => $validated['pickup_date'] ?? null,
+                'pickup_time' => $validated['pickup_time'] ?? null,
                 'receipt_token' => $receiptToken,
             ];
 
@@ -82,8 +86,8 @@ class LandingReservationController extends Controller
                 'status' => 'pending',
                 'stock_reserved' => false,
                 'notes' => json_encode($metadata, JSON_UNESCAPED_UNICODE),
-                'pickup_date' => null,
-                'pickup_time' => null,
+                'pickup_date' => $validated['pickup_date'] ?? null,
+                'pickup_time' => $validated['pickup_time'] ?? null,
             ]);
 
             $order->setAttribute('receipt_token', $receiptToken);
@@ -108,6 +112,8 @@ class LandingReservationController extends Controller
         $validated = $request->validate([
             'product_id' => ['nullable', 'integer', 'exists:products,id'],
             'quantity' => ['nullable', 'integer', 'min:1'],
+            'pickup_date' => ['nullable', 'date_format:Y-m-d'],
+            'pickup_time' => ['nullable', 'date_format:H:i'],
         ]);
 
         /** @var User|null $authenticatedUser */
@@ -126,6 +132,8 @@ class LandingReservationController extends Controller
             'email' => (string) ($authenticatedUser->email ?? ''),
             'product_id' => isset($validated['product_id']) ? (int) $validated['product_id'] : null,
             'quantity' => isset($validated['quantity']) ? (int) $validated['quantity'] : null,
+            'pickup_date' => isset($validated['pickup_date']) ? (string) $validated['pickup_date'] : null,
+            'pickup_time' => isset($validated['pickup_time']) ? (string) $validated['pickup_time'] : null,
         ];
 
         Cache::put($cacheKey, $payload, now()->addMinutes(20));
@@ -134,6 +142,8 @@ class LandingReservationController extends Controller
             'prefill_token' => $prefillToken,
             'product_id' => $payload['product_id'],
             'quantity' => $payload['quantity'],
+            'pickup_date' => $payload['pickup_date'],
+            'pickup_time' => $payload['pickup_time'],
         ], static fn ($value) => $value !== null && $value !== '');
 
         return response()->json([
@@ -158,6 +168,8 @@ class LandingReservationController extends Controller
             'email' => (string) ($payload['email'] ?? ''),
             'product_id' => isset($payload['product_id']) ? (int) $payload['product_id'] : null,
             'quantity' => isset($payload['quantity']) ? (int) $payload['quantity'] : null,
+            'pickup_date' => isset($payload['pickup_date']) ? (string) $payload['pickup_date'] : null,
+            'pickup_time' => isset($payload['pickup_time']) ? (string) $payload['pickup_time'] : null,
         ]);
     }
 

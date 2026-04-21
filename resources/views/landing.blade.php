@@ -449,7 +449,11 @@
                     <p class="text-[#946042]">{{ $shopCardOne?->address ?? 'Lipa, Batangas' }}</p>
                     @if(is_numeric($shopCardOne?->reviews_avg_overall_rating))
                         <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                            <span class="text-[#D19B3B]">★</span>
+                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
+                                </svg>
+                            </span>
                             <span class="font-semibold">{{ number_format((float) $shopCardOne->reviews_avg_overall_rating, 1) }}/5</span>
                             <span class="text-[#3A2E22]/70">rating</span>
                         </p>
@@ -471,7 +475,11 @@
                     <p class="text-[#946042]">{{ $shopCardTwo?->address ?? 'Lipa, Batangas' }}</p>
                     @if(is_numeric($shopCardTwo?->reviews_avg_overall_rating))
                         <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                            <span class="text-[#D19B3B]">★</span>
+                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
+                                </svg>
+                            </span>
                             <span class="font-semibold">{{ number_format((float) $shopCardTwo->reviews_avg_overall_rating, 1) }}/5</span>
                             <span class="text-[#3A2E22]/70">rating</span>
                         </p>
@@ -493,7 +501,11 @@
                     <p class="text-[#946042]">{{ $shopCardThree?->address ?? 'Lipa, Batangas' }}</p>
                     @if(is_numeric($shopCardThree?->reviews_avg_overall_rating))
                         <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                            <span class="text-[#D19B3B]">★</span>
+                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
+                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
+                                </svg>
+                            </span>
                             <span class="font-semibold">{{ number_format((float) $shopCardThree->reviews_avg_overall_rating, 1) }}/5</span>
                             <span class="text-[#3A2E22]/70">overall</span>
                         </p>
@@ -720,9 +732,33 @@
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Quantity
                             </label>
-                            <input id="reservationQuantityInput" type="number" min="1" step="1" value="" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                            <div class="flex items-center gap-2">
+                                <button id="reservationQuantityDecrease" type="button" class="w-11 h-11 rounded-lg border border-gray-300 bg-white text-[#2E5A3D] text-xl leading-none font-semibold hover:bg-[#F3E9D7] transition-colors" aria-label="Decrease quantity">
+                                    -
+                                </button>
+                                <input id="reservationQuantityInput" type="number" inputmode="numeric" min="1" step="1" value="" class="flex-1 bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] text-center focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                                <button id="reservationQuantityIncrease" type="button" class="w-11 h-11 rounded-lg border border-gray-300 bg-white text-[#2E5A3D] text-xl leading-none font-semibold hover:bg-[#F3E9D7] transition-colors" aria-label="Increase quantity">
+                                    +
+                                </button>
+                            </div>
                             <p id="reservationMoqHint" class="mt-1 text-xs text-[#3A2E22]/60 font-body">Select a product to see minimum quantity.</p>
                             <p id="reservationQuantityError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-[#3A2E22] font-body mb-1">
+                                Pickup Date
+                            </label>
+                            <input id="reservationPickupDateInput" type="date" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <p id="reservationPickupDateError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm text-[#3A2E22] font-body mb-1">
+                                Estimated Pickup Time
+                            </label>
+                            <input id="reservationPickupTimeInput" type="time" step="300" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                            <p id="reservationPickupTimeError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
                         <div>
@@ -769,8 +805,7 @@
                                 reserve in the app, you will be
                                 redirected here to finish reservation
                                 by entering your complete address and
-                                contact number. Your account email may
-                                be prefilled when available.
+                                contact number.
                             </span>
                         </p>
 
@@ -1226,6 +1261,10 @@
         const reservationForm = document.getElementById('reservationForm');
         const reservationProductSelect = document.getElementById('reservationProductSelect');
         const reservationQuantityInput = document.getElementById('reservationQuantityInput');
+        const reservationQuantityDecrease = document.getElementById('reservationQuantityDecrease');
+        const reservationQuantityIncrease = document.getElementById('reservationQuantityIncrease');
+        const reservationPickupDateInput = document.getElementById('reservationPickupDateInput');
+        const reservationPickupTimeInput = document.getElementById('reservationPickupTimeInput');
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
@@ -1279,6 +1318,8 @@
             const emailValue = String(prefillData.email || '').trim();
             const addressValue = String(prefillData.address || '').trim();
             const phoneValue = String(prefillData.phone || '').replace(/\s+/g, '');
+            const pickupDateValue = String(prefillData.pickup_date || '').trim();
+            const pickupTimeValue = String(prefillData.pickup_time || '').trim();
 
             if (reservationFullNameInput && !String(reservationFullNameInput.value || '').trim() && fullNameValue) {
                 reservationFullNameInput.value = fullNameValue;
@@ -1295,11 +1336,21 @@
             if (reservationPhoneInput && !String(reservationPhoneInput.value || '').trim() && phoneValue) {
                 reservationPhoneInput.value = phoneValue;
             }
+
+            if (reservationPickupDateInput && !String(reservationPickupDateInput.value || '').trim() && pickupDateValue) {
+                reservationPickupDateInput.value = pickupDateValue;
+            }
+
+            if (reservationPickupTimeInput && !String(reservationPickupTimeInput.value || '').trim() && pickupTimeValue) {
+                reservationPickupTimeInput.value = pickupTimeValue;
+            }
         }
 
         async function hydrateReservationFromUrl() {
             const queryProductId = Number(getQueryParam('product_id') || 0);
             const queryQuantity = Number(getQueryParam('quantity') || 0);
+            const queryPickupDate = String(getQueryParam('pickup_date') || '').trim();
+            const queryPickupTime = String(getQueryParam('pickup_time') || '').trim();
             const prefillToken = getQueryParam('prefill_token');
 
             if (Number.isInteger(queryProductId) && queryProductId > 0) {
@@ -1313,6 +1364,14 @@
                     const clampedQuantity = Math.max(minimumQuantity, Math.min(maximumQuantity, Math.floor(queryQuantity)));
                     reservationQuantityInput.value = String(clampedQuantity);
                 }
+            }
+
+            if (reservationPickupDateInput && /^\d{4}-\d{2}-\d{2}$/.test(queryPickupDate)) {
+                reservationPickupDateInput.value = queryPickupDate;
+            }
+
+            if (reservationPickupTimeInput && /^\d{2}:\d{2}$/.test(queryPickupTime)) {
+                reservationPickupTimeInput.value = queryPickupTime;
             }
 
             if (!prefillToken) {
@@ -1504,6 +1563,8 @@
                 body: JSON.stringify({
                     product_id: Number(payload.productId),
                     quantity: Number(payload.quantity),
+                    pickup_date: payload.pickupDate || null,
+                    pickup_time: payload.pickupTime || null,
                     full_name: payload.fullName,
                     email: payload.email,
                     address: payload.address,
@@ -1679,6 +1740,8 @@
                 const selectedStock = Number(selectedProductOption?.dataset?.stock || 0);
                 const maximumQuantity = Number(reservationQuantityInput?.max || selectedStock || 0);
                 const sellerValue = String(selectedProductOption?.dataset?.seller || 'Verified Farm Seller').trim();
+                const pickupDateValue = String(reservationPickupDateInput?.value || '').trim();
+                const pickupTimeValue = String(reservationPickupTimeInput?.value || '').trim();
                 const fullNameValue = String(reservationFullNameInput?.value || '').trim();
                 const emailValue = String(reservationEmailInput?.value || '').trim();
                 const addressValue = String(reservationAddressInput?.value || '').trim();
@@ -1761,6 +1824,28 @@
                     setFieldError(reservationPhoneInput, 'reservationPhoneError', '');
                 }
 
+                if (pickupDateValue && !/^\d{4}-\d{2}-\d{2}$/.test(pickupDateValue)) {
+                    setFieldError(
+                        reservationPickupDateInput,
+                        'reservationPickupDateError',
+                        'Use date format YYYY-MM-DD.'
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+                }
+
+                if (pickupTimeValue && !/^\d{2}:\d{2}$/.test(pickupTimeValue)) {
+                    setFieldError(
+                        reservationPickupTimeInput,
+                        'reservationPickupTimeError',
+                        'Use time format HH:MM.'
+                    );
+                    hasError = true;
+                } else {
+                    setFieldError(reservationPickupTimeInput, 'reservationPickupTimeError', '');
+                }
+
                 if (hasError) {
                     return;
                 }
@@ -1771,6 +1856,8 @@
                     product: productValue,
                     quantity: String(quantityValue),
                     seller: sellerValue,
+                    pickupDate: pickupDateValue,
+                    pickupTime: pickupTimeValue,
                     fullName: fullNameValue,
                     email: emailValue,
                     address: addressValue,
@@ -1820,6 +1907,28 @@
                 const selectedOption = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
                 applyReservationLimits(selectedOption?.dataset?.moq || reservationQuantityInput.min || 1, selectedOption?.dataset?.stock || reservationQuantityInput.max || 0);
             });
+        }
+
+        function adjustReservationQuantity(delta) {
+            if (!reservationQuantityInput) {
+                return;
+            }
+
+            const minimumQuantity = Math.max(1, Number(reservationQuantityInput.min || 1));
+            const maximumQuantity = Math.max(minimumQuantity, Number(reservationQuantityInput.max || minimumQuantity));
+            const currentQuantity = Math.floor(Number(reservationQuantityInput.value || minimumQuantity));
+            const safeCurrent = Number.isFinite(currentQuantity) ? currentQuantity : minimumQuantity;
+            const nextQuantity = Math.max(minimumQuantity, Math.min(maximumQuantity, safeCurrent + delta));
+            reservationQuantityInput.value = String(nextQuantity);
+            reservationQuantityInput.dispatchEvent(new Event('change'));
+        }
+
+        if (reservationQuantityDecrease) {
+            reservationQuantityDecrease.addEventListener('click', () => adjustReservationQuantity(-1));
+        }
+
+        if (reservationQuantityIncrease) {
+            reservationQuantityIncrease.addEventListener('click', () => adjustReservationQuantity(1));
         }
 
         reserveButtons.forEach(button => {

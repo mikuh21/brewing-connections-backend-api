@@ -3,6 +3,28 @@
 @section('title', 'Official Reservation Receipt')
 
 @section('content')
+@php
+    $pickupDateRaw = (string) ($receiptMeta['pickup_date'] ?? '');
+    $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
+
+    $pickupDateDisplay = 'N/A';
+    if ($pickupDateRaw !== '') {
+        try {
+            $pickupDateDisplay = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $pickupDateRaw)->format('M d, Y');
+        } catch (\Throwable $exception) {
+            $pickupDateDisplay = $pickupDateRaw;
+        }
+    }
+
+    $pickupTimeDisplay = 'N/A';
+    if ($pickupTimeRaw !== '') {
+        try {
+            $pickupTimeDisplay = \Illuminate\Support\Carbon::createFromFormat('H:i', $pickupTimeRaw)->format('h:i A');
+        } catch (\Throwable $exception) {
+            $pickupTimeDisplay = $pickupTimeRaw;
+        }
+    }
+@endphp
 <div class="min-h-screen bg-[#F3E9D7] py-10 px-4">
     <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-[#E8DCC9]">
         <div class="bg-[#3A2E22] text-white px-6 py-5 sm:px-8 sm:py-6">
@@ -49,6 +71,14 @@
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
                     <p class="text-sm text-[#946042] font-body">Phone</p>
                     <p class="text-sm text-[#3A2E22] font-body">{{ $receiptMeta['phone'] ?? 'N/A' }}</p>
+                </div>
+                <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                    <p class="text-sm text-[#946042] font-body">Pickup Date</p>
+                    <p class="text-sm text-[#3A2E22] font-body">{{ $pickupDateDisplay }}</p>
+                </div>
+                <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                    <p class="text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                    <p class="text-sm text-[#3A2E22] font-body">{{ $pickupTimeDisplay }}</p>
                 </div>
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
                     <p class="text-sm text-[#946042] font-body">Created</p>

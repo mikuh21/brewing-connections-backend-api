@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\MenuImageExtractionService;
 use App\Services\OrderReceiptNotifier;
 use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
 class CafeOwnerMarketplaceController extends Controller
 {
     public function __construct(
+        private readonly MenuImageExtractionService $menuImageExtractionService,
         private readonly OrderReceiptNotifier $orderReceiptNotifier,
         private readonly OrderStockManager $orderStockManager,
     ) {
@@ -28,6 +30,20 @@ class CafeOwnerMarketplaceController extends Controller
 
         $userId = (int) $user->id;
         $establishment = $this->resolveOwnedEstablishment($userId);
+        $typeCategoryMap = [
+            'coffee_beans' => 'Coffee Beans',
+            'ground_coffee' => 'Ground Coffee',
+            'hot_drinks' => 'Hot Drinks',
+            'iced_drinks' => 'Iced Drinks',
+            'iced_blended_drinks' => 'Iced Blended Drinks',
+            'tea' => 'Tea',
+            'rice_meals' => 'Rice Meals',
+            'pastas' => 'Pastas',
+            'appetizers' => 'Appetizers',
+            'sandwiches' => 'Sandwiches',
+            'burgers' => 'Burgers',
+            'pastries' => 'Pastries',
+        ];
 
         $productsQuery = Product::query()->whereRaw('1 = 0');
 
@@ -54,12 +70,8 @@ class CafeOwnerMarketplaceController extends Controller
                 });
             }
 
-            if ($type = request('type')) {
-                if ($type === 'coffee_beans') {
-                    $productsQuery->where('category', 'Coffee Beans');
-                } elseif ($type === 'ground_coffee') {
-                    $productsQuery->where('category', 'Ground Coffee');
-                }
+            if (($type = request('type')) && isset($typeCategoryMap[$type])) {
+                $productsQuery->where('category', $typeCategoryMap[$type]);
             }
 
             $productsQuery->latest();
@@ -111,12 +123,8 @@ class CafeOwnerMarketplaceController extends Controller
             });
         }
 
-        if ($type = request('type')) {
-            if ($type === 'coffee_beans') {
-                $marketplaceQuery->where('products.category', 'Coffee Beans');
-            } elseif ($type === 'ground_coffee') {
-                $marketplaceQuery->where('products.category', 'Ground Coffee');
-            }
+        if (($type = request('type')) && isset($typeCategoryMap[$type])) {
+            $marketplaceQuery->where('products.category', $typeCategoryMap[$type]);
         }
 
         $marketplaceProducts = $marketplaceQuery
@@ -235,16 +243,39 @@ class CafeOwnerMarketplaceController extends Controller
             abort(403);
         }
 
+        $productCategories = [
+            'Coffee Beans',
+            'Ground Coffee',
+            'Hot Drinks',
+            'Iced Drinks',
+            'Iced Blended Drinks',
+            'Tea',
+            'Rice Meals',
+            'Pastas',
+            'Appetizers',
+            'Sandwiches',
+            'Burgers',
+            'Pastries',
+        ];
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|in:Coffee Beans,Ground Coffee',
+            'category' => 'required|in:' . implode(',', $productCategories),
             'price_per_unit' => 'required|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
+            'stock_quantity' => 'nullable|integer|min:0',
             'unit' => 'nullable|string|max:50',
             'moq' => 'nullable|integer|min:1',
             'image' => 'nullable|image|max:5120',
         ]);
+
+        $isCoffeeProduct = in_array($validated['category'], ['Coffee Beans', 'Ground Coffee'], true);
+
+        if ($isCoffeeProduct && !array_key_exists('stock_quantity', $validated)) {
+            return back()
+                ->withErrors(['stock_quantity' => 'Stock quantity is required for Coffee Beans and Ground Coffee.'])
+                ->withInput();
+        }
 
         $imageUrl = $product->image_url;
         if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
@@ -257,8 +288,8 @@ class CafeOwnerMarketplaceController extends Controller
             'description' => $validated['description'] ?? null,
             'category' => $validated['category'],
             'price_per_unit' => $validated['price_per_unit'],
-            'stock_quantity' => $validated['stock_quantity'],
-            'unit' => $validated['unit'] ?? ($product->unit ?: 'kg'),
+            'stock_quantity' => $validated['stock_quantity'] ?? ($product->stock_quantity ?? ($isCoffeeProduct ? 0 : 10)),
+            'unit' => $validated['unit'] ?? ($product->unit ?: ($isCoffeeProduct ? 'kg' : 'serving')),
             'moq' => $validated['moq'] ?? ($product->moq ?: 1),
         ];
 
@@ -269,6 +300,98 @@ class CafeOwnerMarketplaceController extends Controller
         $product->update($updatePayload);
 
         return back()->with('status', 'Product updated successfully.');
+    }
+
+    public function extractMenuItems(Request $request)
+    {
+        $validated = $request->validate([
+            'menu_image' => ['required', 'image', 'max:10240'],
+        ]);
+
+        try {
+            $items = $this->menuImageExtractionService->extractDraftProducts($validated['menu_image']);
+        } catch (\Throwable $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'Menu image extracted successfully.',
+            'items' => $items,
+        ]);
+    }
+
+    public function confirmExtractedMenuItems(Request $request)
+    {
+        $userId = (int) Auth::id();
+
+        $menuCategories = implode(',', [
+            'Coffee Beans',
+            'Ground Coffee',
+            'Hot Drinks',
+            'Iced Drinks',
+            'Iced Blended Drinks',
+            'Tea',
+            'Rice Meals',
+            'Pastas',
+            'Appetizers',
+            'Sandwiches',
+            'Burgers',
+            'Pastries',
+        ]);
+
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1', 'max:100'],
+            'items.*.name' => ['required', 'string', 'max:255'],
+            'items.*.description' => ['nullable', 'string'],
+            'items.*.category' => ['required', 'in:' . $menuCategories],
+            'items.*.price_per_unit' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $establishment = $this->resolveOwnedEstablishment($userId);
+        $createdProducts = [];
+
+        foreach ($validated['items'] as $item) {
+            $payload = [
+                'name' => trim((string) $item['name']),
+                'description' => $item['description'] ?? null,
+                'category' => $item['category'],
+                'price_per_unit' => $item['price_per_unit'],
+                'stock_quantity' => 10,
+                'unit' => 'serving',
+                'moq' => 1,
+                'is_active' => true,
+            ];
+
+            if (Schema::hasColumn('products', 'user_id')) {
+                $payload['user_id'] = $userId;
+            }
+
+            if (Schema::hasColumn('products', 'seller_id')) {
+                $payload['seller_id'] = $userId;
+            }
+
+            if (Schema::hasColumn('products', 'seller_type')) {
+                $payload['seller_type'] = 'cafe_owner';
+            }
+
+            if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
+                $payload['establishment_id'] = $establishment->id;
+            }
+
+            $createdProduct = Product::create($payload);
+            $createdProducts[] = [
+                'id' => (int) $createdProduct->id,
+                'name' => (string) $createdProduct->name,
+            ];
+        }
+
+        return response()->json([
+            'message' => 'Menu items imported successfully.',
+            'created_count' => count($createdProducts),
+            'products' => $createdProducts,
+        ]);
     }
 
     public function updateProductVisibility(Request $request, Product $product)

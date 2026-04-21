@@ -45,6 +45,8 @@
             reservationId: '-',
             product: '-',
             quantity: '-',
+            pickupDate: '-',
+            pickupTime: '-',
             customer: '-',
             seller: 'Coffee Marketplace',
             address: '-',
@@ -116,6 +118,44 @@
             };
             this.showViewModal = true;
         },
+        formatPickupDate(value) {
+            const raw = String(value || '').trim();
+            if (!raw || raw === '-') {
+                return '-';
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                const parsed = new Date(`${raw}T00:00:00`);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                    });
+                }
+            }
+
+            return raw;
+        },
+        formatPickupTime(value) {
+            const raw = String(value || '').trim();
+            if (!raw || raw === '-') {
+                return '-';
+            }
+
+            if (/^\d{2}:\d{2}$/.test(raw)) {
+                const parsed = new Date(`1970-01-01T${raw}:00`);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                    });
+                }
+            }
+
+            return raw;
+        },
         openReceiptViewer(payload) {
             const now = new Date();
             this.receiptData = {
@@ -123,6 +163,8 @@
                 reservationId: payload?.reservationId || '-',
                 product: payload?.product || '-',
                 quantity: payload?.quantity ?? '-',
+                pickupDate: payload?.pickupDate || payload?.pickup_date || '-',
+                pickupTime: payload?.pickupTime || payload?.pickup_time || '-',
                 customer: payload?.customer || '-',
                 seller: payload?.seller || 'Coffee Marketplace',
                 address: payload?.address || '-',
@@ -148,6 +190,8 @@
                 product: esc(this.receiptData?.product),
                 status: esc(this.receiptData?.status),
                 quantity: esc(this.receiptData?.quantity),
+                pickupDate: esc(this.formatPickupDate(this.receiptData?.pickupDate)),
+                pickupTime: esc(this.formatPickupTime(this.receiptData?.pickupTime)),
                 total: esc(this.receiptData?.total),
                 customer: esc(this.receiptData?.customer),
                 address: esc(this.receiptData?.address),
@@ -201,6 +245,8 @@
                 '<div class=\'table\'>' +
                 '<div class=\'row\'><div class=\'k\'>Status</div><div class=\'v\'>' + receipt.status + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Quantity</div><div class=\'v\'>' + receipt.quantity + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Pickup Date</div><div class=\'v\'>' + receipt.pickupDate + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Estimated Pickup Time</div><div class=\'v\'>' + receipt.pickupTime + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Total</div><div class=\'v\'>PHP ' + receipt.total + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Customer</div><div class=\'v\'>' + receipt.customer + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Address</div><div class=\'v\'>' + receipt.address + '</div></div>' +
@@ -773,6 +819,8 @@
                                             'reservationId' => $reservationCode,
                                             'product' => $receiptProductName,
                                             'quantity' => (int) $order->quantity,
+                                            'pickupDate' => $receiptMeta['pickup_date'] ?? null,
+                                            'pickupTime' => $receiptMeta['pickup_time'] ?? null,
                                             'customer' => $receiptMeta['full_name'] ?? ($order->user->name ?? 'N/A'),
                                             'seller' => $receiptMeta['seller'] ?? 'Coffee Marketplace',
                                             'address' => $receiptMeta['address'] ?? 'N/A',
@@ -896,6 +944,14 @@
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.phone"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupDate(receiptData.pickupDate)"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupTime(receiptData.pickupTime)"></p>
                     </div>
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Created</p>

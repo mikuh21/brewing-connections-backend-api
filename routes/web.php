@@ -152,6 +152,8 @@ Route::prefix('cafe-owner')
         Route::delete('/coupon-promos/{id}', [CafeOwnerCouponPromoController::class, 'destroy'])->name('coupon-promos.destroy');
         Route::get('/marketplace', [CafeOwnerMarketplaceController::class, 'index'])->name('marketplace');
         Route::post('/marketplace/products', [CafeOwnerMarketplaceController::class, 'store'])->name('marketplace.products.store');
+        Route::post('/marketplace/products/menu/extract', [CafeOwnerMarketplaceController::class, 'extractMenuItems'])->name('marketplace.products.menu.extract');
+        Route::post('/marketplace/products/menu/confirm', [CafeOwnerMarketplaceController::class, 'confirmExtractedMenuItems'])->name('marketplace.products.menu.confirm');
         Route::patch('/marketplace/products/{product}', [CafeOwnerMarketplaceController::class, 'updateProduct'])->name('marketplace.products.update');
         Route::patch('/marketplace/products/{product}/visibility', [CafeOwnerMarketplaceController::class, 'updateProductVisibility'])->name('marketplace.products.visibility');
         Route::patch('/marketplace/orders/{order}', [CafeOwnerMarketplaceController::class, 'updateOrder'])->name('marketplace.orders.update');

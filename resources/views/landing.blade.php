@@ -1754,6 +1754,46 @@
                 return;
             }
 
+            const formatPickupDate = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) {
+                    return '-';
+                }
+
+                if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                    const parsed = new Date(`${raw}T00:00:00`);
+                    if (!Number.isNaN(parsed.getTime())) {
+                        return parsed.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: '2-digit',
+                        });
+                    }
+                }
+
+                return raw;
+            };
+
+            const formatPickupTime = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) {
+                    return '-';
+                }
+
+                if (/^\d{2}:\d{2}$/.test(raw)) {
+                    const parsed = new Date(`1970-01-01T${raw}:00`);
+                    if (!Number.isNaN(parsed.getTime())) {
+                        return parsed.toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                        });
+                    }
+                }
+
+                return raw;
+            };
+
             const receiptDateElement = document.getElementById('receiptDate');
             const receiptIdElement = document.getElementById('receiptReservationId');
             const receiptProductElement = document.getElementById('receiptProduct');
@@ -1761,6 +1801,8 @@
             const receiptNameElement = document.getElementById('receiptName');
             const receiptAddressElement = document.getElementById('receiptAddress');
             const receiptPhoneElement = document.getElementById('receiptPhone');
+            const receiptPickupDateElement = document.getElementById('receiptPickupDate');
+            const receiptPickupTimeElement = document.getElementById('receiptPickupTime');
             const receiptSellerElement = document.getElementById('receiptSeller');
             const receiptSellerHeadlineElement = document.getElementById('receiptSellerHeadline');
 
@@ -1792,6 +1834,14 @@
 
             if (receiptPhoneElement) {
                 receiptPhoneElement.textContent = data.phone;
+            }
+
+            if (receiptPickupDateElement) {
+                receiptPickupDateElement.textContent = formatPickupDate(data.pickupDate || data.pickup_date || '');
+            }
+
+            if (receiptPickupTimeElement) {
+                receiptPickupTimeElement.textContent = formatPickupTime(data.pickupTime || data.pickup_time || '');
             }
 
             if (receiptSellerElement) {
@@ -2256,6 +2306,14 @@
                         <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                             <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
                             <p id="receiptPhone" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
+                            <p id="receiptPickupDate" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                            <p id="receiptPickupTime" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
                         </div>
                     </div>
 

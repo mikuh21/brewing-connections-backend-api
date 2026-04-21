@@ -6,6 +6,28 @@
     <title>BrewHub Order Receipt</title>
 </head>
 <body style="margin:0;padding:0;background:#F3E9D7;font-family:Arial,sans-serif;color:#3A2E22;">
+    @php
+        $pickupDateRaw = (string) ($receiptMeta['pickup_date'] ?? '');
+        $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
+
+        $pickupDateDisplay = 'N/A';
+        if ($pickupDateRaw !== '') {
+            try {
+                $pickupDateDisplay = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $pickupDateRaw)->format('M d, Y');
+            } catch (\Throwable $exception) {
+                $pickupDateDisplay = $pickupDateRaw;
+            }
+        }
+
+        $pickupTimeDisplay = 'N/A';
+        if ($pickupTimeRaw !== '') {
+            try {
+                $pickupTimeDisplay = \Illuminate\Support\Carbon::createFromFormat('H:i', $pickupTimeRaw)->format('h:i A');
+            } catch (\Throwable $exception) {
+                $pickupTimeDisplay = $pickupTimeRaw;
+            }
+        }
+    @endphp
     <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#F3E9D7;padding:24px 12px;">
         <tr>
             <td align="center">
@@ -43,6 +65,14 @@
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;">Total</td>
                                     <td style="padding:10px 12px;font-size:13px;">PHP {{ number_format((float) $order->total_price, 2) }}</td>
                                 </tr>
+                                <tr>
+                                    <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Pickup Date</td>
+                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupDateDisplay }}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Estimated Pickup Time</td>
+                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupTimeDisplay }}</td>
+                                </tr>
                             </table>
 
                             <p style="margin:16px 0 0 0;">
@@ -52,7 +82,9 @@
                             <p style="margin:16px 0 0 0;font-size:12px;color:#6B5B4A;line-height:1.6;">
                                 Customer: {{ $receiptMeta['full_name'] ?? ($order->user?->name ?? 'N/A') }}<br>
                                 Address: {{ $receiptMeta['address'] ?? 'N/A' }}<br>
-                                Phone: {{ $receiptMeta['phone'] ?? 'N/A' }}
+                                Phone: {{ $receiptMeta['phone'] ?? 'N/A' }}<br>
+                                Pickup Date: {{ $pickupDateDisplay }}<br>
+                                Estimated Pickup Time: {{ $pickupTimeDisplay }}
                             </p>
                         </td>
                     </tr>

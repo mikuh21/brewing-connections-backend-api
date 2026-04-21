@@ -37,6 +37,7 @@
     x-data="{
         showCreateModal: false,
         showEditModal: false,
+        showMenuImportModal: false,
         showViewModal: false,
         showReceiptModal: false,
         receiptData: {
@@ -44,6 +45,8 @@
             reservationId: '-',
             product: '-',
             quantity: '-',
+            pickupDate: '-',
+            pickupTime: '-',
             customer: '-',
             seller: 'Coffee Marketplace',
             address: '-',
@@ -53,6 +56,25 @@
         },
         editImagePreview: '',
         createImagePreview: '',
+        menuImportImagePreview: '',
+        isExtractingMenu: false,
+        isSavingExtractedMenuItems: false,
+        menuExtractionError: '',
+        extractedMenuItems: [],
+        menuImportCategories: [
+            'Coffee Beans',
+            'Ground Coffee',
+            'Hot Drinks',
+            'Iced Drinks',
+            'Iced Blended Drinks',
+            'Tea',
+            'Rice Meals',
+            'Pastas',
+            'Appetizers',
+            'Sandwiches',
+            'Burgers',
+            'Pastries',
+        ],
         activeTab: 'my-listings',
         statusFilter: 'all',
         orderSearch: '',
@@ -62,6 +84,8 @@
         productsMeta: {{ Js::from($productsMeta) }},
         updateUrlTemplate: '{{ route('cafe-owner.marketplace.products.update', ['product' => '__PRODUCT_ID__']) }}',
         visibilityUrlTemplate: '{{ route('cafe-owner.marketplace.products.visibility', ['product' => '__PRODUCT_ID__']) }}',
+        menuExtractUrl: '{{ route('cafe-owner.marketplace.products.menu.extract') }}',
+        menuConfirmUrl: '{{ route('cafe-owner.marketplace.products.menu.confirm') }}',
         createForm: {
             name: '',
             description: '',
@@ -114,6 +138,44 @@
             };
             this.showViewModal = true;
         },
+        formatPickupDate(value) {
+            const raw = String(value || '').trim();
+            if (!raw || raw === '-') {
+                return '-';
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+                const parsed = new Date(`${raw}T00:00:00`);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                    });
+                }
+            }
+
+            return raw;
+        },
+        formatPickupTime(value) {
+            const raw = String(value || '').trim();
+            if (!raw || raw === '-') {
+                return '-';
+            }
+
+            if (/^\d{2}:\d{2}$/.test(raw)) {
+                const parsed = new Date(`1970-01-01T${raw}:00`);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed.toLocaleTimeString('en-US', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                    });
+                }
+            }
+
+            return raw;
+        },
         openReceiptViewer(payload) {
             const now = new Date();
             this.receiptData = {
@@ -121,6 +183,8 @@
                 reservationId: payload?.reservationId || '-',
                 product: payload?.product || '-',
                 quantity: payload?.quantity ?? '-',
+                pickupDate: payload?.pickupDate || payload?.pickup_date || '-',
+                pickupTime: payload?.pickupTime || payload?.pickup_time || '-',
                 customer: payload?.customer || '-',
                 seller: payload?.seller || 'Coffee Marketplace',
                 address: payload?.address || '-',
@@ -146,6 +210,8 @@
                 product: esc(this.receiptData?.product),
                 status: esc(this.receiptData?.status),
                 quantity: esc(this.receiptData?.quantity),
+                pickupDate: esc(this.formatPickupDate(this.receiptData?.pickupDate)),
+                pickupTime: esc(this.formatPickupTime(this.receiptData?.pickupTime)),
                 total: esc(this.receiptData?.total),
                 customer: esc(this.receiptData?.customer),
                 address: esc(this.receiptData?.address),
@@ -199,6 +265,8 @@
                 '<div class=\'table\'>' +
                 '<div class=\'row\'><div class=\'k\'>Status</div><div class=\'v\'>' + receipt.status + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Quantity</div><div class=\'v\'>' + receipt.quantity + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Pickup Date</div><div class=\'v\'>' + receipt.pickupDate + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Estimated Pickup Time</div><div class=\'v\'>' + receipt.pickupTime + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Total</div><div class=\'v\'>PHP ' + receipt.total + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Customer</div><div class=\'v\'>' + receipt.customer + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Address</div><div class=\'v\'>' + receipt.address + '</div></div>' +
@@ -255,6 +323,160 @@
             this.createImagePreview = '';
             if (this.$refs.createImageInput) {
                 this.$refs.createImageInput.value = '';
+            }
+        },
+        openMenuImportModal() {
+            this.showMenuImportModal = true;
+            this.menuExtractionError = '';
+            this.extractedMenuItems = [];
+            this.menuImportImagePreview = '';
+            if (this.$refs.menuImportImageInput) {
+                this.$refs.menuImportImageInput.value = '';
+            }
+        },
+        closeMenuImportModal() {
+            this.showMenuImportModal = false;
+            this.menuExtractionError = '';
+            this.extractedMenuItems = [];
+            this.menuImportImagePreview = '';
+            this.isExtractingMenu = false;
+            this.isSavingExtractedMenuItems = false;
+            if (this.$refs.menuImportImageInput) {
+                this.$refs.menuImportImageInput.value = '';
+            }
+        },
+        handleMenuImportImageChange(event) {
+            const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+            if (!file) {
+                this.menuImportImagePreview = '';
+                return;
+            }
+
+            this.menuImportImagePreview = URL.createObjectURL(file);
+            this.menuExtractionError = '';
+        },
+        async extractMenuItemsFromImage() {
+            const selectedFile = this.$refs.menuImportImageInput?.files?.[0];
+            if (!selectedFile) {
+                this.menuExtractionError = 'Please select a menu image first.';
+                return;
+            }
+
+            this.menuExtractionError = '';
+            this.isExtractingMenu = true;
+
+            const formData = new FormData();
+            formData.append('menu_image', selectedFile);
+
+            try {
+                const response = await fetch(this.menuExtractUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': this.csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: formData,
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Unable to extract items from this menu image.');
+                }
+
+                const extractedItems = Array.isArray(payload.items) ? payload.items : [];
+                if (extractedItems.length === 0) {
+                    throw new Error('No menu items were detected. Please try another image.');
+                }
+
+                this.extractedMenuItems = extractedItems.map((item) => ({
+                    name: String(item.name || '').trim(),
+                    description: String(item.description || '').trim(),
+                    category: this.normalizeMenuCategory(item.category),
+                    price_per_unit: Number(item.price_per_unit || 0),
+                    confidence: typeof item.confidence === 'number' ? item.confidence : undefined,
+                }));
+            } catch (error) {
+                this.menuExtractionError = error?.message || 'Unable to extract items from this menu image.';
+            } finally {
+                this.isExtractingMenu = false;
+            }
+        },
+        addExtractedMenuItem() {
+            this.extractedMenuItems.push({
+                name: '',
+                description: '',
+                category: 'Hot Drinks',
+                price_per_unit: 0,
+            });
+        },
+        normalizeMenuCategory(category) {
+            const normalized = String(category || '').trim();
+            if (this.menuImportCategories.includes(normalized)) {
+                return normalized;
+            }
+
+            const lower = normalized.toLowerCase();
+            if (lower === 'brewed coffee') {
+                return 'Hot Drinks';
+            }
+            if (lower === 'cold drinks') {
+                return 'Iced Drinks';
+            }
+            if (lower === 'other') {
+                return 'Hot Drinks';
+            }
+
+            return 'Hot Drinks';
+        },
+        removeExtractedMenuItem(index) {
+            this.extractedMenuItems.splice(index, 1);
+        },
+        async saveExtractedMenuItems() {
+            if (!Array.isArray(this.extractedMenuItems) || this.extractedMenuItems.length === 0) {
+                this.menuExtractionError = 'No extracted items to save.';
+                return;
+            }
+
+            const normalizedItems = this.extractedMenuItems.map((item) => ({
+                name: String(item.name || '').trim(),
+                description: String(item.description || '').trim(),
+                category: this.normalizeMenuCategory(item.category),
+                price_per_unit: Number(item.price_per_unit || 0),
+            })).filter((item) => item.name !== '');
+
+            if (normalizedItems.length === 0) {
+                this.menuExtractionError = 'Please keep at least one item with a product name.';
+                return;
+            }
+
+            this.menuExtractionError = '';
+            this.isSavingExtractedMenuItems = true;
+
+            try {
+                const response = await fetch(this.menuConfirmUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': this.csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ items: normalizedItems }),
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.message || 'Failed to import extracted menu items.');
+                }
+
+                window.location.reload();
+            } catch (error) {
+                this.menuExtractionError = error?.message || 'Failed to import extracted menu items.';
+            } finally {
+                this.isSavingExtractedMenuItems = false;
             }
         },
         init() {
@@ -340,8 +562,13 @@
             }
             return { qty: stock, label: 'In Stock', class: 'bg-green-100 text-green-700' };
         },
+        isMenuCategory(category) {
+            const normalized = String(category || '').trim().toLowerCase();
+            return normalized !== 'coffee beans' && normalized !== 'ground coffee';
+        },
         displayType(category) {
-            return String(category || '').toLowerCase() === 'ground coffee' ? 'Ground Coffee' : 'Coffee Beans';
+            const normalized = String(category || '').trim();
+            return normalized || 'Coffee Beans';
         },
         hiddenProducts() {
             const term = this.searchTerm.toLowerCase().trim();
@@ -365,13 +592,23 @@
             </p>
         </div>
 
-        <button
-            type="button"
-            @click="showCreateModal = true; createImagePreview = ''"
-            class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
-        >
-            <span class="mr-1.5">+</span>Add Product
-        </button>
+        <div class="flex items-center gap-2">
+            <button
+                type="button"
+                @click="openMenuImportModal()"
+                class="px-4 py-2 rounded-lg border border-[#4A6741] text-[#4A6741] text-sm font-semibold hover:bg-[#F5F0E8] transition-colors"
+            >
+                Upload Menu Image
+            </button>
+
+            <button
+                type="button"
+                @click="showCreateModal = true; createImagePreview = ''"
+                class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
+            >
+                <span class="mr-1.5">+</span>Add Product
+            </button>
+        </div>
 </div>
 
 @if(session('status'))
@@ -452,6 +689,16 @@
             <option value="">All Types</option>
             <option value="coffee_beans" @selected(request('type') === 'coffee_beans')>Coffee Beans</option>
             <option value="ground_coffee" @selected(request('type') === 'ground_coffee')>Ground Coffee</option>
+            <option value="hot_drinks" @selected(request('type') === 'hot_drinks')>Hot Drinks</option>
+            <option value="iced_drinks" @selected(request('type') === 'iced_drinks')>Iced Drinks</option>
+            <option value="iced_blended_drinks" @selected(request('type') === 'iced_blended_drinks')>Iced Blended Drinks</option>
+            <option value="tea" @selected(request('type') === 'tea')>Tea</option>
+            <option value="rice_meals" @selected(request('type') === 'rice_meals')>Rice Meals</option>
+            <option value="pastas" @selected(request('type') === 'pastas')>Pastas</option>
+            <option value="appetizers" @selected(request('type') === 'appetizers')>Appetizers</option>
+            <option value="sandwiches" @selected(request('type') === 'sandwiches')>Sandwiches</option>
+            <option value="burgers" @selected(request('type') === 'burgers')>Burgers</option>
+            <option value="pastries" @selected(request('type') === 'pastries')>Pastries</option>
         </select>
     </form>
 </div>
@@ -472,9 +719,8 @@
                     $stockClass = 'bg-green-100 text-green-700';
                 }
 
-                $displayType = strtolower((string) $product->category) === 'ground coffee'
-                    ? 'Ground Coffee'
-                    : 'Coffee Beans';
+                $displayType = trim((string) ($product->category ?? '')) ?: 'Coffee Beans';
+                $isMenuProduct = !in_array(strtolower($displayType), ['coffee beans', 'ground coffee'], true);
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
@@ -493,18 +739,27 @@
                 <div class="p-3">
                     <div class="flex items-start justify-between gap-2 mb-1">
                         <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate" style="font-family: 'Poppins', sans-serif;">{{ $product->name }}</h3>
-                        <span class="text-xs px-2 py-0.5 rounded-full {{ $stockClass }} whitespace-nowrap">{{ $stockLabel }}</span>
+                        @if(!$isMenuProduct)
+                            <span class="text-xs px-2 py-0.5 rounded-full {{ $stockClass }} whitespace-nowrap">{{ $stockLabel }}</span>
+                        @endif
                     </div>
 
                     <p class="text-xs italic text-[#9E8C78] mb-1.5">{{ $displayType }}</p>
 
-                    <div class="flex items-center justify-between mb-2">
-                        <div>
-                            <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
-                            <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
+                    @if(!$isMenuProduct)
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
+                                <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
+                            </div>
+                            <p class="text-xs text-[#9E8C78]">{{ $stock }} units</p>
                         </div>
-                        <p class="text-xs text-[#9E8C78]">{{ $stock }} units</p>
-                    </div>
+                    @else
+                        <div class="mb-2">
+                            <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
+                            <p class="text-xs text-[#6B5B4A] truncate">{{ trim((string) ($product->description ?? '')) ?: 'No description provided.' }}</p>
+                        </div>
+                    @endif
 
                     <div class="flex justify-end gap-2 mt-2">
                         <button
@@ -563,18 +818,28 @@
                     <div class="p-3">
                         <div class="flex items-start justify-between gap-2 mb-1">
                             <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate" x-text="product.name"></h3>
-                            <span class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap" :class="stockMeta(product).class" x-text="stockMeta(product).label"></span>
+                            <template x-if="!isMenuCategory(product.category)">
+                                <span class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap" :class="stockMeta(product).class" x-text="stockMeta(product).label"></span>
+                            </template>
                         </div>
 
                         <p class="text-xs italic text-[#9E8C78] mb-1.5" x-text="displayType(product.category)"></p>
 
-                        <div class="flex items-center justify-between mb-2">
-                            <div>
-                                <p class="font-bold text-sm text-[#2C1A0E]">PHP <span x-text="Number(product.price_per_unit || 0).toFixed(2)"></span></p>
-                                <p class="text-xs text-[#9E8C78]">per <span x-text="product.unit || 'unit'"></span></p>
+                        <template x-if="!isMenuCategory(product.category)">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <p class="font-bold text-sm text-[#2C1A0E]">PHP <span x-text="Number(product.price_per_unit || 0).toFixed(2)"></span></p>
+                                    <p class="text-xs text-[#9E8C78]">per <span x-text="product.unit || 'unit'"></span></p>
+                                </div>
+                                <p class="text-xs text-[#9E8C78]"><span x-text="stockMeta(product).qty"></span> units</p>
                             </div>
-                            <p class="text-xs text-[#9E8C78]"><span x-text="stockMeta(product).qty"></span> units</p>
-                        </div>
+                        </template>
+                        <template x-if="isMenuCategory(product.category)">
+                            <div class="mb-2">
+                                <p class="font-bold text-sm text-[#2C1A0E]">PHP <span x-text="Number(product.price_per_unit || 0).toFixed(2)"></span></p>
+                                <p class="text-xs text-[#6B5B4A] truncate" x-text="(String(product.description || '').trim() || 'No description provided.')"></p>
+                            </div>
+                        </template>
 
                         <div class="flex justify-end gap-2 mt-2">
                             <button
@@ -629,9 +894,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @foreach($marketplaceProducts as $product)
             @php
-                $displayType = strtolower((string) $product->category) === 'ground coffee'
-                    ? 'Ground Coffee'
-                    : 'Coffee Beans';
+                $displayType = trim((string) ($product->category ?? '')) ?: 'Coffee Beans';
                 $ownerLabel = $ownerTypeLabel($product->seller_type);
                 $ownerName = $product->seller_name ?: 'Unknown';
             @endphp
@@ -763,6 +1026,8 @@
                                             'reservationId' => $reservationCode,
                                             'product' => $receiptProductName,
                                             'quantity' => (int) $order->quantity,
+                                            'pickupDate' => $receiptMeta['pickup_date'] ?? null,
+                                            'pickupTime' => $receiptMeta['pickup_time'] ?? null,
                                             'customer' => $receiptMeta['full_name'] ?? ($order->user->name ?? 'N/A'),
                                             'seller' => $receiptMeta['seller'] ?? 'Coffee Marketplace',
                                             'address' => $receiptMeta['address'] ?? 'N/A',
@@ -885,6 +1150,14 @@
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.phone"></p>
                     </div>
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupDate(receiptData.pickupDate)"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupTime(receiptData.pickupTime)"></p>
+                    </div>
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Created</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.generatedAt"></p>
                     </div>
@@ -988,10 +1261,19 @@
 
             <div>
                 <label class="block text-[11px] font-semibold">Type *</label>
-                <select x-model="form.category" name="category" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
-                    <option value="Coffee Beans">Coffee Beans</option>
-                    <option value="Ground Coffee">Ground Coffee</option>
-                </select>
+                <template x-if="!isMenuCategory(form.category)">
+                    <select x-model="form.category" name="category" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                        <option value="Coffee Beans">Coffee Beans</option>
+                        <option value="Ground Coffee">Ground Coffee</option>
+                    </select>
+                </template>
+                <template x-if="isMenuCategory(form.category)">
+                    <select x-model="form.category" name="category" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                        <template x-for="category in menuImportCategories" :key="`edit-menu-cat-${category}`">
+                            <option :value="category" x-text="category"></option>
+                        </template>
+                    </select>
+                </template>
             </div>
 
             <div>
@@ -999,20 +1281,26 @@
                 <input x-model="form.price_per_unit" type="number" min="0" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
-            <div>
-                <label class="block text-[11px] font-semibold">Stock Quantity *</label>
-                <input x-model="form.stock_quantity" type="number" min="0" step="1" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-            </div>
+            <template x-if="!isMenuCategory(form.category)">
+                <div>
+                    <label class="block text-[11px] font-semibold">Stock Quantity *</label>
+                    <input x-model="form.stock_quantity" type="number" min="0" step="1" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                </div>
+            </template>
 
-            <div>
-                <label class="block text-[11px] font-semibold">Unit</label>
-                <input x-model="form.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-            </div>
+            <template x-if="!isMenuCategory(form.category)">
+                <div>
+                    <label class="block text-[11px] font-semibold">Unit</label>
+                    <input x-model="form.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                </div>
+            </template>
 
-            <div>
-                <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
-                <input x-model="form.moq" type="number" min="1" step="1" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-            </div>
+            <template x-if="!isMenuCategory(form.category)">
+                <div>
+                    <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
+                    <input x-model="form.moq" type="number" min="1" step="1" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                </div>
+            </template>
 
             <div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Product Image</label>
@@ -1120,6 +1408,144 @@
                 <button type="submit" class="px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22]">Create Product</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div
+    x-show="showMenuImportModal"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/40 p-4"
+>
+    <div @click.away="closeMenuImportModal()" class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-y-auto p-4">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <h2 class="text-base font-display font-bold text-[#3A2E22]">Import Menu Image</h2>
+                <p class="text-xs text-[#9E8C78] mt-0.5">Upload a menu photo, review extracted products, then save as cards.</p>
+            </div>
+            <button type="button" @click="closeMenuImportModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 bg-[#F8F4ED] p-3 mb-3">
+            <label class="block text-[11px] font-semibold text-[#3A2E22]">Menu Image</label>
+            <div class="mt-1.5 flex flex-col md:flex-row gap-2 md:items-center">
+                <input
+                    x-ref="menuImportImageInput"
+                    type="file"
+                    accept="image/*"
+                    @change="handleMenuImportImageChange($event)"
+                    class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"
+                />
+
+                <button
+                    type="button"
+                    @click="extractMenuItemsFromImage()"
+                    :disabled="isExtractingMenu"
+                    class="px-3 py-1.5 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    <span x-show="!isExtractingMenu">Extract Items</span>
+                    <span x-show="isExtractingMenu" x-cloak>Extracting...</span>
+                </button>
+            </div>
+
+            <div x-show="menuImportImagePreview" x-cloak class="mt-2 rounded-lg border border-gray-200 bg-white p-2">
+                <img :src="menuImportImagePreview" alt="Menu image preview" class="max-h-36 w-full object-contain rounded-md" />
+            </div>
+
+            <p x-show="menuExtractionError" x-text="menuExtractionError" x-cloak class="mt-2 text-xs text-red-600"></p>
+        </div>
+
+        <div x-show="extractedMenuItems.length > 0" x-cloak>
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-[#3A2E22]">Review Extracted Products</h3>
+                <button
+                    type="button"
+                    @click="addExtractedMenuItem()"
+                    class="px-2.5 py-1 rounded-md border border-[#4A6741] text-[#4A6741] text-xs font-semibold hover:bg-[#F5F0E8]"
+                >
+                    + Add Row
+                </button>
+            </div>
+
+            <div class="max-h-[50vh] overflow-auto border border-gray-200 rounded-lg">
+                <table class="min-w-full text-xs">
+                    <thead class="bg-[#F8F4ED] sticky top-0 z-10">
+                        <tr>
+                            <th class="px-2 py-2 text-left">Name</th>
+                            <th class="px-2 py-2 text-left">Category</th>
+                            <th class="px-2 py-2 text-left">Price</th>
+                            <th class="px-2 py-2 text-left">Description</th>
+                            <th class="px-2 py-2 text-left"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="(item, index) in extractedMenuItems" :key="`extract-${index}`">
+                            <tr class="border-t border-gray-100">
+                                <td class="px-2 py-1.5 min-w-[180px]">
+                                    <input x-model="item.name" class="w-full rounded-md border border-gray-300 px-2 py-1" />
+                                </td>
+                                <td class="px-2 py-1.5 min-w-[140px]">
+                                    <select x-model="item.category" class="w-full rounded-md border border-gray-300 px-2 py-1">
+                                        <option value="Coffee Beans">Coffee Beans</option>
+                                        <option value="Ground Coffee">Ground Coffee</option>
+                                        <option value="Hot Drinks">Hot Drinks</option>
+                                        <option value="Iced Drinks">Iced Drinks</option>
+                                        <option value="Iced Blended Drinks">Iced Blended Drinks</option>
+                                        <option value="Tea">Tea</option>
+                                        <option value="Rice Meals">Rice Meals</option>
+                                        <option value="Pastas">Pastas</option>
+                                        <option value="Appetizers">Appetizers</option>
+                                        <option value="Sandwiches">Sandwiches</option>
+                                        <option value="Burgers">Burgers</option>
+                                        <option value="Pastries">Pastries</option>
+                                    </select>
+                                </td>
+                                <td class="px-2 py-1.5 min-w-[90px]">
+                                    <input x-model.number="item.price_per_unit" type="number" min="0" step="0.01" class="w-full rounded-md border border-gray-300 px-2 py-1" />
+                                </td>
+                                <td class="px-2 py-1.5 min-w-[220px]">
+                                    <input x-model="item.description" class="w-full rounded-md border border-gray-300 px-2 py-1" />
+                                </td>
+                                <td class="px-2 py-1.5">
+                                    <button
+                                        type="button"
+                                        @click="removeExtractedMenuItem(index)"
+                                        class="px-2 py-1 rounded-md text-red-600 hover:bg-red-50"
+                                        title="Remove row"
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-4">
+            <button
+                type="button"
+                @click="closeMenuImportModal()"
+                class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300"
+            >
+                Cancel
+            </button>
+            <button
+                type="button"
+                @click="saveExtractedMenuItems()"
+                :disabled="isSavingExtractedMenuItems || extractedMenuItems.length === 0"
+                class="px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+                <span x-show="!isSavingExtractedMenuItems">Save as Product Cards</span>
+                <span x-show="isSavingExtractedMenuItems" x-cloak>Saving...</span>
+            </button>
+        </div>
     </div>
 </div>
 </div>

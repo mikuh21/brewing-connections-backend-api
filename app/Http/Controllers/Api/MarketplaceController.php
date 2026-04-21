@@ -100,6 +100,8 @@ class MarketplaceController extends Controller
             'pickup_date' => ['nullable', 'date', 'after_or_equal:today'],
             'pickup_time' => ['nullable', 'date_format:H:i'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'contact_number' => ['nullable', 'regex:/^09\d{9}$/'],
         ]);
 
         $order = DB::transaction(function () use ($validated, $request) {
@@ -134,6 +136,8 @@ class MarketplaceController extends Controller
                 'source' => 'mobile-app',
                 'full_name' => (string) ($request->user()?->name ?? ''),
                 'receipt_email' => (string) ($request->user()?->email ?? ''),
+                'address' => (string) ($validated['address'] ?? $request->user()?->address ?? ''),
+                'phone' => (string) ($validated['contact_number'] ?? $request->user()?->contact_number ?? ''),
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,
                 'receipt_token' => $receiptToken,
@@ -219,6 +223,9 @@ class MarketplaceController extends Controller
 
         $receiptUrl = route('reservations.orders.receipt', $receiptUrlParams);
         $customerNote = $receiptMeta['customer_note'] ?? null;
+        $customerName = (string) ($receiptMeta['full_name'] ?? $order->user?->name ?? '');
+        $customerAddress = (string) ($receiptMeta['address'] ?? $order->user?->address ?? '');
+        $customerContactNumber = (string) ($receiptMeta['phone'] ?? $order->user?->contact_number ?? '');
 
         return [
             'id' => (int) $order->id,
@@ -227,6 +234,9 @@ class MarketplaceController extends Controller
             'total_price' => (float) ($order->total_price ?? 0),
             'notes' => is_string($customerNote) ? $customerNote : (!is_array($metadata) ? $order->notes : null),
             'receipt_url' => $receiptUrl,
+            'customer_name' => $customerName,
+            'customer_address' => $customerAddress,
+            'customer_contact_number' => $customerContactNumber,
             'pickup_date' => optional($order->pickup_date)?->toDateString() ?? $order->pickup_date,
             'pickup_time' => $order->pickup_time,
             'created_at' => optional($order->created_at)?->toIso8601String(),

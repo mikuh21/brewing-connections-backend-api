@@ -192,7 +192,6 @@
                     <a href="#about" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7] font-body">System Features</a>
                     <a href="#coffee-varieties" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7] font-body">Coffee Varieties</a>
                 </div>
-                <a href="/login" class="border border-white text-white px-4 py-2 rounded-md block text-center mt-4 transition-all duration-200 hover:scale-105 active:scale-95 hover:bg-[#F3E9D7] hover:text-[#3A2E22] hover:border-[#F3E9D7]">Log In</a>
             </div>
         </div>
     </nav>
@@ -1257,8 +1256,9 @@
                 <div>
                     <h4 class="font-semibold mb-4 font-display">Explore</h4>
                     <ul>
-                        <li><a href="#coffee-farms" class="hover:text-[#2E5A3D] font-body">Coffee Farms</a></li>
-                        <li><a href="#coffee-shops" class="hover:text-[#2E5A3D] font-body">Coffee Shops</a></li>
+                        <li><a href="#coffee-farms" class="js-footer-scroll hover:text-[#2E5A3D] font-body">Coffee Farms</a></li>
+                        <li><a href="#coffee-shops" class="js-footer-scroll hover:text-[#2E5A3D] font-body">Coffee Shops</a></li>
+                        <li><a href="#farm-products-list" class="js-footer-scroll hover:text-[#2E5A3D] font-body">Products</a></li>
                     </ul>
                 </div>
                 <div>
@@ -1297,6 +1297,31 @@
         // Intersection Observer for active nav links
         const sections = document.querySelectorAll('section[id]');
         const navLinks = document.querySelectorAll('nav a[href^="#"]');
+        const footerScrollLinks = document.querySelectorAll('.js-footer-scroll[href^="#"]');
+
+        footerScrollLinks.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                const targetSelector = link.getAttribute('href');
+                if (!targetSelector || !targetSelector.startsWith('#')) {
+                    return;
+                }
+
+                const targetElement = document.querySelector(targetSelector);
+                if (!targetElement) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const navbarHeight = document.getElementById('navbar')?.offsetHeight || 0;
+                const targetTop = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 12;
+
+                window.scrollTo({
+                    top: Math.max(0, targetTop),
+                    behavior: 'smooth'
+                });
+            });
+        });
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {

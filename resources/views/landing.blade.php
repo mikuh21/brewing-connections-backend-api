@@ -233,7 +233,7 @@
                 </svg>
                 GIS Coffee Establishment Mapping
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -244,7 +244,7 @@
                 </svg>
                 AI-Enabled Coffee Trail
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -256,7 +256,7 @@
                 </svg>
                 Smart Coupon Promo Generator
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -267,7 +267,7 @@
                 </svg>
                 Recommendation Insights
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -280,7 +280,7 @@
                 </svg>
                 Marketplace
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -291,7 +291,7 @@
                 </svg>
                 GIS Coffee Establishment Mapping
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -302,7 +302,7 @@
                 </svg>
                 AI-Enabled Coffee Trail
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -314,7 +314,7 @@
                 </svg>
                 Smart Coupon Promo Generator
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -325,7 +325,7 @@
                 </svg>
                 Recommendation Insights
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -338,7 +338,7 @@
                 </svg>
                 Marketplace
             </span>
-            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+            <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                 </svg>
@@ -383,7 +383,7 @@
                     </h3>
                     <ul class="space-y-2 font-body">
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+                            <span class="text-current inline-flex items-center justify-center" aria-hidden="true">
                                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                                 </svg>
@@ -391,7 +391,7 @@
                             Strong, bold, and intense
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+                            <span class="text-current inline-flex items-center justify-center" aria-hidden="true">
                                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                                 </svg>
@@ -399,7 +399,7 @@
                             Notes: smoky, nutty, slightly sweet
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+                            <span class="text-current inline-flex items-center justify-center" aria-hidden="true">
                                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                                 </svg>
@@ -420,7 +420,7 @@
                     </h3>
                     <ul class="space-y-2 font-body">
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+                            <span class="text-current inline-flex items-center justify-center" aria-hidden="true">
                                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                                 </svg>
@@ -428,7 +428,7 @@
                             Grown mainly in Batangas and Cavite
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+                            <span class="text-current inline-flex items-center justify-center" aria-hidden="true">
                                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                                 </svg>
@@ -436,7 +436,7 @@
                             Known for large beans and strong aroma
                         </li>
                         <li class="flex items-center gap-2 text-[#F3E9D7]">
-                            <span class="text-[#D84C4C] inline-flex items-center justify-center" aria-hidden="true">
+                            <span class="text-current inline-flex items-center justify-center" aria-hidden="true">
                                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
                                     <rect x="2" y="2" width="8" height="8" rx="1.1" transform="rotate(45 6 6)" fill="currentColor"></rect>
                                 </svg>

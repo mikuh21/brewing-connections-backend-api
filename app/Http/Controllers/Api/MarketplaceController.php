@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderStockManager;
+use App\Services\OrderReceiptNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MarketplaceController extends Controller
 {
     public function __construct(
         private readonly OrderStockManager $orderStockManager,
+        private readonly OrderReceiptNotifier $orderReceiptNotifier,
     ) {
     }
 
@@ -126,6 +129,19 @@ class MarketplaceController extends Controller
             }
 
             $totalPrice = round(((float) $product->price_per_unit) * $requestedQty, 2);
+            $receiptToken = Str::random(40);
+            $receiptMeta = [
+                'source' => 'mobile-app',
+                'full_name' => (string) ($request->user()?->name ?? ''),
+                'receipt_email' => (string) ($request->user()?->email ?? ''),
+                'pickup_date' => $validated['pickup_date'] ?? null,
+                'pickup_time' => $validated['pickup_time'] ?? null,
+                'receipt_token' => $receiptToken,
+            ];
+
+            if (!empty($validated['notes'])) {
+                $receiptMeta['customer_note'] = (string) $validated['notes'];
+            }
 
             return Order::query()->create([
                 'user_id' => (int) $request->user()->id,
@@ -134,7 +150,7 @@ class MarketplaceController extends Controller
                 'total_price' => $totalPrice,
                 'status' => 'pending',
                 'stock_reserved' => false,
-                'notes' => $validated['notes'] ?? null,
+                'notes' => json_encode($receiptMeta, JSON_UNESCAPED_UNICODE),
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,
             ]);
@@ -145,6 +161,8 @@ class MarketplaceController extends Controller
             'product.seller:id,name',
             'product.establishment:id,name,type',
         ]);
+
+        $this->orderReceiptNotifier->sendOrderCreated($order);
 
         return response()->json([
             'message' => 'Order placed successfully.',
@@ -190,12 +208,25 @@ class MarketplaceController extends Controller
 
     private function serializeOrder(Order $order): array
     {
+        $metadata = json_decode((string) ($order->notes ?? ''), true);
+        $receiptMeta = is_array($metadata) ? $metadata : [];
+        $receiptToken = (string) ($receiptMeta['receipt_token'] ?? '');
+
+        $receiptUrlParams = ['order' => $order->id];
+        if ($receiptToken !== '') {
+            $receiptUrlParams['token'] = $receiptToken;
+        }
+
+        $receiptUrl = route('reservations.orders.receipt', $receiptUrlParams);
+        $customerNote = $receiptMeta['customer_note'] ?? null;
+
         return [
             'id' => (int) $order->id,
             'status' => (string) ($order->status ?? 'pending'),
             'quantity' => (int) ($order->quantity ?? 0),
             'total_price' => (float) ($order->total_price ?? 0),
-            'notes' => $order->notes,
+            'notes' => is_string($customerNote) ? $customerNote : (!is_array($metadata) ? $order->notes : null),
+            'receipt_url' => $receiptUrl,
             'pickup_date' => optional($order->pickup_date)?->toDateString() ?? $order->pickup_date,
             'pickup_time' => $order->pickup_time,
             'created_at' => optional($order->created_at)?->toIso8601String(),

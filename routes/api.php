@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\RatingController;
 use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
+use App\Http\Controllers\Web\LandingReservationController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -33,6 +34,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/conversations/{conversation}/read', [ChatController::class, 'markAsRead']);
     Route::get('/chat/recipients', [ChatController::class, 'recipients']);
     Route::post('/messages', [ChatController::class, 'sendMessage']);
+    Route::post('/reservations/landing/prefill-token', [LandingReservationController::class, 'createPrefillToken']);
 });
 
 Route::get('/products', [MarketplaceController::class, 'products']);

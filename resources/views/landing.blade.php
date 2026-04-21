@@ -768,7 +768,9 @@
                                 Mobile app consumers: after tapping
                                 reserve in the app, you will be
                                 redirected here to finish reservation
-                                by entering your full address.
+                                by entering your complete address and
+                                contact number. Your account email may
+                                be prefilled when available.
                             </span>
                         </p>
 
@@ -1243,6 +1245,98 @@
         let reservationConfirmModalCloseTimer = null;
         let receiptModalCloseTimer = null;
         let reservationToastTimer = null;
+
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search || '');
+            return String(params.get(name) || '').trim();
+        }
+
+        function selectReservationProductById(rawProductId) {
+            const productId = Number(rawProductId || 0);
+            if (!reservationProductSelect || !Number.isInteger(productId) || productId <= 0) {
+                return false;
+            }
+
+            const matchingOption = Array.from(reservationProductSelect.options || []).find(option =>
+                Number(option?.dataset?.productId || 0) === productId && !option.disabled
+            );
+
+            if (!matchingOption) {
+                return false;
+            }
+
+            reservationProductSelect.value = matchingOption.value;
+            reservationProductSelect.dispatchEvent(new Event('change'));
+            return true;
+        }
+
+        function applyReservationPrefillData(prefillData) {
+            if (!prefillData || typeof prefillData !== 'object') {
+                return;
+            }
+
+            const fullNameValue = String(prefillData.full_name || '').trim();
+            const emailValue = String(prefillData.email || '').trim();
+            const addressValue = String(prefillData.address || '').trim();
+            const phoneValue = String(prefillData.phone || '').replace(/\s+/g, '');
+
+            if (reservationFullNameInput && !String(reservationFullNameInput.value || '').trim() && fullNameValue) {
+                reservationFullNameInput.value = fullNameValue;
+            }
+
+            if (reservationEmailInput && !String(reservationEmailInput.value || '').trim() && emailValue) {
+                reservationEmailInput.value = emailValue;
+            }
+
+            if (reservationAddressInput && !String(reservationAddressInput.value || '').trim() && addressValue) {
+                reservationAddressInput.value = addressValue;
+            }
+
+            if (reservationPhoneInput && !String(reservationPhoneInput.value || '').trim() && phoneValue) {
+                reservationPhoneInput.value = phoneValue;
+            }
+        }
+
+        async function hydrateReservationFromUrl() {
+            const queryProductId = Number(getQueryParam('product_id') || 0);
+            const queryQuantity = Number(getQueryParam('quantity') || 0);
+            const prefillToken = getQueryParam('prefill_token');
+
+            if (Number.isInteger(queryProductId) && queryProductId > 0) {
+                const didSelect = selectReservationProductById(queryProductId);
+                if (didSelect && Number.isFinite(queryQuantity) && queryQuantity > 0 && reservationQuantityInput) {
+                    const selectedOption = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+                    applyReservationLimits(selectedOption?.dataset?.moq || 1, selectedOption?.dataset?.stock || 0);
+
+                    const minimumQuantity = Math.max(1, Number(reservationQuantityInput.min || 1));
+                    const maximumQuantity = Math.max(minimumQuantity, Number(reservationQuantityInput.max || minimumQuantity));
+                    const clampedQuantity = Math.max(minimumQuantity, Math.min(maximumQuantity, Math.floor(queryQuantity)));
+                    reservationQuantityInput.value = String(clampedQuantity);
+                }
+            }
+
+            if (!prefillToken) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`{{ url('/reservations/prefill') }}/${encodeURIComponent(prefillToken)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                applyReservationPrefillData(data);
+            } catch (_error) {
+                // Ignore prefill hydration errors and keep the manual form flow intact.
+            }
+        }
 
         function hasVisibleModal(element) {
             return !!element && !element.classList.contains('hidden');
@@ -1768,6 +1862,8 @@
                 }
             });
         });
+
+        void hydrateReservationFromUrl();
 
         // Navbar background change on scroll
         const navbar = document.getElementById('navbar');

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\OrderReceiptNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -102,6 +103,64 @@ class LandingReservationController extends Controller
         ], Response::HTTP_CREATED);
     }
 
+    public function createPrefillToken(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'quantity' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        /** @var User|null $authenticatedUser */
+        $authenticatedUser = $request->user();
+        if (!$authenticatedUser) {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $prefillToken = Str::random(48);
+        $cacheKey = $this->prefillCacheKey($prefillToken);
+
+        $payload = [
+            'full_name' => (string) ($authenticatedUser->name ?? ''),
+            'email' => (string) ($authenticatedUser->email ?? ''),
+            'product_id' => isset($validated['product_id']) ? (int) $validated['product_id'] : null,
+            'quantity' => isset($validated['quantity']) ? (int) $validated['quantity'] : null,
+        ];
+
+        Cache::put($cacheKey, $payload, now()->addMinutes(20));
+
+        $landingParams = array_filter([
+            'prefill_token' => $prefillToken,
+            'product_id' => $payload['product_id'],
+            'quantity' => $payload['quantity'],
+        ], static fn ($value) => $value !== null && $value !== '');
+
+        return response()->json([
+            'prefill_token' => $prefillToken,
+            'expires_in_seconds' => 1200,
+            'landing_url' => url('/?' . http_build_query($landingParams) . '#farm-products'),
+        ]);
+    }
+
+    public function getPrefillData(string $token): JsonResponse
+    {
+        $payload = Cache::get($this->prefillCacheKey($token));
+
+        if (!is_array($payload)) {
+            return response()->json([
+                'message' => 'Prefill token is invalid or expired.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        return response()->json([
+            'full_name' => (string) ($payload['full_name'] ?? ''),
+            'email' => (string) ($payload['email'] ?? ''),
+            'product_id' => isset($payload['product_id']) ? (int) $payload['product_id'] : null,
+            'quantity' => isset($payload['quantity']) ? (int) $payload['quantity'] : null,
+        ]);
+    }
+
     public function showReceipt(Request $request, Order $order)
     {
         $metadata = json_decode((string) ($order->notes ?? ''), true);
@@ -161,6 +220,7 @@ class LandingReservationController extends Controller
         $phone = (string) $validated['phone'];
         $email = (string) $validated['email'];
         $fullName = (string) $validated['full_name'];
+        $address = (string) $validated['address'];
 
         $existingGuest = User::query()
             ->where('role', 'consumer')
@@ -184,6 +244,7 @@ class LandingReservationController extends Controller
             }
 
             $existingGuest->contact_number = $phone;
+            $existingGuest->address = $address;
             $existingGuest->save();
 
             return $existingGuest;
@@ -201,7 +262,13 @@ class LandingReservationController extends Controller
             'role' => 'consumer',
             'status' => 'active',
             'contact_number' => $phone,
+            'address' => $address,
             'email_verified_at' => now(),
         ]);
+    }
+
+    private function prefillCacheKey(string $token): string
+    {
+        return 'landing_reservation_prefill:' . $token;
     }
 }

@@ -57,6 +57,9 @@ Route::get('/', function () {
 
 Route::post('/reservations/orders', [LandingReservationController::class, 'store'])
     ->name('reservations.orders.store');
+Route::get('/reservations/prefill/{token}', [LandingReservationController::class, 'getPrefillData'])
+    ->where('token', '[A-Za-z0-9]+')
+    ->name('reservations.prefill.show');
 Route::get('/reservations/orders/{order}/receipt', [LandingReservationController::class, 'showReceipt'])
     ->name('reservations.orders.receipt');
 

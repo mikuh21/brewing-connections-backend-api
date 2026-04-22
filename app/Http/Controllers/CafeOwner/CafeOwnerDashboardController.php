@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\CafeOwner;
 
 use App\Http\Controllers\Controller;
+use App\Models\CoffeeTrail;
+use App\Models\CoffeeTrailMarkerView;
 use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
@@ -17,11 +19,34 @@ class CafeOwnerDashboardController extends Controller
 {
     public function index()
     {
+        $popularityWindow = $this->resolvePopularityWindow(request()->query('popularity_window'));
+        $windowSince = $this->resolvePopularityWindowSince($popularityWindow);
+        $windowDays = $this->resolvePopularityWindowDays($popularityWindow);
+        $previousWindowStart = $windowDays ? now()->subDays($windowDays * 2) : null;
+        $previousWindowEnd = $windowDays ? now()->subDays($windowDays) : null;
+
         $userId = Auth::id();
         $establishment = $this->resolveCafeEstablishment($userId);
         $establishmentId = $establishment?->id;
 
-        $totalVisits = $establishmentId ? $this->resolveTotalVisits((int) $establishmentId) : 0;
+        $totalVisits = $establishmentId ? $this->resolveTrailVisitsCount((int) $establishmentId, $windowSince) : 0;
+        $cafeClicks = $establishmentId ? $this->resolveCafeClicksCount((int) $establishmentId, $windowSince) : 0;
+        $popularityScore = ($totalVisits * 3) + $cafeClicks;
+
+        $previousTrailVisits = ($windowDays && $establishmentId)
+            ? $this->resolveTrailVisitsCount((int) $establishmentId, $previousWindowStart, $previousWindowEnd)
+            : null;
+        $previousCafeClicks = ($windowDays && $establishmentId)
+            ? $this->resolveCafeClicksCount((int) $establishmentId, $previousWindowStart, $previousWindowEnd)
+            : null;
+        $previousPopularityScore = ($previousTrailVisits !== null && $previousCafeClicks !== null)
+            ? (($previousTrailVisits * 3) + $previousCafeClicks)
+            : null;
+
+        $trailTrend = $this->buildTrendMeta($totalVisits, $previousTrailVisits);
+        $clickTrend = $this->buildTrendMeta($cafeClicks, $previousCafeClicks);
+        $popularityTrend = $this->buildTrendMeta($popularityScore, $previousPopularityScore);
+
         $productsListed = $this->resolveProductsListed((int) $userId, $establishmentId);
         $recosThisWeek = $establishmentId
             ? Recommendation::query()
@@ -31,14 +56,18 @@ class CafeOwnerDashboardController extends Controller
             : 0;
 
         $recentActivity = $this->resolveRecentActivity((int) $userId, $establishmentId);
-        $performanceOverview = $this->resolvePerformanceOverview($establishmentId);
 
         return view('cafe-owner.dashboard', compact(
             'totalVisits',
+            'cafeClicks',
+            'popularityScore',
+            'popularityWindow',
             'productsListed',
             'recosThisWeek',
             'recentActivity',
-            'performanceOverview'
+            'trailTrend',
+            'clickTrend',
+            'popularityTrend'
         ));
     }
 
@@ -189,6 +218,137 @@ class CafeOwnerDashboardController extends Controller
             'items' => $items,
             'updated_at' => now()->toIso8601String(),
         ]);
+    }
+
+    protected function resolveTrailVisitsCount(int $establishmentId, $since = null, $until = null): int
+    {
+        if (!Schema::hasTable('coffee_trails')) {
+            return 0;
+        }
+
+        $trails = CoffeeTrail::query()
+            ->when($since, function ($query) use ($since) {
+                $query->where('created_at', '>=', $since);
+            })
+            ->when($until, function ($query) use ($until) {
+                $query->where('created_at', '<', $until);
+            })
+            ->get(['trail_data']);
+
+        $count = 0;
+
+        foreach ($trails as $trail) {
+            $trailData = is_array($trail->trail_data) ? $trail->trail_data : [];
+
+            foreach ($trailData as $point) {
+                if (!is_array($point) || !isset($point['id'])) {
+                    continue;
+                }
+
+                if ((int) $point['id'] === $establishmentId) {
+                    $count++;
+                }
+            }
+        }
+
+        return $count;
+    }
+
+    protected function resolveCafeClicksCount(int $establishmentId, $since = null, $until = null): int
+    {
+        if (!Schema::hasTable('coffee_trail_marker_views')) {
+            return 0;
+        }
+
+        return (int) CoffeeTrailMarkerView::query()
+            ->where('establishment_id', $establishmentId)
+            ->when($since, function ($query) use ($since) {
+                $query->where('viewed_at', '>=', $since);
+            })
+            ->when($until, function ($query) use ($until) {
+                $query->where('viewed_at', '<', $until);
+            })
+            ->count();
+    }
+
+    protected function resolvePopularityWindow($rawWindow): string
+    {
+        $window = strtolower(trim((string) ($rawWindow ?? '30d')));
+
+        return in_array($window, ['7d', '30d', 'all'], true)
+            ? $window
+            : '30d';
+    }
+
+    protected function resolvePopularityWindowSince(string $window)
+    {
+        return match ($window) {
+            '7d' => now()->subDays(7),
+            '30d' => now()->subDays(30),
+            default => null,
+        };
+    }
+
+    protected function resolvePopularityWindowDays(string $window): ?int
+    {
+        return match ($window) {
+            '7d' => 7,
+            '30d' => 30,
+            default => null,
+        };
+    }
+
+    protected function buildTrendMeta(int $currentValue, ?int $previousValue): array
+    {
+        if ($previousValue === null) {
+            return [
+                'direction' => 'neutral',
+                'percent' => null,
+                'label' => 'No previous-period comparison',
+            ];
+        }
+
+        $delta = $currentValue - $previousValue;
+
+        if ($previousValue <= 0) {
+            if ($currentValue > 0) {
+                return [
+                    'direction' => 'up',
+                    'percent' => 100.0,
+                    'label' => 'Up from zero last period',
+                ];
+            }
+
+            return [
+                'direction' => 'flat',
+                'percent' => 0.0,
+                'label' => 'No change vs previous period',
+            ];
+        }
+
+        $percent = round((abs($delta) / $previousValue) * 100, 1);
+
+        if ($delta > 0) {
+            return [
+                'direction' => 'up',
+                'percent' => $percent,
+                'label' => $percent . '% up vs previous period',
+            ];
+        }
+
+        if ($delta < 0) {
+            return [
+                'direction' => 'down',
+                'percent' => $percent,
+                'label' => $percent . '% down vs previous period',
+            ];
+        }
+
+        return [
+            'direction' => 'flat',
+            'percent' => 0.0,
+            'label' => 'No change vs previous period',
+        ];
     }
 
     protected function resolveCafeEstablishment(?int $userId): ?Establishment

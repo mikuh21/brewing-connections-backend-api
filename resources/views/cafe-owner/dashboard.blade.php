@@ -26,9 +26,6 @@
             ];
         })
         ->values();
-
-    $mapClicks = (int) collect(data_get($performanceOverview ?? [], 'series', []))->sum();
-    $trailVisits = (int) ($totalVisits ?? 0);
 @endphp
 
 <div class="cafe-dashboard-page">
@@ -261,9 +258,9 @@
     <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] border-l-4 border-l-green-500 p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-[#9E8C78] text-sm font-medium">Total Visits</p>
-                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalVisits ?? 0 }}</p>
-                <p class="text-green-600 text-sm font-medium mt-1">AI Coffee Trail generation</p>
+                <p class="text-[#9E8C78] text-sm font-medium">Popularity Score</p>
+                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $popularityScore ?? 0 }}</p>
+                <p class="text-green-600 text-sm font-medium mt-1">Trails x3 + marker views x1</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -409,39 +406,125 @@
 </div>
 
 <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
-    <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
-        Performance <span class="italic text-[#4A6741]">Overview</span>
-    </h2>
-    <p class="text-[#9E8C78] text-sm mb-6">Engagement signals from map and trail interactions</p>
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+        <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
+            Performance <span class="italic text-[#4A6741]">Overview</span>
+        </h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6">
-            <div class="flex items-start justify-between mb-2">
+        <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
+            <a
+                href="{{ route('cafe-owner.dashboard', ['popularity_window' => '7d']) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                Last 7 days
+            </a>
+            <a
+                href="{{ route('cafe-owner.dashboard', ['popularity_window' => '30d']) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                Last 30 days
+            </a>
+            <a
+                href="{{ route('cafe-owner.dashboard', ['popularity_window' => 'all']) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                All time
+            </a>
+        </div>
+    </div>
+
+    <p class="text-[#9E8C78] text-sm mb-6">Popularity Score = coffee trail destinations x3 + marker views x1</p>
+
+    @php
+        $trailWeighted = (int) ($totalVisits * 3);
+        $clickWeighted = (int) $cafeClicks;
+        $weightedTotal = max(1, $trailWeighted + $clickWeighted);
+        $trailWeightedPercent = round(($trailWeighted / $weightedTotal) * 100, 1);
+        $clickWeightedPercent = round(($clickWeighted / $weightedTotal) * 100, 1);
+        $maxRawSource = max(1, (int) max($totalVisits, $cafeClicks));
+        $trailRawPercent = round(($totalVisits / $maxRawSource) * 100, 1);
+        $clickRawPercent = round(($cafeClicks / $maxRawSource) * 100, 1);
+
+        $popTrendDirection = $popularityTrend['direction'] ?? 'neutral';
+        $popTrendTextColor = $popTrendDirection === 'up' ? 'text-green-700' : ($popTrendDirection === 'down' ? 'text-red-700' : 'text-gray-600');
+        $popTrendBg = $popTrendDirection === 'up' ? 'bg-green-100' : ($popTrendDirection === 'down' ? 'bg-red-100' : 'bg-gray-100');
+
+        $trailTrendDirection = $trailTrend['direction'] ?? 'neutral';
+        $trailTrendTextColor = $trailTrendDirection === 'up' ? 'text-green-700' : ($trailTrendDirection === 'down' ? 'text-red-700' : 'text-gray-600');
+
+        $clickTrendDirection = $clickTrend['direction'] ?? 'neutral';
+        $clickTrendTextColor = $clickTrendDirection === 'up' ? 'text-green-700' : ($clickTrendDirection === 'down' ? 'text-red-700' : 'text-gray-600');
+
+        $trendArrow = static function ($direction) {
+            return $direction === 'up' ? '↑' : ($direction === 'down' ? '↓' : '→');
+        };
+    @endphp
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6 lg:col-span-2">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="text-sm font-semibold text-[#3A2E22]">Weighted Popularity Mix</h3>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $popTrendBg }} {{ $popTrendTextColor }}" title="{{ $popularityTrend['label'] ?? 'No trend data' }}">
+                    {{ $trendArrow($popTrendDirection) }} {{ $popularityTrend['percent'] === null ? 'N/A' : ($popularityTrend['percent'] . '%') }}
+                </span>
+            </div>
+
+            <div class="w-full h-8 rounded-full overflow-hidden border border-[#E6DCCF] bg-white flex mb-4">
+                <div class="h-full" title="Trail destinations contribution: {{ $trailWeighted }} points ({{ $trailWeightedPercent }}%)" style="width: {{ $trailWeightedPercent }}%; background: linear-gradient(90deg, #2563EB 0%, #3B82F6 100%);"></div>
+                <div class="h-full" title="Marker views contribution: {{ $clickWeighted }} points ({{ $clickWeightedPercent }}%)" style="width: {{ $clickWeightedPercent }}%; background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);"></div>
+            </div>
+
+            <div class="space-y-3">
                 <div>
-                    <p class="text-[#9E8C78] text-sm font-medium">Cafe Clicks</p>
-                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $mapClicks }}</p>
-                    <p class="text-green-600 text-sm font-medium mt-1">Total clicks from consumer map</p>
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-semibold text-blue-700">Trail Destinations</span>
+                        <span class="text-[#6B5B4A]">{{ $totalVisits }} visits • {{ $trailWeighted }} points ({{ $trailWeightedPercent }}%)</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
+                        <div class="h-full bg-blue-500" title="Raw trail visits: {{ $totalVisits }}" style="width: {{ $trailRawPercent }}%;"></div>
+                    </div>
+                    <p class="mt-1 text-[11px] {{ $trailTrendTextColor }}" title="{{ $trailTrend['label'] ?? 'No trend data' }}">
+                        {{ $trendArrow($trailTrendDirection) }} {{ $trailTrend['percent'] === null ? 'N/A' : ($trailTrend['percent'] . '%') }} vs previous period
+                    </p>
                 </div>
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l3-3 2 2 5-5"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10v10"/>
-                    </svg>
+
+                <div>
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-semibold text-green-700">Marker Views</span>
+                        <span class="text-[#6B5B4A]">{{ $cafeClicks }} views • {{ $clickWeighted }} points ({{ $clickWeightedPercent }}%)</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
+                        <div class="h-full bg-green-500" title="Raw marker views: {{ $cafeClicks }}" style="width: {{ $clickRawPercent }}%;"></div>
+                    </div>
+                    <p class="mt-1 text-[11px] {{ $clickTrendTextColor }}" title="{{ $clickTrend['label'] ?? 'No trend data' }}">
+                        {{ $trendArrow($clickTrendDirection) }} {{ $clickTrend['percent'] === null ? 'N/A' : ($clickTrend['percent'] . '%') }} vs previous period
+                    </p>
                 </div>
             </div>
         </div>
 
         <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6">
-            <div class="flex items-start justify-between mb-2">
-                <div>
-                    <p class="text-[#9E8C78] text-sm font-medium">Coffee Trail Visits</p>
-                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $trailVisits }}</p>
-                    <p class="text-blue-600 text-sm font-medium mt-1">From coffee trail generation</p>
+            <h3 class="text-sm font-semibold text-[#3A2E22] mb-4">Score Snapshot</h3>
+
+            <div class="relative mx-auto mb-4 w-36 h-36 rounded-full" title="Trail: {{ $trailWeighted }} points | Views: {{ $clickWeighted }} points" style="background: conic-gradient(#3B82F6 0% {{ $trailWeightedPercent }}%, #22C55E {{ $trailWeightedPercent }}% 100%);">
+                <div class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center border border-[#E6DCCF]">
+                    <p class="text-[10px] text-[#9E8C78] uppercase tracking-wide">Score</p>
+                    <p class="text-2xl font-bold text-[#3A2E22]">{{ $popularityScore }}</p>
                 </div>
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                    </svg>
+            </div>
+
+            <p class="text-center text-[11px] mb-3 {{ $popTrendTextColor }}" title="{{ $popularityTrend['label'] ?? 'No trend data' }}">
+                {{ $trendArrow($popTrendDirection) }} {{ $popularityTrend['percent'] === null ? 'N/A' : ($popularityTrend['percent'] . '%') }} vs previous period
+            </p>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-2 text-[#3A2E22]"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Trails x3</span>
+                    <span class="font-semibold text-[#3A2E22]">{{ $trailWeighted }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-2 text-[#3A2E22]"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>Views x1</span>
+                    <span class="font-semibold text-[#3A2E22]">{{ $clickWeighted }}</span>
                 </div>
             </div>
         </div>

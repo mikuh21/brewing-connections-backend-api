@@ -14,6 +14,12 @@ class ResellerDashboardController extends Controller
 {
     public function index()
     {
+        $orderWindow = $this->resolveOrderWindow(request()->query('order_window'));
+        $windowSince = $this->resolveOrderWindowSince($orderWindow);
+        $windowDays = $this->resolveOrderWindowDays($orderWindow);
+        $previousWindowStart = $windowDays ? now()->subDays($windowDays * 2) : null;
+        $previousWindowEnd = $windowDays ? now()->subDays($windowDays) : null;
+
         $resellerId = (int) Auth::id();
         $reseller = Auth::user();
         $isResellerVerified = (bool) ($reseller->is_verified_reseller ?? false);
@@ -26,11 +32,12 @@ class ResellerDashboardController extends Controller
         ];
         $recentOrders = collect();
         $recentActivity = collect();
-        $performanceOverview = [
-            'this_week' => 0,
-            'last_week' => 0,
-        ];
-        $recentOrdersThisWeek = 0;
+        $ordersInWindow = 0;
+        $pendingOrders = 0;
+        $completedOrders = 0;
+        $ordersInWindowTrend = $this->buildTrendMeta(0, null);
+        $pendingOrdersTrend = $this->buildTrendMeta(0, null);
+        $completedOrdersTrend = $this->buildTrendMeta(0, null);
 
         if ($isResellerVerified) {
             $totalOrders = $this->buildResellerOrdersQuery($resellerId)->count();
@@ -44,8 +51,24 @@ class ResellerDashboardController extends Controller
 
             $recentOrders = $this->resolveRecentOrders($resellerId);
             $recentActivity = $this->resolveRecentActivity($resellerId, $recentOrders);
-            $performanceOverview = $this->resolvePerformanceOverview($resellerId);
-            $recentOrdersThisWeek = (int) ($performanceOverview['this_week'] ?? 0);
+
+            $ordersInWindow = $this->resolveOrderCount($resellerId, null, $windowSince);
+            $pendingOrders = $this->resolveOrderCount($resellerId, 'pending', $windowSince);
+            $completedOrders = $this->resolveOrderCount($resellerId, 'completed', $windowSince);
+
+            $prevOrdersInWindow = $windowDays
+                ? $this->resolveOrderCount($resellerId, null, $previousWindowStart, $previousWindowEnd)
+                : null;
+            $prevPendingOrders = $windowDays
+                ? $this->resolveOrderCount($resellerId, 'pending', $previousWindowStart, $previousWindowEnd)
+                : null;
+            $prevCompletedOrders = $windowDays
+                ? $this->resolveOrderCount($resellerId, 'completed', $previousWindowStart, $previousWindowEnd)
+                : null;
+
+            $ordersInWindowTrend = $this->buildTrendMeta($ordersInWindow, $prevOrdersInWindow);
+            $pendingOrdersTrend = $this->buildTrendMeta($pendingOrders, $prevPendingOrders);
+            $completedOrdersTrend = $this->buildTrendMeta($completedOrders, $prevCompletedOrders);
         }
 
         return view('reseller.dashboard', compact(
@@ -55,8 +78,13 @@ class ResellerDashboardController extends Controller
             'productsListed',
             'recentOrders',
             'recentActivity',
-            'performanceOverview',
-            'recentOrdersThisWeek'
+            'orderWindow',
+            'ordersInWindow',
+            'pendingOrders',
+            'completedOrders',
+            'ordersInWindowTrend',
+            'pendingOrdersTrend',
+            'completedOrdersTrend'
         ));
     }
 
@@ -291,6 +319,109 @@ class ResellerDashboardController extends Controller
             ->sortByDesc('occurred_at')
             ->take(5)
             ->values();
+    }
+
+    protected function resolveOrderCount(int $resellerId, ?string $status = null, $since = null, $until = null): int
+    {
+        if (!Schema::hasTable('orders')) {
+            return 0;
+        }
+
+        $query = $this->buildResellerOrdersQuery($resellerId);
+
+        if ($status !== null && Schema::hasColumn('orders', 'status')) {
+            $query->where('status', $status);
+        }
+
+        if ($since !== null) {
+            $query->where('created_at', '>=', $since);
+        }
+
+        if ($until !== null) {
+            $query->where('created_at', '<', $until);
+        }
+
+        return (int) $query->count();
+    }
+
+    protected function resolveOrderWindow($rawWindow): string
+    {
+        $window = strtolower(trim((string) ($rawWindow ?? '30d')));
+
+        return in_array($window, ['7d', '30d', 'all'], true)
+            ? $window
+            : '30d';
+    }
+
+    protected function resolveOrderWindowSince(string $window)
+    {
+        return match ($window) {
+            '7d' => now()->subDays(7),
+            '30d' => now()->subDays(30),
+            default => null,
+        };
+    }
+
+    protected function resolveOrderWindowDays(string $window): ?int
+    {
+        return match ($window) {
+            '7d' => 7,
+            '30d' => 30,
+            default => null,
+        };
+    }
+
+    protected function buildTrendMeta(int $currentValue, ?int $previousValue): array
+    {
+        if ($previousValue === null) {
+            return [
+                'direction' => 'neutral',
+                'percent' => null,
+                'label' => 'No previous-period comparison',
+            ];
+        }
+
+        $delta = $currentValue - $previousValue;
+
+        if ($previousValue <= 0) {
+            if ($currentValue > 0) {
+                return [
+                    'direction' => 'up',
+                    'percent' => 100.0,
+                    'label' => 'Up from zero last period',
+                ];
+            }
+
+            return [
+                'direction' => 'flat',
+                'percent' => 0.0,
+                'label' => 'No change vs previous period',
+            ];
+        }
+
+        $percent = round((abs($delta) / $previousValue) * 100, 1);
+
+        if ($delta > 0) {
+            return [
+                'direction' => 'up',
+                'percent' => $percent,
+                'label' => $percent . '% up vs previous period',
+            ];
+        }
+
+        if ($delta < 0) {
+            return [
+                'direction' => 'down',
+                'percent' => $percent,
+                'label' => $percent . '% down vs previous period',
+            ];
+        }
+
+        return [
+            'direction' => 'flat',
+            'percent' => 0.0,
+            'label' => 'No change vs previous period',
+        ];
     }
 
     protected function resolvePerformanceOverview(int $resellerId): array

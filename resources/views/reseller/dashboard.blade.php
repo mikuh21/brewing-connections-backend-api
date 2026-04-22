@@ -6,8 +6,6 @@
 @php
     $resellerName = $reseller->business_name ?? $reseller->name ?? auth()->user()->name ?? 'Reseller';
     $productsTotal = (int) data_get($productsListed ?? [], 'total', 0);
-    $ordersThisWeek = (int) ($recentOrdersThisWeek ?? data_get($performanceOverview ?? [], 'this_week', 0));
-    $ordersLastWeek = (int) data_get($performanceOverview ?? [], 'last_week', 0);
 
     $profileCompletenessChecks = [
         'Contact number' => $reseller->contact_number ?? null,
@@ -362,9 +360,9 @@
     <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] border-l-4 border-l-blue-500 p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-[#9E8C78] text-sm font-medium">Recent Orders</p>
-                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersThisWeek }}</p>
-                <p class="text-blue-600 text-sm font-medium mt-1">Orders placed this week</p>
+                <p class="text-[#9E8C78] text-sm font-medium">Orders This Period</p>
+                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersInWindow ?? 0 }}</p>
+                <p class="text-blue-600 text-sm font-medium mt-1">In selected time window</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -446,40 +444,151 @@
 </div>
 
 <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
-    <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
-        Performance <span class="italic text-[#4A6741]">Overview</span>
-    </h2>
-    <p class="text-[#9E8C78] text-sm mb-6">Weekly order trend and summary</p>
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+        <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
+            Order <span class="italic text-[#4A6741]">Overview</span>
+        </h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6">
-            <div class="flex items-start justify-between mb-2">
+        <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
+            <a
+                href="{{ route('reseller.dashboard', ['order_window' => '7d']) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($orderWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                Last 7 days
+            </a>
+            <a
+                href="{{ route('reseller.dashboard', ['order_window' => '30d']) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($orderWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                Last 30 days
+            </a>
+            <a
+                href="{{ route('reseller.dashboard', ['order_window' => 'all']) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($orderWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                All time
+            </a>
+        </div>
+    </div>
+
+    <p class="text-[#9E8C78] text-sm mb-6">Order breakdown by status for the selected period</p>
+
+    @php
+        $totalInWindow = (int) ($ordersInWindow ?? 0);
+        $pendingCount = (int) ($pendingOrders ?? 0);
+        $completedCount = (int) ($completedOrders ?? 0);
+        $otherCount = max(0, $totalInWindow - $pendingCount - $completedCount);
+
+        $windowTotal = max(1, $totalInWindow);
+        $pendingPercent = round(($pendingCount / $windowTotal) * 100, 1);
+        $completedPercent = round(($completedCount / $windowTotal) * 100, 1);
+        $otherPercent = round(($otherCount / $windowTotal) * 100, 1);
+
+        $maxRaw = max(1, $pendingCount, $completedCount, $otherCount);
+        $pendingBarPercent = round(($pendingCount / $maxRaw) * 100, 1);
+        $completedBarPercent = round(($completedCount / $maxRaw) * 100, 1);
+        $otherBarPercent = round(($otherCount / $maxRaw) * 100, 1);
+
+        $totalTrendDir = $ordersInWindowTrend['direction'] ?? 'neutral';
+        $totalTrendTextColor = $totalTrendDir === 'up' ? 'text-green-700' : ($totalTrendDir === 'down' ? 'text-red-700' : 'text-gray-600');
+        $totalTrendBg = $totalTrendDir === 'up' ? 'bg-green-100' : ($totalTrendDir === 'down' ? 'bg-red-100' : 'bg-gray-100');
+
+        $pendingTrendDir = $pendingOrdersTrend['direction'] ?? 'neutral';
+        $pendingTrendTextColor = $pendingTrendDir === 'up' ? 'text-amber-700' : ($pendingTrendDir === 'down' ? 'text-green-700' : 'text-gray-600');
+
+        $completedTrendDir = $completedOrdersTrend['direction'] ?? 'neutral';
+        $completedTrendTextColor = $completedTrendDir === 'up' ? 'text-green-700' : ($completedTrendDir === 'down' ? 'text-red-700' : 'text-gray-600');
+
+        $trendArrow = static function ($direction) {
+            return $direction === 'up' ? '↑' : ($direction === 'down' ? '↓' : '→');
+        };
+    @endphp
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6 lg:col-span-2">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="text-sm font-semibold text-[#3A2E22]">Order Status Mix</h3>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $totalTrendBg }} {{ $totalTrendTextColor }}" title="{{ $ordersInWindowTrend['label'] ?? 'No trend data' }}">
+                    {{ $trendArrow($totalTrendDir) }} {{ $ordersInWindowTrend['percent'] === null ? 'N/A' : ($ordersInWindowTrend['percent'] . '%') }}
+                </span>
+            </div>
+
+            <div class="w-full h-8 rounded-full overflow-hidden border border-[#E6DCCF] bg-white flex mb-4">
+                <div class="h-full" title="Pending: {{ $pendingCount }} ({{ $pendingPercent }}%)" style="width: {{ $pendingPercent }}%; background: linear-gradient(90deg, #D97706 0%, #F59E0B 100%);"></div>
+                <div class="h-full" title="Completed: {{ $completedCount }} ({{ $completedPercent }}%)" style="width: {{ $completedPercent }}%; background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);"></div>
+                <div class="h-full" title="Other: {{ $otherCount }} ({{ $otherPercent }}%)" style="width: {{ $otherPercent }}%; background: linear-gradient(90deg, #6B7280 0%, #9CA3AF 100%);"></div>
+            </div>
+
+            <div class="space-y-3">
                 <div>
-                    <p class="text-[#9E8C78] text-sm font-medium">Orders This Week</p>
-                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersThisWeek }}</p>
-                    <p class="text-green-600 text-sm font-medium mt-1">Compared to {{ $ordersLastWeek }} last week</p>
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-semibold text-amber-700">Pending</span>
+                        <span class="text-[#6B5B4A]">{{ $pendingCount }} orders ({{ $pendingPercent }}%)</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
+                        <div class="h-full bg-amber-400" title="Pending orders: {{ $pendingCount }}" style="width: {{ $pendingBarPercent }}%;"></div>
+                    </div>
+                    <p class="mt-1 text-[11px] {{ $pendingTrendTextColor }}" title="{{ $pendingOrdersTrend['label'] ?? 'No trend data' }}">
+                        {{ $trendArrow($pendingTrendDir) }} {{ $pendingOrdersTrend['percent'] === null ? 'N/A' : ($pendingOrdersTrend['percent'] . '%') }} vs previous period
+                    </p>
                 </div>
-                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l3-3 2 2 5-5"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10v10"/>
-                    </svg>
+
+                <div>
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-semibold text-green-700">Completed</span>
+                        <span class="text-[#6B5B4A]">{{ $completedCount }} orders ({{ $completedPercent }}%)</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
+                        <div class="h-full bg-green-500" title="Completed orders: {{ $completedCount }}" style="width: {{ $completedBarPercent }}%;"></div>
+                    </div>
+                    <p class="mt-1 text-[11px] {{ $completedTrendTextColor }}" title="{{ $completedOrdersTrend['label'] ?? 'No trend data' }}">
+                        {{ $trendArrow($completedTrendDir) }} {{ $completedOrdersTrend['percent'] === null ? 'N/A' : ($completedOrdersTrend['percent'] . '%') }} vs previous period
+                    </p>
                 </div>
+
+                @if($otherCount > 0)
+                <div>
+                    <div class="flex items-center justify-between text-xs mb-1">
+                        <span class="font-semibold text-gray-500">Other</span>
+                        <span class="text-[#6B5B4A]">{{ $otherCount }} orders ({{ $otherPercent }}%)</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
+                        <div class="h-full bg-gray-400" title="Other orders: {{ $otherCount }}" style="width: {{ $otherBarPercent }}%;"></div>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
 
         <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6">
-            <div class="flex items-start justify-between mb-2">
-                <div>
-                    <p class="text-[#9E8C78] text-sm font-medium">Weekly Change</p>
-                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersThisWeek - $ordersLastWeek }}</p>
-                    <p class="text-blue-600 text-sm font-medium mt-1">Net order delta vs last week</p>
+            <h3 class="text-sm font-semibold text-[#3A2E22] mb-4">Order Snapshot</h3>
+
+            <div class="relative mx-auto mb-4 w-36 h-36 rounded-full" title="Pending: {{ $pendingCount }} | Completed: {{ $completedCount }}" style="background: conic-gradient(#F59E0B 0% {{ $pendingPercent }}%, #22C55E {{ $pendingPercent }}% {{ $pendingPercent + $completedPercent }}%, #9CA3AF {{ $pendingPercent + $completedPercent }}% 100%);">
+                <div class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center border border-[#E6DCCF]">
+                    <p class="text-[10px] text-[#9E8C78] uppercase tracking-wide">Orders</p>
+                    <p class="text-2xl font-bold text-[#3A2E22]">{{ $totalInWindow }}</p>
                 </div>
-                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                    </svg>
+            </div>
+
+            <p class="text-center text-[11px] mb-3 {{ $totalTrendTextColor }}" title="{{ $ordersInWindowTrend['label'] ?? 'No trend data' }}">
+                {{ $trendArrow($totalTrendDir) }} {{ $ordersInWindowTrend['percent'] === null ? 'N/A' : ($ordersInWindowTrend['percent'] . '%') }} vs previous period
+            </p>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-2 text-[#3A2E22]"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>Pending</span>
+                    <span class="font-semibold text-[#3A2E22]">{{ $pendingCount }}</span>
                 </div>
+                <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-2 text-[#3A2E22]"><span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>Completed</span>
+                    <span class="font-semibold text-[#3A2E22]">{{ $completedCount }}</span>
+                </div>
+                @if($otherCount > 0)
+                <div class="flex items-center justify-between">
+                    <span class="inline-flex items-center gap-2 text-[#3A2E22]"><span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>Other</span>
+                    <span class="font-semibold text-[#3A2E22]">{{ $otherCount }}</span>
+                </div>
+                @endif
             </div>
         </div>
     </div>

@@ -241,9 +241,9 @@
     <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-green-500 p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-[#9E8C78] text-sm font-medium">Total Visits</p>
-                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalVisits ?? 128 }}</p>
-                <p class="text-green-600 text-sm font-medium mt-1">AI Coffee Trail generation</p>
+                <p class="text-[#9E8C78] text-sm font-medium">Popularity Score</p>
+                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $popularityScore }}</p>
+                <p class="text-green-600 text-sm font-medium mt-1">Trails x3 + marker views x1</p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,8 +273,8 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-[#9E8C78] text-sm font-medium">Orders This Week</p>
-                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersThisWeek ?? 11 }}</p>
-                <p class="text-blue-600 text-sm font-medium mt-1">+3 from last week</p>
+                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersThisWeek }}</p>
+                <p class="text-blue-600 text-sm font-medium mt-1">Marketplace order volume</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -416,17 +416,48 @@
 </div>
 
 <div class="bg-white rounded-xl shadow-sm p-8">
-    <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
-        Performance <span class="italic text-[#4A6741]">Overview</span>
-    </h2>
-    <p class="text-[#9E8C78] text-sm mb-6">Engagement signals from map and trail interactions</p>
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+        <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
+            Performance <span class="italic text-[#4A6741]">Overview</span>
+        </h2>
+
+        @php
+            $farmDashboardRouteParams = array_filter([
+                'farm_id' => request('farm_id'),
+                'popularity_window' => null,
+            ], fn ($value) => !is_null($value) && $value !== '');
+        @endphp
+
+        <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
+            <a
+                href="{{ route('farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => '7d'])) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                Last 7 days
+            </a>
+            <a
+                href="{{ route('farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => '30d'])) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                Last 30 days
+            </a>
+            <a
+                href="{{ route('farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => 'all'])) }}"
+                class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+            >
+                All time
+            </a>
+        </div>
+    </div>
+
+    <p class="text-[#9E8C78] text-sm mb-6">Popularity Score = coffee trail destinations x3 + marker views x1</p>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6">
             <div class="flex items-start justify-between mb-4">
                 <div>
                     <p class="text-[#9E8C78] text-sm font-medium">Farm Clicks</p>
-                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $farmClicks ?? 86 }}</p>
+                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $farmClicks }}</p>
                     <p class="text-green-600 text-sm font-medium mt-1">Total clicks from consumer map</p>
                 </div>
                 <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -437,7 +468,7 @@
                 </div>
             </div>
             <div class="h-16 rounded-lg bg-white border border-dashed border-[#D9C9B2] flex items-center justify-center">
-                <span class="text-xs text-[#9E8C78]">Chart placeholder</span>
+                <span class="text-xs text-[#9E8C78]">Weighted contribution: {{ $farmClicks }} points</span>
             </div>
         </div>
 
@@ -445,7 +476,7 @@
             <div class="flex items-start justify-between mb-4">
                 <div>
                     <p class="text-[#9E8C78] text-sm font-medium">Coffee Trail Visits</p>
-                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalVisits ?? 0 }}</p>
+                    <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalVisits }}</p>
                     <p class="text-blue-600 text-sm font-medium mt-1">From coffee trail generation</p>
                 </div>
                 <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -456,7 +487,7 @@
             </div>
             <div class="flex items-center gap-2 text-xs font-medium text-blue-600">
                 <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
-                Positive weekly trend
+                Weighted contribution: {{ $totalVisits * 3 }} points
             </div>
         </div>
     </div>

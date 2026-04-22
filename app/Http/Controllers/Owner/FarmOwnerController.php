@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\CoffeeTrail;
+use App\Models\CoffeeTrailMarkerView;
 use App\Models\CoffeeVariety;
 use App\Models\Conversation;
 use App\Models\Establishment;
@@ -13,7 +15,6 @@ use App\Services\OrderReceiptNotifier;
 use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
@@ -134,8 +135,11 @@ class FarmOwnerController extends Controller
             ->values();
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
+        $popularityWindow = $this->resolvePopularityWindow($request->query('popularity_window'));
+        $windowSince = $this->resolvePopularityWindowSince($popularityWindow);
+
         $user = Auth::user();
         /** @var \App\Models\User|null $user */
         $establishment = $user
@@ -148,6 +152,8 @@ class FarmOwnerController extends Controller
                 'ordersThisWeek' => 0,
                 'totalVisits' => 0,
                 'farmClicks' => 0,
+                'popularityScore' => 0,
+                'popularityWindow' => $popularityWindow,
                 'recentActivity' => collect(),
             ]);
         }
@@ -162,8 +168,9 @@ class FarmOwnerController extends Controller
             })
             ->count();
 
-        $totalVisits = $this->resolveTrailVisitsCount($establishmentId);
-        $farmClicks = $this->resolveFarmClicksCount($establishmentId);
+        $totalVisits = $this->resolveTrailVisitsCount($establishmentId, $windowSince);
+        $farmClicks = $this->resolveFarmClicksCount($establishmentId, $windowSince);
+        $popularityScore = ($totalVisits * 3) + $farmClicks;
 
         $latestOrders = Order::with('product:id,name,establishment_id')
             ->whereHas('product', function ($query) use ($establishmentId) {
@@ -208,75 +215,73 @@ class FarmOwnerController extends Controller
             'ordersThisWeek',
             'totalVisits',
             'farmClicks',
+            'popularityScore',
+            'popularityWindow',
             'recentActivity'
         ));
     }
 
-    protected function resolveTrailVisitsCount(int $establishmentId): int
+    protected function resolveTrailVisitsCount(int $establishmentId, $since = null): int
     {
         if (!Schema::hasTable('coffee_trails')) {
             return 0;
         }
 
-        $query = DB::table('coffee_trails');
+        $trails = CoffeeTrail::query()
+            ->when($since, function ($query) use ($since) {
+                $query->where('created_at', '>=', $since);
+            })
+            ->get(['trail_data']);
 
-        if (Schema::hasColumn('coffee_trails', 'establishment_id')) {
-            return (int) $query->where('establishment_id', $establishmentId)->count();
+        $count = 0;
+
+        foreach ($trails as $trail) {
+            $trailData = is_array($trail->trail_data) ? $trail->trail_data : [];
+
+            foreach ($trailData as $point) {
+                if (!is_array($point) || !isset($point['id'])) {
+                    continue;
+                }
+
+                if ((int) $point['id'] === $establishmentId) {
+                    $count++;
+                }
+            }
         }
 
-        if (Schema::hasColumn('coffee_trails', 'establishment_ids')) {
-            return (int) $query->whereJsonContains('establishment_ids', $establishmentId)->count();
-        }
-
-        if (Schema::hasColumn('coffee_trails', 'trail_data')) {
-            return (int) $query
-                ->where(function ($subQuery) use ($establishmentId) {
-                    $subQuery->whereJsonContains('trail_data->establishment_ids', $establishmentId)
-                        ->orWhereJsonContains('trail_data->establishments', $establishmentId);
-                })
-                ->count();
-        }
-
-        return 0;
+        return $count;
     }
 
-    protected function resolveFarmClicksCount(int $establishmentId): int
+    protected function resolveFarmClicksCount(int $establishmentId, $since = null): int
     {
-        if (Schema::hasTable('map_views')) {
-            $query = DB::table('map_views');
-
-            if (Schema::hasColumn('map_views', 'establishment_id')) {
-                return (int) $query->where('establishment_id', $establishmentId)->count();
-            }
-
-            if (Schema::hasColumn('map_views', 'marker_establishment_id')) {
-                return (int) $query->where('marker_establishment_id', $establishmentId)->count();
-            }
+        if (!Schema::hasTable('coffee_trail_marker_views')) {
+            return 0;
         }
 
-        if (Schema::hasTable('analytics')) {
-            $query = DB::table('analytics');
+        return (int) CoffeeTrailMarkerView::query()
+            ->where('establishment_id', $establishmentId)
+            ->when($since, function ($query) use ($since) {
+                $query->where('viewed_at', '>=', $since);
+            })
+            ->count();
+    }
 
-            if (Schema::hasColumn('analytics', 'establishment_id')) {
-                if (Schema::hasColumn('analytics', 'event_name')) {
-                    return (int) $query
-                        ->where('establishment_id', $establishmentId)
-                        ->whereIn('event_name', ['map_view', 'marker_view', 'marker_click'])
-                        ->count();
-                }
+    protected function resolvePopularityWindow($rawWindow): string
+    {
+        $window = strtolower(trim((string) ($rawWindow ?? '30d')));
 
-                if (Schema::hasColumn('analytics', 'event_type')) {
-                    return (int) $query
-                        ->where('establishment_id', $establishmentId)
-                        ->whereIn('event_type', ['map_view', 'marker_view', 'marker_click'])
-                        ->count();
-                }
+        return in_array($window, ['7d', '30d', 'all'], true)
+            ? $window
+            : '30d';
+    }
 
-                return (int) $query->where('establishment_id', $establishmentId)->count();
-            }
-        }
-
-        return 0;
+    protected function resolvePopularityWindowSince(string $window)
+    {
+        return match ($window) {
+            '7d' => now()->subDays(7),
+            '30d' => now()->subDays(30),
+            default => null,
+        };
     }
 
     public function myFarm()

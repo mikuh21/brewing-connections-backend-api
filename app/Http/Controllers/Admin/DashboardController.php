@@ -3,16 +3,158 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Establishment;
+use App\Models\CoffeeTrail;
+use App\Models\CoffeeTrailMarkerView;
+use App\Models\CouponPromo;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('admin.dashboard');
+        $popularityWindow = $this->resolvePopularityWindow($request->query('popularity_window'));
+
+        $totalEstablishments = Establishment::count();
+
+        $pendingRegistrations = User::query()
+            ->where('role', 'consumer')
+            ->count();
+
+        $pendingReviews = CouponPromo::query()
+            ->where('status', 'active')
+            ->where('valid_until', '>=', now()->toDateString())
+            ->count();
+
+        $activeListings = Product::query()
+            ->where('is_active', true)
+            ->count();
+
+        $frequentlyVisitedEstablishments = $this->getFrequentlyVisitedEstablishments($popularityWindow);
+
+        return view('admin.dashboard', [
+            'totalEstablishments' => $totalEstablishments,
+            'pendingRegistrations' => $pendingRegistrations,
+            'pendingReviews' => $pendingReviews,
+            'activeListings' => $activeListings,
+            'frequentlyVisitedEstablishments' => $frequentlyVisitedEstablishments,
+            'popularityWindow' => $popularityWindow,
+        ]);
+    }
+
+    protected function getFrequentlyVisitedEstablishments(string $popularityWindow = '30d')
+    {
+        $since = match ($popularityWindow) {
+            '7d' => now()->subDays(7),
+            '30d' => now()->subDays(30),
+            default => null,
+        };
+
+        $trails = CoffeeTrail::query()
+            ->when($since, function ($query) use ($since) {
+                $query->where('created_at', '>=', $since);
+            })
+            ->get();
+
+        $destinationVisits = collect();
+        $destinationPoints = collect();
+
+        foreach ($trails as $trail) {
+            $trailData = is_array($trail->trail_data) ? $trail->trail_data : [];
+
+            foreach ($trailData as $point) {
+                if (!is_array($point) || !isset($point['id'])) {
+                    continue;
+                }
+
+                $establishmentId = (int) $point['id'];
+                $destinationVisits->put(
+                    $establishmentId,
+                    ($destinationVisits->get($establishmentId, 0) + 1)
+                );
+                $destinationPoints->put(
+                    $establishmentId,
+                    ($destinationPoints->get($establishmentId, 0) + 3)
+                );
+            }
+        }
+
+        $markerViewRows = CoffeeTrailMarkerView::query()
+            ->when($since, function ($query) use ($since) {
+                $query->where('viewed_at', '>=', $since);
+            })
+            ->selectRaw('establishment_id, COUNT(*) AS total_views')
+            ->groupBy('establishment_id')
+            ->get();
+
+        $markerViews = $markerViewRows
+            ->pluck('total_views', 'establishment_id')
+            ->map(fn ($count) => (int) $count);
+
+        $markerPoints = $markerViews->map(fn ($count) => (int) $count);
+
+        $establishmentIds = $destinationPoints
+            ->keys()
+            ->merge($markerPoints->keys())
+            ->unique()
+            ->values();
+
+        if ($establishmentIds->isEmpty()) {
+            return [];
+        }
+
+        $allEstablishments = Establishment::query()
+            ->whereIn('id', $establishmentIds->all())
+            ->select(['id', 'name', 'barangay', 'address', 'latitude', 'longitude', 'image'])
+            ->get()
+            ->keyBy('id');
+
+        $scoreByEstablishment = $establishmentIds
+            ->mapWithKeys(function ($id) use ($destinationPoints, $markerPoints) {
+                $establishmentId = (int) $id;
+                $score = (int) $destinationPoints->get($establishmentId, 0)
+                    + (int) $markerPoints->get($establishmentId, 0);
+
+                return [$establishmentId => $score];
+            })
+            ->sortDesc()
+            ->take(5);
+
+        return $scoreByEstablishment
+            ->map(function ($popularityScore, $establishmentId) use ($allEstablishments, $destinationVisits, $markerViews) {
+                $establishment = $allEstablishments->get((int) $establishmentId);
+                $trailDestinations = (int) $destinationVisits->get((int) $establishmentId, 0);
+                $markerViewCount = (int) $markerViews->get((int) $establishmentId, 0);
+
+                return [
+                    'id' => (int) $establishmentId,
+                    'name' => $establishment?->name ?? 'Unknown Establishment',
+                    'city' => $establishment?->barangay
+                        ?? $establishment?->address
+                        ?? 'Unknown Location',
+                    'visits' => (int) $popularityScore,
+                    'popularity_score' => (int) $popularityScore,
+                    'trail_destinations' => $trailDestinations,
+                    'marker_views' => $markerViewCount,
+                    'image_url' => $establishment?->image,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    protected function resolvePopularityWindow($rawWindow): string
+    {
+        $window = strtolower(trim((string) ($rawWindow ?? '30d')));
+
+        return in_array($window, ['7d', '30d', 'all'], true)
+            ? $window
+            : '30d';
     }
 
     public function notifications(): JsonResponse

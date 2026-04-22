@@ -353,8 +353,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-[#9E8C78] text-sm font-medium">Total Establishments</p>
-                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalEstablishments ?? 5 }}</p>
-                        <p class="text-green-600 text-sm font-medium mt-1">+12% from last month</p>
+                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalEstablishments }}</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -367,9 +366,8 @@
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-amber-500 p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[#9E8C78] text-sm font-medium">Total Registrations</p>
-                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $pendingRegistrations ?? 2 }}</p>
-                        <p class="text-amber-600 text-sm font-medium mt-1">2 new this week</p>
+                        <p class="text-[#9E8C78] text-sm font-medium">Total Consumers</p>
+                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $pendingRegistrations }}</p>
                     </div>
                     <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-amber-500">
@@ -383,8 +381,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-[#9E8C78] text-sm font-medium">Active Promos</p>
-                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $pendingReviews ?? 0 }}</p>
-                        <p class="text-blue-600 text-sm font-medium mt-1">Requires attention</p>
+                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $pendingReviews }}</p>
                     </div>
                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -398,8 +395,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-[#9E8C78] text-sm font-medium">Active Listings</p>
-                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $activeListings ?? 0 }}</p>
-                        <p class="text-rose-600 text-sm font-medium mt-1">+2 this week</p>
+                        <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $activeListings }}</p>
                     </div>
                     <div class="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,7 +416,7 @@
                 <p class="text-[#9E8C78] text-sm mb-6">Common tasks and shortcuts</p>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <button class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                    <a href="{{ route('admin.map') }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                         <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                             <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
@@ -428,9 +424,9 @@
                         </div>
                         <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">View Map</h3>
                         <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Interactive GIS mapping</p>
-                    </button>
+                    </a>
 
-                    <button class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                    <a href="{{ route('admin.registrations.index') }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                         <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -438,9 +434,9 @@
                         </div>
                         <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">Review Registrations</h3>
                         <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Registered users</p>
-                    </button>
+                    </a>
 
-                    <button class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                    <a href="{{ route('admin.rating-moderation.index') }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                         <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                             <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
@@ -448,9 +444,9 @@
                         </div>
                         <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">Moderate Ratings</h3>
                         <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Review star ratings</p>
-                    </button>
+                    </a>
 
-                    <button class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+                    <a href="{{ route('admin.recommendations') }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                         <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                             <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -458,7 +454,7 @@
                         </div>
                         <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">View Recommendations</h3>
                         <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Prescriptive insights</p>
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -521,18 +517,73 @@
 
         <!-- Frequently Visited Establishments -->
         <div class="bg-white rounded-xl shadow-sm p-8">
-            <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
-                Frequently Visited <span class="italic text-[#4A6741]">Establishments</span>
-            </h2>
-            <p class="text-[#9E8C78] text-sm mb-6">List of establishments frequently visited by consumers</p>
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+                <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
+                    Frequently Visited <span class="italic text-[#4A6741]">Establishments</span>
+                </h2>
 
-            <div class="py-12 text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
-                </svg>
-                <h3 class="text-gray-400 font-medium mb-2">No data available yet</h3>
-                <p class="text-gray-400 text-sm text-center">Frequently visited establishments will appear here based on consumer activity on the map.</p>
+                <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
+                    <a
+                        href="{{ route('admin.dashboard', ['popularity_window' => '7d']) }}"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+                    >
+                        Last 7 days
+                    </a>
+                    <a
+                        href="{{ route('admin.dashboard', ['popularity_window' => '30d']) }}"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+                    >
+                        Last 30 days
+                    </a>
+                    <a
+                        href="{{ route('admin.dashboard', ['popularity_window' => 'all']) }}"
+                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
+                    >
+                        All time
+                    </a>
+                </div>
             </div>
+            <p class="text-[#9E8C78] text-sm mb-6">Popularity Score = trail destinations x3 + marker views x1</p>
+
+            @if(empty($frequentlyVisitedEstablishments))
+                <div class="py-12 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                    </svg>
+                    <h3 class="text-gray-400 font-medium mb-2">No data available yet</h3>
+                    <p class="text-gray-400 text-sm text-center">Frequently visited establishments will appear here based on consumer activity on the map.</p>
+                </div>
+            @else
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr style="background-color: #3B2F2F;">
+                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Rank</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Name</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">City</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Popularity Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($frequentlyVisitedEstablishments as $index => $establishment)
+                                <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors" style="background-color: {{ ($index % 2 === 0) ? '#FFFFFF' : '#FAF7F2' }};">
+                                    <td class="px-6 py-4 text-sm font-semibold text-[#3A2E22]">{{ $index + 1 }}</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $establishment['name'] }}</td>
+                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $establishment['city'] }}</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background-color: rgba(74, 103, 65, 0.15); color: #4A6741;">
+                                            {{ $establishment['popularity_score'] ?? $establishment['visits'] }}
+                                        </span>
+                                        <p class="text-[11px] text-[#9E8C78] mt-1">
+                                            {{ $establishment['trail_destinations'] ?? 0 }} trails x3 + {{ $establishment['marker_views'] ?? 0 }} views x1
+                                        </p>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
     </main>
 

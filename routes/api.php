@@ -55,6 +55,7 @@ Route::middleware(['auth'])->put('/user-location', [\App\Http\Controllers\UserLo
 Route::middleware(['auth:api'])->post('/coffee-trail/preview', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'preview']);
 Route::middleware(['auth:api'])->post('/coffee-trail/generate', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'generate']);
 Route::middleware(['auth:api'])->get('/coffee-trail/history', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'history']);
+Route::middleware(['auth:api'])->post('/coffee-trail/marker-view', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'trackMarkerView']);
 
 // Consumer ratings feed and submission
 Route::middleware(['auth:api'])->get('/ratings', [RatingController::class, 'index']);

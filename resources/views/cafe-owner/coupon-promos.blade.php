@@ -18,6 +18,7 @@
         scannerBusy: false,
         scannerError: '',
         scannerSuccess: '',
+        isWebMobile: window.innerWidth < 768,
         establishmentName: @js((auth()->user()->name ?? 'Your Cafe') . "'s Cafe"),
         dailyClaimsChart: null,
         timeOfDayChart: null,
@@ -463,6 +464,13 @@
                     });
                 }
             });
+
+            const updateViewportMode = () => {
+                this.isWebMobile = window.innerWidth < 768;
+            };
+
+            updateViewportMode();
+            window.addEventListener('resize', updateViewportMode);
         },
         renderQrModal() {
             const qrDisplay = document.getElementById('qr-display');
@@ -631,6 +639,10 @@
             return matchesFilter && matchesSearch;
         },
         openScannerModal() {
+            if (!this.isWebMobile) {
+                return;
+            }
+
             this.scannerError = '';
             this.scannerSuccess = '';
             this.scannerBusy = false;
@@ -762,12 +774,15 @@
             <button
                 type="button"
                 x-on:click="openScannerModal()"
+                :disabled="!isWebMobile"
+                :class="!isWebMobile ? 'cursor-not-allowed opacity-55' : ''"
                 class="inline-flex items-center justify-center gap-2 rounded-lg border border-[#4A6741] px-4 py-2 text-sm font-semibold text-[#4A6741] transition-colors hover:bg-[#F5F0E8]"
             >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg x-show="isWebMobile" x-cloak class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h3m8 0h3a2 2 0 012 2v3m0 8a2 2 0 01-2 2h-3m-8 0H5a2 2 0 01-2-2v-3m5-5h8"/>
                 </svg>
-                Scan QR
+                <span x-show="isWebMobile" x-cloak>Scan QR</span>
+                <span x-show="!isWebMobile" x-cloak>Scan QR on web mobile device</span>
             </button>
 
             <button
@@ -1597,14 +1612,17 @@
 
         .cafe-coupon-promos-page .coupon-promos-header-actions {
             width: 100%;
-            justify-content: flex-end;
+            justify-content: stretch;
             flex-wrap: nowrap;
             gap: 0.45rem;
         }
 
         .cafe-coupon-promos-page .coupon-promos-header-actions > button {
+            flex: 1 1 0;
             white-space: nowrap;
-            padding: 0.52rem 0.68rem;
+            width: 50%;
+            min-width: 0;
+            padding: 0.58rem 0.68rem;
             font-size: 0.72rem;
         }
 

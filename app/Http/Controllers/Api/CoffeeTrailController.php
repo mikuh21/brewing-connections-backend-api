@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CoffeeTrail;
+use App\Models\CoffeeTrailMarkerView;
 use App\Models\Establishment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
@@ -329,6 +330,52 @@ class CoffeeTrailController extends Controller
 
         return response()->json([
             'history' => $trails->map(fn (CoffeeTrail $trail) => $this->toTrailResponse($trail))->values(),
+        ]);
+    }
+
+    public function trackMarkerView(Request $request)
+    {
+        $payload = $request->validate([
+            'establishment_id' => 'required|integer|exists:establishments,id',
+            'map_session_id' => 'nullable|string|max:120',
+        ]);
+
+        $userId = optional($request->user())->id;
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $establishmentId = (int) $payload['establishment_id'];
+        $mapSessionId = trim((string) ($payload['map_session_id'] ?? '')) ?: null;
+        $dedupeSince = now()->subSeconds(3);
+
+        $existingRecent = CoffeeTrailMarkerView::query()
+            ->where('user_id', $userId)
+            ->where('establishment_id', $establishmentId)
+            ->where('viewed_at', '>=', $dedupeSince)
+            ->when($mapSessionId, function ($query) use ($mapSessionId) {
+                $query->where('map_session_id', $mapSessionId);
+            }, function ($query) {
+                $query->whereNull('map_session_id');
+            })
+            ->exists();
+
+        if ($existingRecent) {
+            return response()->json([
+                'tracked' => false,
+                'reason' => 'duplicate_recent',
+            ]);
+        }
+
+        CoffeeTrailMarkerView::query()->create([
+            'user_id' => $userId,
+            'establishment_id' => $establishmentId,
+            'map_session_id' => $mapSessionId,
+            'viewed_at' => now(),
+        ]);
+
+        return response()->json([
+            'tracked' => true,
         ]);
     }
 }

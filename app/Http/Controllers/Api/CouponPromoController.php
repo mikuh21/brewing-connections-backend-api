@@ -16,6 +16,7 @@ class CouponPromoController extends Controller
         $lng = is_numeric($request->query('lng')) ? (float) $request->query('lng') : null;
 
         $promos = CouponPromo::query()
+            ->active()
             ->with(['establishment:id,name,type,latitude,longitude,image'])
             ->orderByDesc('created_at')
             ->get()

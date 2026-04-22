@@ -461,15 +461,34 @@
         $maxRawSource = max(1, (int) max($totalVisits, $farmClicks));
         $trailRawPercent = round(($totalVisits / $maxRawSource) * 100, 1);
         $clickRawPercent = round(($farmClicks / $maxRawSource) * 100, 1);
+
+        $popTrendDirection = $popularityTrend['direction'] ?? 'neutral';
+        $popTrendTextColor = $popTrendDirection === 'up' ? 'text-green-700' : ($popTrendDirection === 'down' ? 'text-red-700' : 'text-gray-600');
+        $popTrendBg = $popTrendDirection === 'up' ? 'bg-green-100' : ($popTrendDirection === 'down' ? 'bg-red-100' : 'bg-gray-100');
+
+        $trailTrendDirection = $trailTrend['direction'] ?? 'neutral';
+        $trailTrendTextColor = $trailTrendDirection === 'up' ? 'text-green-700' : ($trailTrendDirection === 'down' ? 'text-red-700' : 'text-gray-600');
+
+        $clickTrendDirection = $clickTrend['direction'] ?? 'neutral';
+        $clickTrendTextColor = $clickTrendDirection === 'up' ? 'text-green-700' : ($clickTrendDirection === 'down' ? 'text-red-700' : 'text-gray-600');
+
+        $trendArrow = static function ($direction) {
+            return $direction === 'up' ? '↑' : ($direction === 'down' ? '↓' : '→');
+        };
     @endphp
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6 lg:col-span-2">
-            <h3 class="text-sm font-semibold text-[#3A2E22] mb-4">Weighted Popularity Mix</h3>
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="text-sm font-semibold text-[#3A2E22]">Weighted Popularity Mix</h3>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $popTrendBg }} {{ $popTrendTextColor }}" title="{{ $popularityTrend['label'] ?? 'No trend data' }}">
+                    {{ $trendArrow($popTrendDirection) }} {{ $popularityTrend['percent'] === null ? 'N/A' : ($popularityTrend['percent'] . '%') }}
+                </span>
+            </div>
 
             <div class="w-full h-8 rounded-full overflow-hidden border border-[#E6DCCF] bg-white flex mb-4">
-                <div class="h-full" style="width: {{ $trailWeightedPercent }}%; background: linear-gradient(90deg, #2563EB 0%, #3B82F6 100%);"></div>
-                <div class="h-full" style="width: {{ $clickWeightedPercent }}%; background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);"></div>
+                <div class="h-full" title="Trail destinations contribution: {{ $trailWeighted }} points ({{ $trailWeightedPercent }}%)" style="width: {{ $trailWeightedPercent }}%; background: linear-gradient(90deg, #2563EB 0%, #3B82F6 100%);"></div>
+                <div class="h-full" title="Marker views contribution: {{ $clickWeighted }} points ({{ $clickWeightedPercent }}%)" style="width: {{ $clickWeightedPercent }}%; background: linear-gradient(90deg, #16A34A 0%, #22C55E 100%);"></div>
             </div>
 
             <div class="space-y-3">
@@ -479,8 +498,11 @@
                         <span class="text-[#6B5B4A]">{{ $totalVisits }} visits • {{ $trailWeighted }} points ({{ $trailWeightedPercent }}%)</span>
                     </div>
                     <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
-                        <div class="h-full bg-blue-500" style="width: {{ $trailRawPercent }}%;"></div>
+                        <div class="h-full bg-blue-500" title="Raw trail visits: {{ $totalVisits }}" style="width: {{ $trailRawPercent }}%;"></div>
                     </div>
+                    <p class="mt-1 text-[11px] {{ $trailTrendTextColor }}" title="{{ $trailTrend['label'] ?? 'No trend data' }}">
+                        {{ $trendArrow($trailTrendDirection) }} {{ $trailTrend['percent'] === null ? 'N/A' : ($trailTrend['percent'] . '%') }} vs previous period
+                    </p>
                 </div>
 
                 <div>
@@ -489,8 +511,11 @@
                         <span class="text-[#6B5B4A]">{{ $farmClicks }} views • {{ $clickWeighted }} points ({{ $clickWeightedPercent }}%)</span>
                     </div>
                     <div class="h-2 rounded-full bg-white border border-[#E6DCCF] overflow-hidden">
-                        <div class="h-full bg-green-500" style="width: {{ $clickRawPercent }}%;"></div>
+                        <div class="h-full bg-green-500" title="Raw marker views: {{ $farmClicks }}" style="width: {{ $clickRawPercent }}%;"></div>
                     </div>
+                    <p class="mt-1 text-[11px] {{ $clickTrendTextColor }}" title="{{ $clickTrend['label'] ?? 'No trend data' }}">
+                        {{ $trendArrow($clickTrendDirection) }} {{ $clickTrend['percent'] === null ? 'N/A' : ($clickTrend['percent'] . '%') }} vs previous period
+                    </p>
                 </div>
             </div>
         </div>
@@ -498,12 +523,16 @@
         <div class="bg-[#FAF7F2] rounded-xl border border-gray-100 p-6">
             <h3 class="text-sm font-semibold text-[#3A2E22] mb-4">Score Snapshot</h3>
 
-            <div class="relative mx-auto mb-4 w-36 h-36 rounded-full" style="background: conic-gradient(#3B82F6 0% {{ $trailWeightedPercent }}%, #22C55E {{ $trailWeightedPercent }}% 100%);">
+            <div class="relative mx-auto mb-4 w-36 h-36 rounded-full" title="Trail: {{ $trailWeighted }} points | Views: {{ $clickWeighted }} points" style="background: conic-gradient(#3B82F6 0% {{ $trailWeightedPercent }}%, #22C55E {{ $trailWeightedPercent }}% 100%);">
                 <div class="absolute inset-4 bg-white rounded-full flex flex-col items-center justify-center border border-[#E6DCCF]">
                     <p class="text-[10px] text-[#9E8C78] uppercase tracking-wide">Score</p>
                     <p class="text-2xl font-bold text-[#3A2E22]">{{ $popularityScore }}</p>
                 </div>
             </div>
+
+            <p class="text-center text-[11px] mb-3 {{ $popTrendTextColor }}" title="{{ $popularityTrend['label'] ?? 'No trend data' }}">
+                {{ $trendArrow($popTrendDirection) }} {{ $popularityTrend['percent'] === null ? 'N/A' : ($popularityTrend['percent'] . '%') }} vs previous period
+            </p>
 
             <div class="space-y-2 text-xs">
                 <div class="flex items-center justify-between">

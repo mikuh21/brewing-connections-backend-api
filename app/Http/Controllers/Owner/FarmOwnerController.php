@@ -139,6 +139,9 @@ class FarmOwnerController extends Controller
     {
         $popularityWindow = $this->resolvePopularityWindow($request->query('popularity_window'));
         $windowSince = $this->resolvePopularityWindowSince($popularityWindow);
+        $windowDays = $this->resolvePopularityWindowDays($popularityWindow);
+        $previousWindowStart = $windowDays ? now()->subDays($windowDays * 2) : null;
+        $previousWindowEnd = $windowDays ? now()->subDays($windowDays) : null;
 
         $user = Auth::user();
         /** @var \App\Models\User|null $user */
@@ -154,6 +157,9 @@ class FarmOwnerController extends Controller
                 'farmClicks' => 0,
                 'popularityScore' => 0,
                 'popularityWindow' => $popularityWindow,
+                'trailTrend' => $this->buildTrendMeta(0, null),
+                'clickTrend' => $this->buildTrendMeta(0, null),
+                'popularityTrend' => $this->buildTrendMeta(0, null),
                 'recentActivity' => collect(),
             ]);
         }
@@ -171,6 +177,20 @@ class FarmOwnerController extends Controller
         $totalVisits = $this->resolveTrailVisitsCount($establishmentId, $windowSince);
         $farmClicks = $this->resolveFarmClicksCount($establishmentId, $windowSince);
         $popularityScore = ($totalVisits * 3) + $farmClicks;
+
+        $previousTrailVisits = $windowDays
+            ? $this->resolveTrailVisitsCount($establishmentId, $previousWindowStart, $previousWindowEnd)
+            : null;
+        $previousFarmClicks = $windowDays
+            ? $this->resolveFarmClicksCount($establishmentId, $previousWindowStart, $previousWindowEnd)
+            : null;
+        $previousPopularityScore = ($previousTrailVisits !== null && $previousFarmClicks !== null)
+            ? (($previousTrailVisits * 3) + $previousFarmClicks)
+            : null;
+
+        $trailTrend = $this->buildTrendMeta($totalVisits, $previousTrailVisits);
+        $clickTrend = $this->buildTrendMeta($farmClicks, $previousFarmClicks);
+        $popularityTrend = $this->buildTrendMeta($popularityScore, $previousPopularityScore);
 
         $latestOrders = Order::with('product:id,name,establishment_id')
             ->whereHas('product', function ($query) use ($establishmentId) {
@@ -217,11 +237,14 @@ class FarmOwnerController extends Controller
             'farmClicks',
             'popularityScore',
             'popularityWindow',
+            'trailTrend',
+            'clickTrend',
+            'popularityTrend',
             'recentActivity'
         ));
     }
 
-    protected function resolveTrailVisitsCount(int $establishmentId, $since = null): int
+    protected function resolveTrailVisitsCount(int $establishmentId, $since = null, $until = null): int
     {
         if (!Schema::hasTable('coffee_trails')) {
             return 0;
@@ -230,6 +253,9 @@ class FarmOwnerController extends Controller
         $trails = CoffeeTrail::query()
             ->when($since, function ($query) use ($since) {
                 $query->where('created_at', '>=', $since);
+            })
+            ->when($until, function ($query) use ($until) {
+                $query->where('created_at', '<', $until);
             })
             ->get(['trail_data']);
 
@@ -252,7 +278,7 @@ class FarmOwnerController extends Controller
         return $count;
     }
 
-    protected function resolveFarmClicksCount(int $establishmentId, $since = null): int
+    protected function resolveFarmClicksCount(int $establishmentId, $since = null, $until = null): int
     {
         if (!Schema::hasTable('coffee_trail_marker_views')) {
             return 0;
@@ -262,6 +288,9 @@ class FarmOwnerController extends Controller
             ->where('establishment_id', $establishmentId)
             ->when($since, function ($query) use ($since) {
                 $query->where('viewed_at', '>=', $since);
+            })
+            ->when($until, function ($query) use ($until) {
+                $query->where('viewed_at', '<', $until);
             })
             ->count();
     }
@@ -282,6 +311,68 @@ class FarmOwnerController extends Controller
             '30d' => now()->subDays(30),
             default => null,
         };
+    }
+
+    protected function resolvePopularityWindowDays(string $window): ?int
+    {
+        return match ($window) {
+            '7d' => 7,
+            '30d' => 30,
+            default => null,
+        };
+    }
+
+    protected function buildTrendMeta(int $currentValue, ?int $previousValue): array
+    {
+        if ($previousValue === null) {
+            return [
+                'direction' => 'neutral',
+                'percent' => null,
+                'label' => 'No previous-period comparison',
+            ];
+        }
+
+        $delta = $currentValue - $previousValue;
+
+        if ($previousValue <= 0) {
+            if ($currentValue > 0) {
+                return [
+                    'direction' => 'up',
+                    'percent' => 100.0,
+                    'label' => 'Up from zero last period',
+                ];
+            }
+
+            return [
+                'direction' => 'flat',
+                'percent' => 0.0,
+                'label' => 'No change vs previous period',
+            ];
+        }
+
+        $percent = round((abs($delta) / $previousValue) * 100, 1);
+
+        if ($delta > 0) {
+            return [
+                'direction' => 'up',
+                'percent' => $percent,
+                'label' => $percent . '% up vs previous period',
+            ];
+        }
+
+        if ($delta < 0) {
+            return [
+                'direction' => 'down',
+                'percent' => $percent,
+                'label' => $percent . '% down vs previous period',
+            ];
+        }
+
+        return [
+            'direction' => 'flat',
+            'percent' => 0.0,
+            'label' => 'No change vs previous period',
+        ];
     }
 
     public function myFarm()

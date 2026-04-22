@@ -5,7 +5,7 @@
 @section('content')
 <div class="min-h-screen bg-[#F5F0E8] flex">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -121,7 +121,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto" x-data="{ deactivateModal: deactivateModalState() }" @open-deactivate="deactivateModal.openModal($event.detail.id, $event.detail.name)">
+    <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto" x-data="{ deactivateModal: deactivateModalState() }" @open-deactivate="deactivateModal.openModal($event.detail.id, $event.detail.name)">
         <!-- Flash Message Alert -->
         @if(session('success'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">
@@ -200,7 +200,7 @@
         </div>
 
         <!-- Registrations Table Section -->
-        <div class="filter-content bg-white rounded-xl shadow-sm p-8">
+        <div class="registrations-panel filter-content bg-white rounded-xl shadow-sm p-8">
             <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
                 All <span class="italic text-[#4A6741]">Registrations</span>
             </h2>
@@ -208,9 +208,9 @@
 
             @if($consumers->count() > 0)
                 <!-- Filter Tabs and Search Bar -->
-                <div class="mb-6 flex items-center justify-between gap-4 border-b border-gray-200 pb-4">
+                <div class="registrations-toolbar mb-6 flex items-center justify-between gap-4 border-b border-gray-200 pb-4">
                     <!-- Filter Tabs -->
-                    <div class="flex gap-2">
+                    <div class="registrations-filter-tabs flex gap-2">
                         <button class="filter-tab {{ $filter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="all" style="color: {{ $filter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'all' ? '#3B2F2F' : 'transparent' }};">
                             All
                         </button>
@@ -226,11 +226,11 @@
                     </div>
 
                     <!-- Search Input -->
-                    <div class="relative">
+                    <div class="registrations-search relative">
                         <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                        <input type="text" id="search-input" placeholder="Search by name, email..." class="pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent w-64" />
+                        <input type="text" id="search-input" placeholder="Search by name, email..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent md:w-64" />
                     </div>
                 </div>
 
@@ -447,4 +447,61 @@
         }
     });
 </script>
+
+@push('styles')
+<style>
+    @media (max-width: 767px) {
+        .registrations-panel {
+            padding: 1rem !important;
+            border-radius: 18px !important;
+        }
+
+        .registrations-toolbar {
+            display: flex !important;
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 0.75rem !important;
+            padding-bottom: 0.85rem !important;
+        }
+
+        .registrations-filter-tabs {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 0.45rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .registrations-filter-tabs .filter-tab {
+            flex: 0 0 auto;
+            min-height: 2.25rem;
+            padding: 0.55rem 0.85rem !important;
+            border-radius: 999px;
+            border-bottom-width: 0 !important;
+            background: #F7F2EA;
+        }
+
+        .registrations-filter-tabs .filter-tab.active,
+        .registrations-filter-tabs .filter-tab[style*='#3B2F2F'] {
+            background: #3B2F2F;
+            color: #FFFFFF !important;
+        }
+
+        .registrations-search {
+            width: 100%;
+        }
+
+        .registrations-search input {
+            width: 100% !important;
+            min-width: 0;
+            height: 2.7rem;
+            font-size: 0.85rem;
+            border-radius: 14px;
+            background: #FCFAF7;
+        }
+    }
+</style>
+@endpush
 @endsection

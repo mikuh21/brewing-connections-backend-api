@@ -5,7 +5,7 @@
 @section('content')
 <div class="min-h-screen bg-[#F5F0E8] flex">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -121,7 +121,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto" x-data="{ deleteModal: deleteModalState() }" @open-delete="deleteModal.openModal($event.detail.id, $event.detail.title)">
+    <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto" x-data="{ deleteModal: deleteModalState() }" @open-delete="deleteModal.openModal($event.detail.id, $event.detail.title)">
         <!-- Flash Message Alert -->
         @if(session('success'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">

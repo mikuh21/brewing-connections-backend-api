@@ -4,19 +4,26 @@
 
 @section('content')
 <div
+    class="cafe-coupon-promos-page"
     x-data="{
         filter: 'all',
         tableFilter: 'all',
         tableSearch: '',
         createModalOpen: false,
+        scannerModalOpen: false,
         qrModalOpen: false,
         analyticsModalOpen: false,
         deleteModalOpen: false,
+        scannerInstance: null,
+        scannerBusy: false,
+        scannerError: '',
+        scannerSuccess: '',
         establishmentName: @js((auth()->user()->name ?? 'Your Cafe') . "'s Cafe"),
         dailyClaimsChart: null,
         timeOfDayChart: null,
         analyticsRows: [],
         postRoute: @js(route('cafe-owner.coupon-promos.store')),
+        redeemScanRoute: @js(route('cafe-owner.coupon-promos.redeem-scan')),
         updateRouteBase: @js(url('/cafe-owner/coupon-promos')),
         createForm: {
             id: null,
@@ -622,11 +629,128 @@
                 || normalizedStatus.includes(query);
 
             return matchesFilter && matchesSearch;
+        },
+        openScannerModal() {
+            this.scannerError = '';
+            this.scannerSuccess = '';
+            this.scannerBusy = false;
+            this.scannerModalOpen = true;
+            this.$nextTick(() => this.startScanner());
+        },
+        async closeScannerModal() {
+            this.scannerModalOpen = false;
+            await this.stopScanner();
+        },
+        async startScanner() {
+            if (typeof Html5Qrcode === 'undefined') {
+                this.scannerError = 'QR scanner is not available right now. Please refresh and try again.';
+                return;
+            }
+
+            const targetId = 'coupon-owner-scanner';
+            const targetElement = document.getElementById(targetId);
+            if (!targetElement) {
+                this.scannerError = 'Scanner view is not ready yet. Please try again.';
+                return;
+            }
+
+            if (this.scannerInstance) {
+                return;
+            }
+
+            this.scannerError = '';
+            this.scannerSuccess = '';
+
+            const scanner = new Html5Qrcode(targetId);
+            this.scannerInstance = scanner;
+
+            try {
+                await scanner.start(
+                    { facingMode: 'environment' },
+                    {
+                        fps: 10,
+                        qrbox: { width: 230, height: 230 },
+                        aspectRatio: 1,
+                    },
+                    async (decodedText) => {
+                        if (this.scannerBusy) {
+                            return;
+                        }
+
+                        this.scannerBusy = true;
+                        await this.redeemScannedQr(decodedText);
+                        this.scannerBusy = false;
+                    },
+                    () => {
+                        // Scanner read errors are expected while camera is searching.
+                    }
+                );
+            } catch (error) {
+                this.scannerError = 'Unable to access camera. Please allow camera permission and retry.';
+                await this.stopScanner();
+            }
+        },
+        async stopScanner() {
+            if (!this.scannerInstance) {
+                return;
+            }
+
+            const scanner = this.scannerInstance;
+            this.scannerInstance = null;
+
+            try {
+                await scanner.stop();
+            } catch (_error) {
+                // Ignore stop errors if scanner is not running.
+            }
+
+            try {
+                await scanner.clear();
+            } catch (_error) {
+                // Ignore clear errors.
+            }
+        },
+        async redeemScannedQr(decodedText) {
+            const qrData = String(decodedText || '').trim();
+            if (!qrData) {
+                this.scannerError = 'Scanned data is empty. Please try again.';
+                return;
+            }
+
+            this.scannerError = '';
+            this.scannerSuccess = '';
+
+            try {
+                const response = await fetch(this.redeemScanRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ qr_data: qrData }),
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok || payload?.status !== 'success') {
+                    this.scannerError = payload?.message || 'Unable to redeem this promo. Please try again.';
+                    return;
+                }
+
+                this.scannerSuccess = payload?.message || 'Promo redeemed successfully.';
+                await this.stopScanner();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 700);
+            } catch (_error) {
+                this.scannerError = 'Unable to redeem this promo right now. Please try again.';
+            }
         }
     }"
     class="space-y-6 text-[#3A2E22]"
 >
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="coupon-promos-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
                 Coupon <span class="italic text-[#4A6741]">Promo</span>
@@ -634,17 +758,30 @@
             <p class="text-[#9E8C78] text-sm font-medium">Manage your promo coupons and QR codes</p>
         </div>
 
-        <button
-            type="button"
-            x-on:click="openCreateModal()"
-            class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4A6741] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3d5735]"
-        >
-            <span class="mr-1.5">+</span>
-            Create New Coupon
-        </button>
+        <div class="coupon-promos-header-actions flex items-center gap-2">
+            <button
+                type="button"
+                x-on:click="openScannerModal()"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border border-[#4A6741] px-4 py-2 text-sm font-semibold text-[#4A6741] transition-colors hover:bg-[#F5F0E8]"
+            >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7a2 2 0 012-2h3m8 0h3a2 2 0 012 2v3m0 8a2 2 0 01-2 2h-3m-8 0H5a2 2 0 01-2-2v-3m5-5h8"/>
+                </svg>
+                Scan QR
+            </button>
+
+            <button
+                type="button"
+                x-on:click="openCreateModal()"
+                class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4A6741] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3d5735]"
+            >
+                <span class="mr-1.5">+</span>
+                Create New Coupon
+            </button>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="coupon-promos-overview-grid grid grid-cols-1 gap-4 md:grid-cols-3">
         <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] border-l-4 border-l-green-500 p-6 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
                 <div>
@@ -691,7 +828,7 @@
         </div>
     </div>
 
-    <div class="filter-content bg-white rounded-xl shadow-sm p-8">
+    <div class="coupon-promos-list-card filter-content bg-white rounded-xl shadow-sm p-8">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
             All <span class="italic text-[#4A6741]">Coupon Promos</span>
         </h2>
@@ -880,13 +1017,41 @@
 
     <template x-teleport="body">
         <div
+            x-show="scannerModalOpen"
+            x-transition.opacity
+            class="coupon-scan-modal-shell fixed inset-0 z-[3200] flex items-center justify-center bg-black/45 px-4 py-6"
+            x-on:click.self="closeScannerModal()"
+            x-cloak
+        >
+            <div class="coupon-scan-modal w-full max-w-md rounded-2xl border border-[#E5DDD0] bg-white p-4 shadow-2xl">
+                <div class="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="text-lg font-display font-bold text-[#3A2E22]">Scan Consumer QR</h3>
+                        <p class="text-xs text-[#9E8C78] mt-0.5">In-store redemption for this cafe's promo</p>
+                    </div>
+                    <button type="button" x-on:click="closeScannerModal()" class="text-[#6A5A48] hover:text-[#3A2E22]">✕</button>
+                </div>
+
+                <div id="coupon-owner-scanner" class="coupon-scan-camera-wrap rounded-xl overflow-hidden border border-[#E5DDD0] bg-[#F8F4ED]"></div>
+
+                <p class="mt-3 text-[11px] text-[#9E8C78]">Make sure the consumer opens the coupon QR from the mobile app before scanning.</p>
+
+                <p x-show="scannerBusy" x-cloak class="mt-2 text-sm font-semibold text-[#4A6741]">Redeeming scanned promo...</p>
+                <p x-show="scannerError" x-cloak x-text="scannerError" class="mt-2 text-sm text-red-600"></p>
+                <p x-show="scannerSuccess" x-cloak x-text="scannerSuccess" class="mt-2 text-sm text-green-700"></p>
+            </div>
+        </div>
+    </template>
+
+    <template x-teleport="body">
+        <div
             x-show="createModalOpen"
             x-transition.opacity
-            class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/40 px-4 py-6"
+            class="coupon-create-modal-shell fixed inset-0 z-[3000] flex items-center justify-center bg-black/40 px-4 py-6"
             x-on:click.self="createModalOpen = false"
             x-cloak
         >
-        <div class="thin-modal-scrollbar w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-[#E5DDD0] p-6 sm:p-8">
+        <div class="coupon-create-modal thin-modal-scrollbar w-full max-w-4xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-[#E5DDD0] p-6 sm:p-8">
             <div class="mb-6 flex items-center justify-between">
                 <h2 class="text-2xl font-display font-bold text-[#3A2E22]">Create Coupon</h2>
                 <button type="button" x-on:click="createModalOpen = false" class="text-[#6A5A48] hover:text-[#3A2E22]">✕</button>
@@ -961,7 +1126,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div class="coupon-date-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label class="mb-1 block text-sm font-medium">Valid From*</label>
                             <input
@@ -969,7 +1134,7 @@
                                 name="valid_from"
                                 x-model="createForm.valid_from"
                                 required
-                                class="w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
+                                class="coupon-date-input w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
                             />
                         </div>
                         <div>
@@ -979,7 +1144,7 @@
                                 name="valid_until"
                                 x-model="createForm.valid_until"
                                 required
-                                class="w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
+                                class="coupon-date-input w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
                             />
                         </div>
                     </div>
@@ -1000,7 +1165,7 @@
 
                     <!-- Status is set by the button action and is hidden from the create form -->
 
-                    <div class="flex flex-wrap justify-end gap-2 pt-2">
+                    <div class="coupon-create-actions flex flex-wrap justify-end gap-2 pt-2">
                         <button type="submit"
                             x-on:click="createForm.status = 'draft'"
                             class="rounded-lg border border-[#D8CFC1] px-4 py-2 text-sm font-semibold text-[#3A2E22] hover:bg-[#F5F0E8]">
@@ -1038,19 +1203,22 @@
         <div
             x-show="qrModalOpen"
             x-transition.opacity
-            class="fixed inset-0 z-[3000] flex items-center justify-center bg-black/40 px-4"
+            class="coupon-qr-modal-shell fixed inset-0 z-[3000] flex items-center justify-center bg-black/40 px-4"
             x-on:click.self="qrModalOpen = false"
             x-cloak
         >
-            <div class="thin-modal-scrollbar w-full max-w-6xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-[#E5DDD0]">
+            <div class="coupon-qr-modal thin-modal-scrollbar w-full max-w-6xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-[#E5DDD0]">
                 <!-- Header with buttons -->
-                <div class="flex items-center justify-between p-6 border-b border-[#E5DDD0]">
-                    <h2 class="text-2xl font-display font-bold text-[#3A2E22]">View QR Code</h2>
-                    <div class="flex items-center gap-3">
+                <div class="coupon-qr-header p-6 border-b border-[#E5DDD0]">
+                    <div class="coupon-qr-header-top flex items-center justify-between gap-3">
+                        <h2 class="text-2xl font-display font-bold text-[#3A2E22]">View QR Code</h2>
+                        <button type="button" x-on:click="qrModalOpen = false" class="coupon-qr-close-btn text-[#6A5A48] hover:text-[#3A2E22]">✕</button>
+                    </div>
+                    <div class="coupon-qr-header-actions mt-3 flex items-center gap-3">
                         <button
                             type="button"
                             onclick="printCoupon()"
-                            class="flex items-center gap-2 rounded-lg border border-[#D8CFC1] px-4 py-2 text-sm font-semibold text-[#3A2E22] hover:bg-[#F5F0E8] transition-colors"
+                            class="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-[#D8CFC1] px-4 py-2 text-sm font-semibold text-[#3A2E22] hover:bg-[#F5F0E8] transition-colors"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -1060,21 +1228,20 @@
                         <button
                             type="button"
                             x-on:click="downloadQRCode()"
-                            class="flex items-center gap-2 rounded-lg bg-[#4A6741] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3d5735] transition-colors"
+                            class="flex items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-[#4A6741] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3d5735] transition-colors"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                             </svg>
                             Download QR Code
                         </button>
-                        <button type="button" x-on:click="qrModalOpen = false" class="text-[#6A5A48] hover:text-[#3A2E22] ml-2">✕</button>
                     </div>
                 </div>
 
                 <!-- Main content -->
-                <div class="flex min-h-[600px]">
+                <div class="coupon-qr-content flex min-h-[600px]">
                     <!-- Left column (60%) -->
-                    <div class="w-3/5 p-6 border-r border-[#E5DDD0]">
+                    <div class="coupon-qr-main w-3/5 p-6 border-r border-[#E5DDD0]">
                         <!-- QR Code -->
                         <div class="text-center mb-6">
                             <div id="qr-display" class="inline-block"></div>
@@ -1116,14 +1283,14 @@
                     </div>
 
                     <!-- Right column (40%) -->
-                    <div class="w-2/5 p-6 print-hidden">
+                    <div class="coupon-qr-side w-2/5 p-6 print-hidden">
                         <!-- Display Tips Card -->
-                        <div class="bg-white rounded-xl border border-[#E5DDD0] p-6 print-hidden">
+                        <div class="coupon-qr-tips bg-white rounded-xl border border-[#E5DDD0] p-6 print-hidden">
                             <h4 class="text-lg font-display font-bold text-[#3A2E22] mb-4 flex items-center gap-2">
                                 <span>💡</span> Display Tips
                             </h4>
 
-                            <ul class="space-y-3 text-sm text-[#9E8C78]">
+                            <ul class="coupon-qr-tips-list space-y-3 text-sm text-[#9E8C78]">
                                 <li class="flex items-start gap-2">
                                     <span class="text-[#4A6741] mt-1">•</span>
                                     <span>Print on high-quality paper for better scanning</span>
@@ -1393,6 +1560,292 @@
         background-color: #b9ad9d;
     }
 
+    @media (min-width: 768px) {
+        .coupon-promos-header {
+            margin-bottom: 0.85rem;
+        }
+
+        .coupon-promos-overview-grid {
+            margin-top: 0;
+            margin-bottom: 1.25rem;
+            gap: 1rem;
+        }
+
+        .coupon-promos-list-card {
+            margin-top: 0;
+        }
+
+        .coupon-qr-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .coupon-qr-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .cafe-coupon-promos-page .coupon-promos-header {
+            gap: 0.75rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .cafe-coupon-promos-page .coupon-promos-header-actions {
+            width: 100%;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: 0.45rem;
+        }
+
+        .cafe-coupon-promos-page .coupon-promos-header-actions > button {
+            white-space: nowrap;
+            padding: 0.52rem 0.68rem;
+            font-size: 0.72rem;
+        }
+
+        .coupon-scan-modal-shell {
+            align-items: flex-start;
+            padding-top: 0.85rem !important;
+            padding-bottom: 0.85rem !important;
+        }
+
+        .coupon-scan-modal {
+            max-height: 92dvh;
+            overflow-y: auto;
+        }
+
+        .coupon-scan-camera-wrap {
+            min-height: 260px;
+        }
+
+        .cafe-coupon-promos-page .coupon-promos-overview-grid {
+            margin-top: 0.35rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .cafe-coupon-promos-page .coupon-promos-list-card {
+            margin-top: 0.35rem;
+        }
+
+        .cafe-coupon-promos-page .flex.items-center.justify-between {
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .cafe-coupon-promos-page .text-3xl {
+            font-size: 1.7rem !important;
+            line-height: 2rem;
+        }
+
+        .cafe-coupon-promos-page .grid.grid-cols-1.md\:grid-cols-2.xl\:grid-cols-4,
+        .cafe-coupon-promos-page .grid.grid-cols-1.lg\:grid-cols-3 {
+            gap: 0.9rem !important;
+        }
+
+        .cafe-coupon-promos-page .bg-white.rounded-2xl.shadow-sm.border.border-\[\#E5DDD0\].p-6,
+        .cafe-coupon-promos-page .bg-white.rounded-2xl.shadow-sm.border.border-\[\#E5DDD0\].p-5,
+        .cafe-coupon-promos-page .bg-white.rounded-2xl.shadow-sm.border.border-\[\#E5DDD0\].p-4 {
+            padding: 1rem !important;
+        }
+
+        .coupon-create-modal-shell {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            padding-top: 0.85rem !important;
+            padding-bottom: 0.85rem !important;
+            align-items: flex-start;
+            overflow-x: hidden;
+        }
+
+        .coupon-create-modal {
+            width: min(42rem, calc(100vw - 0.75rem));
+            max-width: calc(100vw - 0.75rem);
+            max-height: 90dvh;
+            padding: 1rem !important;
+            overflow-x: hidden;
+        }
+
+        .coupon-create-modal form {
+            gap: 1rem;
+            min-width: 0;
+        }
+
+        .coupon-create-modal * {
+            min-width: 0;
+        }
+
+        .coupon-create-modal .lg\:col-span-3,
+        .coupon-create-modal .lg\:col-span-2,
+        .coupon-create-modal .space-y-4,
+        .coupon-create-modal .space-y-4 > div {
+            min-width: 0;
+        }
+
+        .coupon-date-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 0.75rem !important;
+        }
+
+        .coupon-date-grid > div {
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .coupon-date-input {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            inline-size: 100% !important;
+            min-inline-size: 0 !important;
+            max-inline-size: 100% !important;
+            display: block;
+            box-sizing: border-box;
+            font-size: 16px;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -webkit-appearance: none;
+            appearance: none;
+            padding-right: 2rem;
+        }
+
+        .coupon-date-input::-webkit-date-and-time-value {
+            text-align: left;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .coupon-date-input::-webkit-datetime-edit,
+        .coupon-date-input::-webkit-datetime-edit-fields-wrapper {
+            min-width: 0;
+            width: 100%;
+            padding: 0;
+        }
+
+        .coupon-date-input::-webkit-calendar-picker-indicator {
+            margin: 0;
+            opacity: 1;
+        }
+
+        .coupon-create-modal input,
+        .coupon-create-modal textarea,
+        .coupon-create-modal select,
+        .coupon-create-modal button {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .coupon-create-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .coupon-create-actions > button {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .coupon-qr-modal-shell {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            padding-top: 0.85rem !important;
+            padding-bottom: 0.85rem !important;
+            align-items: flex-start;
+        }
+
+        .coupon-qr-modal {
+            max-height: 90dvh;
+        }
+
+        .coupon-qr-header {
+            padding: 1rem;
+        }
+
+        .coupon-qr-header-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .coupon-qr-header h2 {
+            font-size: 1.55rem;
+            line-height: 1.85rem;
+        }
+
+        .coupon-qr-close-btn {
+            flex-shrink: 0;
+            min-height: 2rem;
+            min-width: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coupon-qr-header-actions {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.7rem;
+        }
+
+        .coupon-qr-header-actions > button {
+            min-height: 2.5rem;
+            justify-content: center;
+            margin-left: 0 !important;
+            white-space: nowrap;
+            font-size: 0.78rem;
+            padding-left: 0.65rem;
+            padding-right: 0.65rem;
+        }
+
+        .coupon-qr-content {
+            flex-direction: column;
+            min-height: 0 !important;
+        }
+
+        .coupon-qr-main,
+        .coupon-qr-side {
+            width: 100% !important;
+            padding: 1rem;
+        }
+
+        .coupon-qr-main {
+            border-right: 0 !important;
+            border-bottom: 1px solid #E5DDD0;
+        }
+
+        #qr-display canvas,
+        #qr-display img {
+            width: min(72vw, 240px) !important;
+            height: auto !important;
+        }
+
+        .coupon-qr-tips {
+            padding: 0.9rem;
+        }
+
+        .coupon-qr-tips-list {
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .coupon-qr-tips-list li:nth-child(n + 4) {
+            display: none;
+        }
+
+        .coupon-qr-modal > .border-t.border-\[\#E5DDD0\].p-4 {
+            padding: 0.75rem !important;
+        }
+    }
+
     @media print {
         body > *:not(#print-area) {
             display: none !important;
@@ -1418,6 +1871,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
     let currentCoupon = {};
 

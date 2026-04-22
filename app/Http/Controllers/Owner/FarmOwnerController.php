@@ -834,6 +834,14 @@ class FarmOwnerController extends Controller
         ])->whereNull('deleted_at')->get();
 
         $establishments = $establishments->map(function ($e) {
+            $reviews = $e->reviews ?? collect();
+            $reviewCount = (int) $reviews->count();
+            $overallAverage = $reviewCount > 0 ? round((float) $reviews->avg('overall_rating'), 1) : null;
+            $tasteAverage = $reviewCount > 0 ? round((float) $reviews->avg('taste_rating'), 1) : null;
+            $environmentAverage = $reviewCount > 0 ? round((float) $reviews->avg('environment_rating'), 1) : null;
+            $cleanlinessAverage = $reviewCount > 0 ? round((float) $reviews->avg('cleanliness_rating'), 1) : null;
+            $serviceAverage = $reviewCount > 0 ? round((float) $reviews->avg('service_rating'), 1) : null;
+
             return [
                 'id' => $e->id,
                 'name' => $e->name,
@@ -850,12 +858,12 @@ class FarmOwnerController extends Controller
                 'longitude' => $e->longitude,
                 'image' => $e->image,
                 'coffee_varieties' => $e->varieties->pluck('name')->toArray(),
-                'rating_average' => $e->reviews_avg_overall_rating ? round($e->reviews_avg_overall_rating, 1) : null,
-                'review_count' => $e->reviews_count,
-                'taste_avg' => $e->reviews_avg_taste_rating ? round($e->reviews_avg_taste_rating, 1) : null,
-                'environment_avg' => $e->reviews_avg_environment_rating ? round($e->reviews_avg_environment_rating, 1) : null,
-                'cleanliness_avg' => $e->reviews_avg_cleanliness_rating ? round($e->reviews_avg_cleanliness_rating, 1) : null,
-                'service_avg' => $e->reviews_avg_service_rating ? round($e->reviews_avg_service_rating, 1) : null,
+                'rating_average' => $overallAverage,
+                'review_count' => $reviewCount,
+                'taste_avg' => $tasteAverage,
+                'environment_avg' => $environmentAverage,
+                'cleanliness_avg' => $cleanlinessAverage,
+                'service_avg' => $serviceAverage,
                 'active_promos' => $e->couponPromos->map(function ($p) {
                     return [
                         'title' => $p->title,

@@ -19,6 +19,7 @@
 @section('title', 'Reseller Profile - BrewHub')
 
 @section('content')
+<div class="reseller-profile-page">
 <div class="mb-8">
     <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
         Reseller <span class="italic text-[#4A6741]">Profile</span>
@@ -143,12 +144,12 @@
             <input type="hidden" name="profile_focus_y" :value="Math.round(profileFitY)">
         @endif
 
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="reseller-profile-hero bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="h-48 w-full bg-gradient-to-r from-[#4A6741] via-[#6B3A2A] to-[#3A2E22]"></div>
 
-            <div class="px-8 pb-8 pt-4">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                    <div class="flex items-start gap-4">
+            <div class="reseller-profile-hero-body px-8 pb-8 pt-4">
+                <div class="reseller-profile-hero-top flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div class="reseller-profile-hero-identity flex items-start gap-4">
                         <div
                             class="-mt-12 ml-6 relative w-24 h-24 rounded-full bg-[#F5F0E8] ring-4 ring-white shadow-sm overflow-hidden flex items-center justify-center text-[#4A6741] font-semibold text-xs text-center px-2 shrink-0"
                             :class="editMode && profilePreviewUrl ? 'cursor-grab active:cursor-grabbing' : ''"
@@ -188,7 +189,7 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-4">
+                    <div class="reseller-profile-actions flex items-center gap-3 pt-4">
                         <button
                             type="button"
                             @click="editMode = !editMode"
@@ -483,5 +484,50 @@
             </div>
         </div>
     </form>
+</div>
+
+<style>
+    @media (max-width: 767px) {
+        .reseller-profile-page > .mb-8 {
+            margin-bottom: 1rem !important;
+        }
+
+        .reseller-profile-page .reseller-profile-hero-body,
+        .reseller-profile-page .bg-white.rounded-xl.shadow-sm.p-8 {
+            padding: 1.25rem !important;
+        }
+
+        .reseller-profile-page .reseller-profile-hero-top,
+        .reseller-profile-page .reseller-profile-hero-identity {
+            gap: 1rem !important;
+        }
+
+        .reseller-profile-page .reseller-profile-hero-identity {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .reseller-profile-page .reseller-profile-hero-identity > div:first-child {
+            margin-top: -3rem;
+            margin-left: 0 !important;
+        }
+
+        .reseller-profile-page .reseller-profile-actions {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            padding-top: 0;
+        }
+
+        .reseller-profile-page .reseller-profile-actions > * {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .reseller-profile-page .grid.grid-cols-1.lg\:grid-cols-3 {
+            gap: 1rem !important;
+        }
+    }
+</style>
 </div>
 @endsection

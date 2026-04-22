@@ -101,7 +101,8 @@
             moq: '',
             image_url: '',
             owner_label: '',
-            owner_name: ''
+            owner_name: '',
+            seller_type: ''
         },
         openViewer(product) {
             this.viewProduct = {
@@ -116,6 +117,7 @@
                 image_url: product.image_url || '',
                 owner_label: product.owner_label || 'Seller',
                 owner_name: product.owner_name || 'Unknown',
+                seller_type: String(product.seller_type || '').toLowerCase(),
             };
             this.showViewModal = true;
         },
@@ -390,7 +392,15 @@
             return { qty: stock, label: 'In Stock', class: 'bg-green-100 text-green-700' };
         },
         displayType(category) {
-            return String(category || '').toLowerCase() === 'ground coffee' ? 'Ground Coffee' : 'Coffee Beans';
+            const raw = String(category || '').trim();
+            if (!raw) {
+                return 'Coffee Beans';
+            }
+
+            return raw
+                .replace(/[_-]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .replace(/\b\w/g, (char) => char.toUpperCase());
         },
         hiddenProducts() {
             const term = this.searchTerm.toLowerCase().trim();
@@ -526,9 +536,7 @@
                     $stockClass = 'bg-green-100 text-green-700';
                 }
 
-                $displayType = strtolower((string) $product->category) === 'ground coffee'
-                    ? 'Ground Coffee'
-                    : 'Coffee Beans';
+                $displayType = trim((string) ($product->category ?? '')) ?: 'Coffee Beans';
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
@@ -699,11 +707,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         @foreach($marketplaceProducts as $product)
             @php
-                $displayType = strtolower((string) $product->category) === 'ground coffee'
-                    ? 'Ground Coffee'
-                    : 'Coffee Beans';
+                $displayType = trim((string) ($product->category ?? '')) ?: 'Coffee Beans';
                 $ownerLabel = $ownerTypeLabel($product->seller_type);
                 $ownerName = $product->seller_name ?: $product->reseller_name ?: 'Unknown';
+                $isCafeOwnerSeller = strtolower((string) ($product->seller_type ?? '')) === 'cafe_owner';
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
@@ -736,6 +743,7 @@
                                 "image_url" => $product->image_url,
                                 "owner_label" => $ownerLabel,
                                 "owner_name" => $ownerName,
+                                "seller_type" => $product->seller_type,
                             ]) }})'
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
                             title="View full details"
@@ -757,9 +765,13 @@
                     <div class="flex items-center justify-between mb-2">
                         <div>
                             <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
+                            @if(!$isCafeOwnerSeller)
                             <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
+                            @endif
                         </div>
+                        @if(!$isCafeOwnerSeller)
                         <p class="text-xs text-[#9E8C78]">{{ (int) ($product->stock_quantity ?? 0) }} units</p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -1022,9 +1034,9 @@
 
                 <div class="pt-2 space-y-1">
                     <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Price:</span> PHP <span x-text="Number(viewProduct.price_per_unit || 0).toFixed(2)"></span></p>
-                    <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Stock:</span> <span x-text="Number(viewProduct.stock_quantity || 0)"></span> units</p>
-                    <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Unit:</span> <span x-text="viewProduct.unit || 'unit'"></span></p>
-                    <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Minimum Order Quantity:</span> <span x-text="viewProduct.moq || 'N/A'"></span></p>
+                    <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Stock:</span> <span x-text="Number(viewProduct.stock_quantity || 0)"></span> units</p>
+                    <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Unit:</span> <span x-text="viewProduct.unit || 'unit'"></span></p>
+                    <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Minimum Order Quantity:</span> <span x-text="viewProduct.moq || 'N/A'"></span></p>
                 </div>
             </div>
 
@@ -1195,9 +1207,9 @@
                 <textarea x-model="createForm.description" name="description" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
             </div>
 
-            <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-                <button type="button" @click="showCreateModal = false" class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
-                <button type="submit" class="px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22]">Create Product</button>
+            <div class="col-span-2 md:col-span-3 flex justify-end gap-2 pt-2">
+                <button type="button" @click="showCreateModal = false" class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 whitespace-nowrap">Cancel</button>
+                <button type="submit" class="inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] whitespace-nowrap">Create Product</button>
             </div>
         </form>
     </div>

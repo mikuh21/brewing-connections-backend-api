@@ -496,6 +496,13 @@ function initializeMapStyles() {
             right: 340px !important; /* Push controls left when panel is open */
         }
 
+        #map.has-details-panel #map-action-buttons {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
         /* Smaller action buttons in details panel */
         #details-panel .action-btn {
             height: 38px !important;
@@ -530,6 +537,237 @@ function initializeMapStyles() {
             background: transparent !important;
             padding: 0 !important;
             border-radius: 0 !important;
+        }
+
+        @media (max-width: 767px) {
+            .admin-map-page .admin-main {
+                padding: 0 !important;
+                height: 100dvh;
+                overflow: hidden !important;
+                background: #F7F3EC;
+            }
+
+            .admin-map-page .admin-main > .max-w-full {
+                gap: 0 !important;
+                height: 100%;
+            }
+
+            .admin-map-page header {
+                padding: 4.5rem 0.875rem 0.75rem !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: #F7F3EC !important;
+                gap: 0.75rem !important;
+                align-items: stretch !important;
+                margin: 0 !important;
+            }
+
+            .admin-map-page header > div:first-child {
+                padding-right: 3.25rem;
+            }
+
+            .admin-map-page header h1 {
+                font-size: 1.8rem !important;
+                line-height: 1.05 !important;
+                margin-bottom: 0.1rem !important;
+            }
+
+            .admin-map-page .map-header-search {
+                width: 100%;
+                display: grid !important;
+                grid-template-columns: minmax(0, 76px) minmax(0, 1fr);
+                gap: 0.6rem;
+                align-items: center;
+            }
+
+            .admin-map-page .map-filter-dropdown {
+                width: 100%;
+                min-width: 0;
+                height: 2.5rem;
+                border-radius: 12px;
+                border: 1px solid #E7DED1;
+                background: #FDFBF8;
+            }
+
+            .admin-map-page #map-barangay-search {
+                width: 100% !important;
+                min-width: 0;
+                height: 2.5rem;
+                border-radius: 12px;
+                background: #FDFBF8;
+            }
+
+            .admin-map-page .map-search-trigger {
+                display: none !important;
+            }
+
+            .map-wrapper {
+                padding: 0 0.875rem 0.875rem !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: #F7F3EC !important;
+                min-height: 0;
+            }
+
+            #filter-panel {
+                overflow: visible;
+                white-space: normal;
+                padding: 0.75rem 0.85rem !important;
+                border: 1px solid #EEE4D7;
+                border-radius: 16px !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            #filter-panel .filter-content {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+                min-width: 0;
+            }
+
+            #filter-panel .filter-section-types,
+            #filter-panel .filter-section-varieties,
+            #filter-panel .filter-section-summary {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.45rem;
+                white-space: normal;
+            }
+
+            #filter-panel .type-filters,
+            #filter-panel .variety-filters {
+                flex-wrap: wrap;
+                gap: 0.45rem;
+            }
+
+            #filter-panel .type-filters .type-filter-btn,
+            #filter-panel .variety-btn {
+                max-width: 100%;
+                min-height: 2rem;
+            }
+
+            #filter-panel .variety-btn {
+                flex: 0 1 auto;
+            }
+
+            #filter-panel .filter-section-summary {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                padding-top: 0.15rem;
+            }
+
+            #filter-panel .summary {
+                min-width: 0;
+                flex: 1 1 140px;
+                white-space: normal;
+                line-height: 1.4;
+            }
+
+            #show-all {
+                flex: 1 1 100%;
+                min-height: 2rem;
+                border-radius: 10px;
+                width: 100%;
+            }
+
+            #map {
+                height: 100%;
+                min-height: 0;
+                border-radius: 18px;
+                box-shadow: 0 14px 28px rgba(58, 46, 34, 0.12);
+            }
+
+            #details-panel {
+                top: auto !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: min(68%, 560px) !important;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                box-shadow: 0 -16px 40px rgba(58, 46, 34, 0.18) !important;
+                z-index: 1300 !important;
+                transform: translateY(100%);
+            }
+
+            #map.has-details-panel .leaflet-control-container,
+            .admin-sidebar-open #map .leaflet-control-container,
+            .admin-sidebar-open #map-action-buttons,
+            .admin-sidebar-open #placement-banner,
+            .admin-sidebar-open #edit-banner {
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+
+            #map.has-details-panel #map-action-buttons {
+                display: none !important;
+            }
+
+            #map-action-buttons {
+                left: 0.75rem !important;
+                right: 0.75rem;
+                bottom: 0.75rem !important;
+                align-items: stretch !important;
+                gap: 0.45rem !important;
+                z-index: 850 !important;
+            }
+
+            #map-action-buttons > button {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+                border-radius: 999px;
+            }
+
+            #placement-banner {
+                left: 0.75rem !important;
+                right: 0.75rem;
+                bottom: 6rem !important;
+                max-width: none;
+                white-space: normal;
+                text-align: center;
+                z-index: 851 !important;
+            }
+
+            #edit-banner {
+                top: 0.75rem !important;
+                left: 0.75rem !important;
+                right: 0.75rem !important;
+                transform: none !important;
+                width: auto;
+                max-width: none;
+                flex-wrap: wrap;
+                justify-content: center;
+                z-index: 1201 !important;
+            }
+
+            .admin-sidebar-open .admin-map-page #map,
+            .admin-sidebar-open .admin-map-page .map-wrapper,
+            .admin-sidebar-open .admin-map-page header {
+                pointer-events: none !important;
+            }
+
+            .leaflet-top.leaflet-left,
+            .leaflet-top.leaflet-right,
+            .leaflet-bottom.leaflet-left,
+            .leaflet-bottom.leaflet-right {
+                margin: 8px;
+            }
+
+            .leaflet-control-zoom a,
+            .leaflet-control-layers-toggle,
+            .leaflet-control-custom {
+                width: 36px !important;
+                height: 36px !important;
+                line-height: 36px !important;
+            }
         }
     `;
     document.head.appendChild(styleEl);
@@ -1134,9 +1372,10 @@ async function loadEstablishments() {
                 const rawRating = feature.properties?.rating_average;
                 const ratingVal = Number(rawRating);
                 const hasRating = rawRating !== undefined && rawRating !== null && !Number.isNaN(ratingVal);
-                const ratingLabel = hasRating ? ratingVal.toFixed(1) : 'N/A';
+                const shouldShowRatingOnMarker = type === 'cafe' && hasRating;
                 const name = feature.properties?.name || 'Unnamed';
                 const activePromo = feature.properties?.active_promos?.[0];
+                const promoTitle = String(activePromo?.title || activePromo?.name || 'Active Promo').trim();
                 const promoTooltipHtml = activePromo
                     ? `<div style="
                         display: inline-flex;
@@ -1151,10 +1390,13 @@ async function loadEstablishments() {
                         margin-top: 6px;
                       ">
                         <span>🏷</span>
-                        <span>${activePromo.qr_code_token}</span>
+                                                <span>${escapeHtml(promoTitle)}</span>
                       </div>`
                     : '';
-                const tooltipText = `${name} <span class="tooltip-star">★</span> ${ratingLabel}${promoTooltipHtml}`;
+                const ratingTooltipHtml = shouldShowRatingOnMarker
+                    ? ` <span class="tooltip-star">★</span> ${ratingVal.toFixed(1)}`
+                    : '';
+                const tooltipText = `${name}${ratingTooltipHtml}${promoTooltipHtml}`;
 
                 // Debug output: verify rating is available for markers
                 if (window.DEBUG_MAP_TOOLTIP) {
@@ -3102,9 +3344,9 @@ function openDetailsPanel(feature) {
     ? 'translateY(0)'
     : 'translateX(0)'
 
-  // Add class to push Leaflet controls left
+    // Add class to push or hide map controls while the panel is open.
   const mapEl = document.getElementById('map')
-  if (mapEl && !isMobile) {
+    if (mapEl) {
     mapEl.classList.add('has-details-panel')
   }
 }

@@ -7,7 +7,7 @@
 @section('title', 'Farm - BrewHub')
 
 @section('content')
-<div class="mb-8">
+<div class="farm-profile-header mb-8">
     <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
         Farm <span class="italic text-[#4A6741]">Profile</span>
     </h1>
@@ -26,6 +26,28 @@
         </form>
     @endif
 </div>
+
+<style>
+    @media (max-width: 767px) {
+        .farm-profile-header {
+            margin-bottom: 1rem !important;
+        }
+
+        .farm-profile-header h1 {
+            font-size: 1.7rem !important;
+            line-height: 2rem;
+        }
+
+        .farm-profile-header form {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .farm-profile-header form select {
+            width: 100%;
+        }
+    }
+</style>
 
 @if(session('status'))
     <div id="success-alert" class="mb-6 rounded-xl border border-green-200 bg-green-50 px-4 py-3 flex items-start gap-3">

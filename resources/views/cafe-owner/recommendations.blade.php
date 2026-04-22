@@ -108,15 +108,16 @@
 @section('title', 'Recommendations - BrewHub')
 
 @section('content')
+<div class="cafe-recommendations-page">
 <div class="mb-8">
-    <div class="flex items-start justify-between gap-4">
-        <div>
+    <div class="cafe-reco-header flex items-start justify-between gap-4">
+        <div class="cafe-reco-heading">
             <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
                 Recommendation <span class="italic text-[#4A6741]">Insights</span>
             </h1>
             <p class="text-[#9E8C78] text-sm font-medium">Ratings and actionable quality signals for your cafe</p>
         </div>
-        <button type="button" onclick="downloadRecommendationsReport()" title="Download Analytics Report" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#4A6741] text-white hover:bg-[#3f5b38] transition-colors shadow-sm text-sm font-medium">
+        <button type="button" onclick="downloadRecommendationsReport()" title="Download Analytics Report" class="cafe-reco-download-btn inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#4A6741] text-white hover:bg-[#3f5b38] transition-colors shadow-sm text-sm font-medium">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3"/></svg>
             <span class="hidden sm:inline">Download Report</span>
         </button>
@@ -527,6 +528,41 @@
         <path d="m5 12 7-7 7 7"/>
     </svg>
 </button>
+</div>
+
+<style>
+    @media (max-width: 767px) {
+        .cafe-recommendations-page .cafe-reco-header {
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .cafe-recommendations-page .cafe-reco-heading {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .cafe-recommendations-page .cafe-reco-download-btn {
+            margin-left: auto;
+            flex: 0 0 auto;
+        }
+
+        .cafe-recommendations-page .mb-8 h1 {
+            font-size: 1.7rem !important;
+            line-height: 2rem;
+        }
+
+        .cafe-recommendations-page .grid.grid-cols-1.md\:grid-cols-2.xl\:grid-cols-4,
+        .cafe-recommendations-page .grid.grid-cols-1.xl\:grid-cols-2 {
+            gap: 0.9rem !important;
+        }
+
+        .cafe-recommendations-page .bg-white.rounded-2xl.shadow-sm.border.border-\[\#E5DDD0\].p-6 {
+            padding: 1rem !important;
+        }
+    }
+</style>
 @endsection
 
 @push('scripts')

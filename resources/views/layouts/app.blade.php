@@ -140,20 +140,126 @@
             overflow: hidden !important;
             height: 100vh !important;
         }
+
+        @media (max-width: 767px) {
+            .admin-sidebar {
+                padding-top: 1rem;
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                overscroll-behavior: contain;
+                -webkit-overflow-scrolling: touch;
+                z-index: 1500 !important;
+            }
+
+            .admin-sidebar > div:first-child {
+                min-height: 0;
+                padding-right: 0.25rem;
+            }
+
+            .admin-sidebar-toggle {
+                position: fixed;
+                top: 0.9rem;
+                left: 0.9rem;
+                width: 2.75rem;
+                height: 2.75rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.8rem;
+                border: none;
+                background: rgba(255, 255, 255, 0.92);
+                color: #3A2E22;
+                backdrop-filter: blur(7px);
+                box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+                z-index: 1510;
+                transform: translateY(0) scale(1);
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }
+
+            .admin-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(17, 24, 39, 0.45);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease;
+                z-index: 1490;
+            }
+
+            .admin-sidebar-open .admin-sidebar {
+                transform: translateX(0);
+            }
+
+            .admin-sidebar-open .admin-sidebar-overlay {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .admin-sidebar-open .admin-sidebar-toggle {
+                opacity: 0;
+                pointer-events: none;
+                transform: translateY(-8px) scale(0.95);
+            }
+
+            .admin-modal-open .admin-sidebar-toggle {
+                z-index: 30 !important;
+            }
+
+            .logout-modal-open .admin-sidebar {
+                z-index: 20 !important;
+            }
+
+            .logout-modal-open .admin-sidebar-overlay {
+                z-index: 15 !important;
+            }
+
+            .logout-modal-open .admin-sidebar-toggle {
+                z-index: 25 !important;
+            }
+
+            .logout-modal-open [data-global-logout-modal='container'] {
+                z-index: 4000 !important;
+            }
+
+            .logout-modal-open [data-global-logout-modal='overlay'] {
+                z-index: 4000 !important;
+            }
+
+            .logout-modal-open [data-global-logout-modal='card'] {
+                z-index: 4001 !important;
+            }
+
+            .admin-sidebar ~ main {
+                padding-top: 4.75rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+
+            .admin-sidebar ~ main .sticky {
+                top: 0.75rem !important;
+            }
+
+            .admin-sidebar-open body,
+            .admin-sidebar-open {
+                overflow: hidden;
+            }
+        }
     </style>
 
     @stack('head')
     @stack('styles')
 </head>
-<body class="bg-[#F3E9D7] text-[#3A2E22]" x-data="{ logoutModalOpen: false }" @open-logout-modal.window="logoutModalOpen = true" @keydown.escape.window="logoutModalOpen = false">
+<body class="bg-[#F3E9D7] text-[#3A2E22]" x-data="{ logoutModalOpen: false }" :class="{ 'logout-modal-open': logoutModalOpen }" @open-logout-modal.window="logoutModalOpen = true" @keydown.escape.window="logoutModalOpen = false">
 
     @yield('content')
 
     @auth
-        <div class="fixed inset-0 flex items-center justify-center px-4" x-show="logoutModalOpen" x-cloak @click="logoutModalOpen = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" style="display: none; z-index: 3000;">
-            <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" style="z-index: 3000;" @click.stop="logoutModalOpen = false"></div>
+        <div class="fixed inset-0 flex items-center justify-center px-4" data-global-logout-modal="container" x-show="logoutModalOpen" x-cloak @click="logoutModalOpen = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" style="display: none; z-index: 3000;">
+            <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" data-global-logout-modal="overlay" style="z-index: 3000;" @click.stop="logoutModalOpen = false"></div>
 
-            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full" style="z-index: 3001;" @click.stop>
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full" data-global-logout-modal="card" style="z-index: 3001;" @click.stop>
                 <div class="p-6">
                     <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-4">Log out?</h2>
                     <p class="text-[#3A2E22] mb-6">Are you sure you want to log out of your account?</p>
@@ -212,6 +318,73 @@
 
     <script>
         (function () {
+            const root = document.documentElement;
+            const sidebar = document.querySelector('.admin-sidebar');
+            let closeSidebar = () => {};
+
+            if (sidebar) {
+                const toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.className = 'admin-sidebar-toggle md:hidden';
+                toggle.setAttribute('aria-label', 'Open navigation menu');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.innerHTML = `
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h18"></path>
+                        <path d="M3 12h18"></path>
+                        <path d="M3 18h18"></path>
+                    </svg>
+                `;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'admin-sidebar-overlay md:hidden';
+                overlay.setAttribute('aria-hidden', 'true');
+
+                const syncSidebarState = () => {
+                    const isOpen = root.classList.contains('admin-sidebar-open');
+                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                    toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+                };
+
+                const closeSidebarHandler = () => {
+                    root.classList.remove('admin-sidebar-open');
+                    syncSidebarState();
+                };
+                closeSidebar = closeSidebarHandler;
+
+                const toggleSidebar = () => {
+                    root.classList.toggle('admin-sidebar-open');
+                    syncSidebarState();
+                };
+
+                toggle.addEventListener('click', toggleSidebar);
+                overlay.addEventListener('click', closeSidebarHandler);
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768) {
+                        closeSidebarHandler();
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closeSidebarHandler();
+                    }
+                });
+
+                sidebar.querySelectorAll('a').forEach((link) => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth < 768) {
+                            closeSidebarHandler();
+                        }
+                    });
+                });
+
+                document.body.appendChild(overlay);
+                document.body.appendChild(toggle);
+                syncSidebarState();
+            }
+
             const lockTargets = [document.documentElement, document.body];
             const modalSelector = [
                 '.fixed.inset-0',
@@ -249,10 +422,18 @@
 
             const setScrollLocked = (shouldLock) => {
                 if (shouldLock === isScrollLocked) {
+                    root.classList.toggle('admin-modal-open', shouldLock);
+                    if (shouldLock && window.innerWidth < 768) {
+                        closeSidebar();
+                    }
                     return;
                 }
 
                 isScrollLocked = shouldLock;
+                root.classList.toggle('admin-modal-open', shouldLock);
+                if (shouldLock && window.innerWidth < 768) {
+                    closeSidebar();
+                }
                 lockTargets.forEach((target) => {
                     if (shouldLock) {
                         target.dataset.prevOverflow = target.style.overflow || '';

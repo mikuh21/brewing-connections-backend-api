@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\CouponPromo;
+use App\Models\CouponPromoRedemption;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,8 +20,22 @@ class CouponPromoController extends Controller
             ->active()
             ->with(['establishment:id,name,type,latitude,longitude,image'])
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function (CouponPromo $promo) use ($lat, $lng) {
+            ->get();
+
+        $authenticatedConsumerId = (int) optional($request->user('api'))->id;
+        $claimedByPromoId = [];
+
+        if ($authenticatedConsumerId > 0 && $promos->isNotEmpty()) {
+            $claimedByPromoId = CouponPromoRedemption::query()
+                ->where('consumer_user_id', $authenticatedConsumerId)
+                ->whereIn('coupon_promo_id', $promos->pluck('id'))
+                ->pluck('redeemed_at', 'coupon_promo_id')
+                ->map(fn ($value) => $value ? Carbon::parse($value)->toIso8601String() : null)
+                ->toArray();
+        }
+
+        $promos = $promos
+            ->map(function (CouponPromo $promo) use ($lat, $lng, $claimedByPromoId) {
                 $distanceKm = null;
                 $establishment = $promo->establishment;
 
@@ -54,6 +69,7 @@ class CouponPromoController extends Controller
                     'status' => $promo->status,
                     'max_usage' => $promo->max_usage,
                     'used_count' => $promo->used_count,
+                    'claimed_at' => $claimedByPromoId[$promo->id] ?? null,
                     'distance_km' => $distanceKm,
                     'establishment' => $establishment ? [
                         'id' => $establishment->id,

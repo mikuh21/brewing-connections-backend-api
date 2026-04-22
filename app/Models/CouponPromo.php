@@ -39,6 +39,11 @@ class CouponPromo extends Model
         return $this->belongsTo(Establishment::class);
     }
 
+    public function redemptions()
+    {
+        return $this->hasMany(CouponPromoRedemption::class);
+    }
+
     public function getIsExpiredAttribute()
     {
         return $this->valid_until < Carbon::today() || $this->used_count >= $this->max_usage;

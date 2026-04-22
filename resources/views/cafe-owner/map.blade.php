@@ -10,7 +10,7 @@
 @endpush
 
 @section('content')
-<div class="farm-owner-map-page h-screen -m-8 p-6 overflow-hidden bg-[#F5F0E8] text-[#3A2E22]">
+<div class="cafe-owner-map-page h-screen -m-8 p-6 overflow-hidden bg-[#F5F0E8] text-[#3A2E22]">
     <div class="max-w-full h-full flex flex-col gap-6">
         <header class="bg-white rounded-[20px] shadow-sm p-6 flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -239,6 +239,66 @@
 
 #edit-location-btn {
     display: none !important;
+}
+
+@media (max-width: 767px) {
+    .cafe-owner-map-page {
+        height: auto !important;
+        min-height: calc(100dvh - 4.8rem);
+        margin: 0 !important;
+        padding: 0.75rem !important;
+        overflow: visible !important;
+    }
+
+    .cafe-owner-map-page > .max-w-full {
+        height: auto !important;
+        min-height: calc(100dvh - 6rem);
+        gap: 0.75rem !important;
+    }
+
+    .cafe-owner-map-page header {
+        padding: 0.8rem !important;
+        border-radius: 14px !important;
+        align-items: flex-start;
+    }
+
+    .cafe-owner-map-page .map-header-search {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.45rem !important;
+    }
+
+    .cafe-owner-map-page .map-header-search .relative {
+        width: 100%;
+    }
+
+    .cafe-owner-map-page #map-filter {
+        flex: 1;
+        min-width: 8rem;
+    }
+
+    .cafe-owner-map-page #map-barangay-search {
+        width: 100% !important;
+    }
+
+    .cafe-owner-map-page #map-barangay-search-btn {
+        min-height: 2rem;
+    }
+
+    .cafe-owner-map-page .map-wrapper {
+        border-radius: 14px !important;
+        padding: 0.6rem !important;
+        min-height: 62vh;
+    }
+
+    .cafe-owner-map-page #filter-panel {
+        margin-bottom: 0.6rem !important;
+        border-radius: 14px !important;
+    }
+
+    .cafe-owner-map-page #map {
+        min-height: 52vh;
+    }
 }
 </style>
 @endpush

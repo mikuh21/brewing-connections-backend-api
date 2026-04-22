@@ -3,10 +3,10 @@
 @section('title', 'Messages - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
-    <main class="flex-1 overflow-y-auto">
-        <div class="flex gap-6 h-[calc(100vh-160px)]">
-            <div class="w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
+<div class="farm-messages-page min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
+    <main class="farm-messages-main flex-1 overflow-y-auto">
+        <div class="farm-messages-layout flex gap-6 h-[calc(100vh-160px)]">
+            <div class="farm-conversations-panel w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-display font-bold text-[#3A2E22]">Messages</h1>
@@ -26,7 +26,7 @@
                             type="text"
                             x-model="searchQuery"
                             placeholder="Search conversations..."
-                            class="pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent w-64"
+                            class="farm-messages-search pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent w-64"
                         />
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <div class="flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
+            <div class="farm-chat-panel flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
                 @if($conversations->isEmpty() || !isset($conversation) || !$conversation)
                     <div class="flex-1 flex items-center justify-center">
                         <div class="text-center">
@@ -293,6 +293,41 @@
 
     .chat-modal-scrollbar::-webkit-scrollbar-thumb:hover {
         background: rgba(107, 114, 128, 0.75);
+    }
+
+    @media (max-width: 767px) {
+        .farm-messages-page .farm-messages-main {
+            padding: 0 !important;
+        }
+
+        .farm-messages-page .farm-messages-layout {
+            flex-direction: column;
+            gap: 0.75rem !important;
+            height: auto !important;
+            min-height: 0;
+        }
+
+        .farm-messages-page .farm-conversations-panel,
+        .farm-messages-page .farm-chat-panel {
+            width: 100% !important;
+            border-radius: 14px;
+        }
+
+        .farm-messages-page .farm-conversations-panel {
+            max-height: 42vh;
+        }
+
+        .farm-messages-page .farm-chat-panel {
+            min-height: 52vh;
+        }
+
+        .farm-messages-page .farm-messages-search {
+            width: 100% !important;
+        }
+
+        .farm-messages-page #messages-container .max-w-xs {
+            max-width: min(82vw, 21rem) !important;
+        }
     }
 </style>
 

@@ -137,7 +137,7 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
-    class="space-y-8"
+    class="cafe-profile-page space-y-8"
 >
     <form method="POST" action="{{ route('cafe-owner.my-cafe.update') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
@@ -149,7 +149,7 @@
         <input type="hidden" name="profile_focus_x" :value="Math.round(profileFitX)">
         <input type="hidden" name="profile_focus_y" :value="Math.round(profileFitY)">
 
-        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="cafe-profile-hero bg-white rounded-xl shadow-sm overflow-hidden">
             <div
                 class="h-48 w-full bg-gradient-to-r from-[#4A6741] via-[#6B3A2A] to-[#3A2E22]"
                 :class="editMode && imagePreviewUrl ? 'cursor-grab active:cursor-grabbing' : ''"
@@ -160,9 +160,9 @@
                 </template>
             </div>
 
-            <div class="px-8 pb-8 pt-4">
-                <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-                    <div class="flex items-start gap-4">
+            <div class="cafe-profile-hero-body px-8 pb-8 pt-4">
+                <div class="cafe-profile-hero-top flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div class="cafe-profile-hero-identity flex items-start gap-4">
                         <div
                             class="-mt-12 ml-6 relative w-24 h-24 rounded-full bg-[#F5F0E8] ring-4 ring-white shadow-sm overflow-hidden flex items-center justify-center text-[#4A6741] font-semibold text-xs text-center px-2 shrink-0"
                             :class="editMode && imagePreviewUrl ? 'cursor-grab active:cursor-grabbing' : ''"
@@ -191,7 +191,7 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-4">
+                    <div class="cafe-profile-actions flex items-center gap-3 pt-4">
                         <button
                             type="button"
                             @click="editMode = !editMode"
@@ -374,4 +374,48 @@
         </div>
     </form>
 </div>
+
+<style>
+    @media (max-width: 767px) {
+        .cafe-profile-page > .mb-8 {
+            margin-bottom: 1rem !important;
+        }
+
+        .cafe-profile-page .cafe-profile-hero-body,
+        .cafe-profile-page .bg-white.rounded-xl.shadow-sm.p-8 {
+            padding: 1.25rem !important;
+        }
+
+        .cafe-profile-page .cafe-profile-hero-top,
+        .cafe-profile-page .cafe-profile-hero-identity {
+            gap: 1rem !important;
+        }
+
+        .cafe-profile-page .cafe-profile-hero-identity {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .cafe-profile-page .cafe-profile-hero-identity > div:first-child {
+            margin-top: -3rem;
+            margin-left: 0 !important;
+        }
+
+        .cafe-profile-page .cafe-profile-actions {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+            padding-top: 0;
+        }
+
+        .cafe-profile-page .cafe-profile-actions > * {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .cafe-profile-page .grid.grid-cols-1.lg\:grid-cols-3 {
+            gap: 1rem !important;
+        }
+    }
+</style>
 @endsection

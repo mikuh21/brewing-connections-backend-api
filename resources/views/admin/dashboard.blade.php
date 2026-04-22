@@ -3,9 +3,9 @@
 @section('title', 'Admin Dashboard - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#F5F0E8] flex" x-data="{ logoutModalOpen: false }" @keydown.escape.window="logoutModalOpen = false">
+<div class="min-h-screen bg-[#F5F0E8] flex">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -108,7 +108,7 @@
             </div>
             <button
                 type="button"
-                @click="logoutModalOpen = true"
+                @click="$dispatch('open-logout-modal')"
                 class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-[#F5F0E8] hover:bg-[#4E3D2B] transition-colors"
                 title="Log out"
                 aria-label="Log out"
@@ -121,7 +121,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto">
+    <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto">
         <!-- Top Navbar -->
         <div class="flex items-center justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
             <div>
@@ -457,7 +457,7 @@
                             </svg>
                         </div>
                         <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">View Recommendations</h3>
-                        <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Prescriptive analytics</p>
+                        <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Prescriptive insights</p>
                     </button>
                 </div>
             </div>
@@ -536,23 +536,6 @@
         </div>
     </main>
 
-    <div class="fixed inset-0 z-50 flex items-center justify-center px-4" x-show="logoutModalOpen" @click="logoutModalOpen = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" style="display: none;">
-        <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" @click.stop="logoutModalOpen = false"></div>
-
-        <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full" @click.stop>
-            <div class="p-6">
-                <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-4">Log out?</h2>
-                <p class="text-[#3A2E22] mb-6">Are you sure you want to log out of your account?</p>
-                <div class="flex gap-3">
-                    <button @click="logoutModalOpen = false" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg border border-gray-300 text-gray-700 text-base font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
-                    <form method="POST" action="{{ route('logout') }}" class="flex-1">
-                        @csrf
-                        <button type="submit" class="w-full inline-flex items-center justify-center h-10 px-4 rounded-lg bg-red-600 text-white text-base font-semibold hover:bg-red-700 transition-colors">Log out</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <style>

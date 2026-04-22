@@ -240,6 +240,66 @@
 #edit-location-btn {
     display: none !important;
 }
+
+@media (max-width: 767px) {
+    .farm-owner-map-page {
+        height: auto !important;
+        min-height: calc(100dvh - 4.8rem);
+        margin: 0 !important;
+        padding: 0.75rem !important;
+        overflow: visible !important;
+    }
+
+    .farm-owner-map-page > .max-w-full {
+        height: auto !important;
+        min-height: calc(100dvh - 6rem);
+        gap: 0.75rem !important;
+    }
+
+    .farm-owner-map-page header {
+        padding: 0.8rem !important;
+        border-radius: 14px !important;
+        align-items: flex-start;
+    }
+
+    .farm-owner-map-page .map-header-search {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.45rem !important;
+    }
+
+    .farm-owner-map-page .map-header-search .relative {
+        width: 100%;
+    }
+
+    .farm-owner-map-page #map-filter {
+        flex: 1;
+        min-width: 8rem;
+    }
+
+    .farm-owner-map-page #map-barangay-search {
+        width: 100% !important;
+    }
+
+    .farm-owner-map-page #map-barangay-search-btn {
+        min-height: 2rem;
+    }
+
+    .farm-owner-map-page .map-wrapper {
+        border-radius: 14px !important;
+        padding: 0.6rem !important;
+        min-height: 62vh;
+    }
+
+    .farm-owner-map-page #filter-panel {
+        margin-bottom: 0.6rem !important;
+        border-radius: 14px !important;
+    }
+
+    .farm-owner-map-page #map {
+        min-height: 52vh;
+    }
+}
 </style>
 @endpush
 

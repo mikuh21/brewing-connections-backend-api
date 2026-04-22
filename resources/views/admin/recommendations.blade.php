@@ -3,9 +3,9 @@
 @section('title', 'Recommendations - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#F5F0E8] flex">
+<div class="recommendations-page min-h-screen bg-[#F5F0E8] flex">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -121,7 +121,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto">
+    <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto">
         <!-- Flash Message Alert -->
         @if(session('success'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">
@@ -145,7 +145,7 @@
                 <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
                     Recommendations
                 </h1>
-                <p class="text-[#9E8C78] text-sm font-medium">Experience-based journey analytics and prescriptive insights</p>
+                <p class="text-[#9E8C78] text-sm font-medium">Experience-based journey and prescriptive insights</p>
             </div>
             <form method="POST" action="{{ route('admin.recommendations.refresh') }}">
                 @csrf
@@ -216,7 +216,7 @@
             <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
             </svg>
-            <p class="text-xs font-medium">Recommendation analytics help café owners improve their customer experience and ratings.</p>
+            <p class="text-xs font-medium">Recommendation insights help café owners improve their customer experience and ratings.</p>
         </div>
 
         <!-- Recent Consumer Reviews -->
@@ -291,9 +291,9 @@
         <!-- Experience Analytics by Category -->
         <div class="mb-8">
             <h2 class="text-xl font-semibold text-[#3A2E22] mb-4 flex items-center gap-2">
-                <span class="italic text-[#4A6741]">Experience</span> Analytics by Category
+                <span class="italic text-[#4A6741]">Experience</span> Insights by Category
             </h2>
-            <div class="flex flex-wrap gap-4 mb-4">
+            <div class="recommendations-category-grid flex flex-wrap gap-4 mb-4">
                 @php
                     $categories = [
                         'taste' => ['label' => 'Taste/Coffee Quality', 'avg' => $overallAnalytics['averages']['taste']],
@@ -305,16 +305,16 @@
                     $lowest = $overallAnalytics['needs_attention'];
                 @endphp
                 @foreach($categories as $key => $cat)
-                <div class="bg-white rounded-xl shadow-sm p-4 flex-1 min-w-0 relative {{ $key === $lowest ? 'border-2 border-red-200' : '' }}">
+                <div class="recommendations-category-card {{ $key === 'overall' ? 'recommendations-category-card-overall' : '' }} bg-white rounded-xl shadow-sm p-4 flex-1 min-w-0 relative {{ $key === $lowest ? 'border-2 border-red-200' : '' }}">
                     @if($key === $lowest)
-                    <div class="absolute -top-2 -right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
+                    <div class="recommendations-attention-badge absolute -top-2 -right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
                         Needs Attention
                     </div>
                     @endif
                     <div class="text-center">
-                        <p class="text-sm text-[#9E8C78] font-medium">{{ $cat['label'] }}</p>
-                        <p class="text-2xl font-bold text-[#3A2E22] mt-1">{{ number_format($cat['avg'], 1) }}</p>
-                        <div class="flex justify-center mt-2">
+                        <p class="recommendations-category-label text-sm text-[#9E8C78] font-medium">{{ $cat['label'] }}</p>
+                        <p class="recommendations-category-score text-2xl font-bold text-[#3A2E22] mt-1">{{ number_format($cat['avg'], 1) }}</p>
+                        <div class="recommendations-category-stars flex justify-center mt-2">
                             @for($i = 1; $i <= 5; $i++)
                                 <svg class="w-4 h-4 {{ $i <= round($cat['avg']) ? 'text-[#D4AF37]' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
@@ -325,12 +325,12 @@
                 </div>
                 @endforeach
             </div>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div class="flex items-center gap-3">
+            <div class="recommendations-opportunity bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="recommendations-opportunity-content flex items-center gap-3">
                     <svg class="w-6 h-6 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 15.5c-.77.833.192 2.5 1.732 2.5z"/>
                     </svg>
-                    <div>
+                    <div class="recommendations-opportunity-text">
                         <p class="text-sm font-medium text-red-800">Biggest Opportunity: {{ ucfirst($lowest) }}</p>
                         <p class="text-xs text-red-700">Improving {{ ucfirst($lowest) }} by 0.5 stars could boost overall ratings by ~{{ number_format((0.5 / 4) * 100, 1) }}%.</p>
                     </div>
@@ -341,7 +341,7 @@
         <!-- Prescriptive Analytics -->
         <div>
             <h2 class="text-xl font-semibold text-[#3A2E22] mb-4 flex items-center gap-2">
-                <span class="italic text-[#4A6741]">Prescriptive</span> Analytics
+                <span class="italic text-[#4A6741]">Prescriptive</span> Insights
             </h2>
             <div class="bg-[#4A6741] text-white rounded-lg p-4 mb-6">
                 <div class="flex items-center justify-between">
@@ -427,6 +427,96 @@
         </div>
     </main>
 </div>
+
+@push('styles')
+<style>
+    @media (max-width: 767px) {
+        .recommendations-page main {
+            padding: 4.75rem 0.9rem 1rem !important;
+        }
+
+        .recommendations-category-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.6rem !important;
+        }
+
+        .recommendations-category-card {
+            width: auto !important;
+            min-width: 0 !important;
+            padding: 0.65rem !important;
+            border-radius: 12px !important;
+        }
+
+        .recommendations-category-card-overall {
+            grid-column: 1 / -1;
+        }
+
+        .recommendations-category-card-overall > .text-center {
+            text-align: center;
+        }
+
+        .recommendations-attention-badge {
+            position: static !important;
+            display: inline-flex;
+            margin-bottom: 0.45rem;
+            border-radius: 0.45rem;
+            font-size: 0.62rem;
+            line-height: 1;
+            padding: 0.28rem 0.42rem !important;
+        }
+
+        .recommendations-category-label {
+            font-size: 0.68rem !important;
+            line-height: 1.05rem !important;
+            min-height: 2.1rem;
+            overflow-wrap: anywhere;
+        }
+
+        .recommendations-category-score {
+            font-size: 1.35rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .recommendations-category-stars {
+            margin-top: 0.35rem !important;
+            gap: 0.08rem;
+        }
+
+        .recommendations-category-stars svg {
+            width: 0.72rem !important;
+            height: 0.72rem !important;
+        }
+
+        .recommendations-opportunity {
+            padding: 0.7rem !important;
+            border-radius: 12px;
+        }
+
+        .recommendations-opportunity-content {
+            align-items: flex-start !important;
+            gap: 0.55rem !important;
+        }
+
+        .recommendations-opportunity-content svg {
+            width: 1rem !important;
+            height: 1rem !important;
+            margin-top: 0.1rem;
+        }
+
+        .recommendations-opportunity-text p:first-child {
+            font-size: 0.76rem !important;
+            line-height: 1.1rem;
+        }
+
+        .recommendations-opportunity-text p:last-child {
+            font-size: 0.68rem !important;
+            line-height: 1.05rem;
+            overflow-wrap: anywhere;
+        }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

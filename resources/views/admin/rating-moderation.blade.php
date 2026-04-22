@@ -3,7 +3,7 @@
 @section('title', 'Rating Moderation - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#F5F0E8] flex" x-data="{
+<div class="rating-moderation-page min-h-screen bg-[#F5F0E8] flex" x-data="{
     deleteModalOpen: false,
     deleteId: null,
     deleteUser: '',
@@ -22,7 +22,7 @@
     }
 }">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -138,7 +138,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto">
+    <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto">
         <!-- Flash Message Alert -->
         @if(session('rating_deleted'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">
@@ -247,28 +247,28 @@
             <p class="text-[#9E8C78] text-sm mb-4">Complete list of submitted café ratings</p>
 
             @forelse($ratings as $rating)
-                <div class="bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
+                <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
                     <!-- Top Row -->
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
+                    <div class="rating-card-header flex items-center justify-between mb-4">
+                        <div class="rating-card-user flex items-center gap-3">
                             <div class="w-10 h-10 bg-[#4A6741] rounded-full flex items-center justify-center text-white font-bold text-sm">
                                 {{ substr($rating->user->name ?? 'U', 0, 1) }}
                             </div>
-                            <div>
+                            <div class="rating-card-title">
                                 <span class="font-bold text-[#3A2E22]">{{ $rating->user->name ?? 'Unknown User' }}</span>
                                 <span class="text-[#9E8C78]"> rated </span>
                                 <span class="font-bold italic text-[#3A2E22]">{{ $rating->establishment->name ?? 'Unknown Establishment' }}</span>
                             </div>
                         </div>
-                        <div class="text-[#9E8C78] text-sm">
+                        <div class="rating-card-date text-[#9E8C78] text-sm">
                             {{ $rating->created_at->format('Y-m-d') }}
                         </div>
                     </div>
 
                     <!-- Rating Categories -->
-                    <div class="border border-gray-200 rounded-xl p-4 mb-4 bg-[#F9F6F1]">
+                    <div class="rating-breakdown border border-gray-200 rounded-xl p-4 mb-4 bg-[#F9F6F1]">
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="flex items-center gap-2">
+                            <div class="rating-breakdown-item flex items-center gap-2">
                                 <span class="text-sm font-medium text-[#3A2E22]">Taste:</span>
                                 <div class="flex">
                                     @for($i = 1; $i <= 5; $i++)
@@ -277,7 +277,7 @@
                                 </div>
                                 <span class="text-sm text-[#9E8C78]">({{ $rating->taste_rating }}/5)</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="rating-breakdown-item flex items-center gap-2">
                                 <span class="text-sm font-medium text-[#3A2E22]">Environment:</span>
                                 <div class="flex">
                                     @for($i = 1; $i <= 5; $i++)
@@ -286,7 +286,7 @@
                                 </div>
                                 <span class="text-sm text-[#9E8C78]">({{ $rating->environment_rating }}/5)</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="rating-breakdown-item flex items-center gap-2">
                                 <span class="text-sm font-medium text-[#3A2E22]">Cleanliness:</span>
                                 <div class="flex">
                                     @for($i = 1; $i <= 5; $i++)
@@ -295,7 +295,7 @@
                                 </div>
                                 <span class="text-sm text-[#9E8C78]">({{ $rating->cleanliness_rating }}/5)</span>
                             </div>
-                            <div class="flex items-center gap-2">
+                            <div class="rating-breakdown-item flex items-center gap-2">
                                 <span class="text-sm font-medium text-[#3A2E22]">Service:</span>
                                 <div class="flex">
                                     @for($i = 1; $i <= 5; $i++)
@@ -320,7 +320,7 @@
                             default => 'text-[#4A6741]',
                         };
                     @endphp
-                    <div class="border rounded-xl p-4 mb-4 {{ $overallBg }}">
+                    <div class="rating-overall border rounded-xl p-4 mb-4 {{ $overallBg }}">
                         <span class="text-sm font-semibold text-[#3A2E22]">Overall</span>
                         <div class="flex items-center gap-2 mt-1">
                             <div class="flex">
@@ -336,7 +336,7 @@
                     @if($rating->image)
                         <div class="mb-4">
                             <p class="text-xs text-[#9E8C78] mb-2">Submitted Photo</p>
-                            <img src="{{ asset('storage/' . $rating->image) }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover">
+                            <img src="{{ asset('storage/' . $rating->image) }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover w-full max-w-[220px]">
                         </div>
                     @endif
 
@@ -354,7 +354,7 @@
                     @endif
 
                     <!-- Bottom Row -->
-                    <div class="flex justify-end">
+                    <div class="rating-actions flex justify-end">
                         <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
                             x-on:click="openDeleteModal({{ $rating->id }}, '{{ addslashes($rating->user->name ?? 'Unknown User') }}', '{{ addslashes($rating->establishment->name ?? 'Unknown Establishment') }}')">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +371,7 @@
             @endforelse
 
             <!-- Pagination -->
-            <div class="mt-6">
+            <div class="rating-pagination mt-6">
                 {{ $ratings->links() }}
             </div>
         </div>
@@ -408,6 +408,148 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+    @media (max-width: 767px) {
+        .rating-moderation-page main {
+            padding: 4.75rem 0.9rem 1rem !important;
+        }
+
+        .rating-moderation-page .filter-content {
+            padding: 0.85rem !important;
+            border-radius: 16px !important;
+        }
+
+        .rating-card {
+            padding: 0.8rem !important;
+            border-radius: 14px !important;
+            margin-bottom: 0.8rem !important;
+            overflow: hidden;
+        }
+
+        .rating-card-header {
+            align-items: flex-start !important;
+            gap: 0.6rem;
+        }
+
+        .rating-card-user {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .rating-card-title {
+            min-width: 0;
+            font-size: 0.9rem;
+            line-height: 1.25rem;
+            overflow-wrap: anywhere;
+        }
+
+        .rating-card-date {
+            flex-shrink: 0;
+            font-size: 0.72rem !important;
+            line-height: 1rem;
+            text-align: right;
+        }
+
+        .rating-breakdown {
+            padding: 0.7rem !important;
+        }
+
+        .rating-breakdown > .grid {
+            grid-template-columns: 1fr !important;
+            gap: 0.55rem !important;
+        }
+
+        .rating-breakdown-item {
+            flex-wrap: wrap;
+            align-items: center;
+            row-gap: 0.2rem;
+        }
+
+        .rating-breakdown-item > span:first-child {
+            min-width: 5.5rem;
+            font-size: 0.78rem;
+        }
+
+        .rating-breakdown-item > .flex span {
+            font-size: 1rem !important;
+            line-height: 1;
+        }
+
+        .rating-breakdown-item > span:last-child {
+            font-size: 0.72rem !important;
+            line-height: 1;
+        }
+
+        .rating-overall {
+            padding: 0.7rem !important;
+        }
+
+        .rating-overall .text-2xl {
+            font-size: 1.1rem !important;
+            line-height: 1;
+        }
+
+        .rating-overall .text-lg {
+            font-size: 0.95rem !important;
+            line-height: 1.25rem;
+        }
+
+        .rating-actions {
+            justify-content: flex-end;
+        }
+
+        .rating-actions button {
+            padding: 0.4rem 0.7rem !important;
+            font-size: 0.72rem !important;
+            border-radius: 10px;
+        }
+
+        .rating-pagination nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .rating-pagination nav > div {
+            width: 100%;
+        }
+
+        .rating-pagination nav > div:first-child {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .rating-pagination nav > div:first-child a,
+        .rating-pagination nav > div:first-child span {
+            flex: 1;
+            display: inline-flex !important;
+            justify-content: center;
+            align-items: center;
+            min-height: 2.35rem;
+            border-radius: 0.65rem;
+            border: 1px solid #D6CDC2 !important;
+            background: #FFFFFF !important;
+            color: #3A2E22 !important;
+            font-weight: 600;
+            font-size: 0.82rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            text-decoration: none;
+        }
+
+        .rating-pagination nav > div:first-child a:hover {
+            background: #F6F1E8 !important;
+        }
+
+        .rating-pagination nav > div:last-child {
+            display: none !important;
+        }
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

@@ -88,14 +88,15 @@
 </div>
 @endif
 
-<div class="flex items-center justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
+<div class="reseller-dashboard-page">
+<div class="reseller-dashboard-header flex items-center justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
     <div>
         <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">Welcome back, <span class="italic text-[#4A6741]">{{ $reseller->business_name ?? $resellerName }}</span></h1>
         <p class="text-[#9E8C78] text-sm font-medium">Manage your reseller profile and orders</p>
     </div>
 
     <div
-        class="flex items-center space-x-4"
+        class="reseller-dashboard-notif flex items-center space-x-4"
         x-data="{
             open: false,
             unreadCount: 0,
@@ -229,7 +230,7 @@
                 <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
             </button>
 
-            <div x-show="open" x-cloak class="absolute right-0 mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+            <div x-show="open" x-cloak class="reseller-dashboard-notif-menu absolute right-0 mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>
@@ -483,4 +484,31 @@
         </div>
     </div>
 </div>
+</div>
+
+<style>
+    @media (max-width: 767px) {
+        .reseller-dashboard-page .reseller-dashboard-header {
+            position: static !important;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem !important;
+        }
+
+        .reseller-dashboard-page .reseller-dashboard-header h1 {
+            font-size: 1.7rem !important;
+            line-height: 2rem;
+        }
+
+        .reseller-dashboard-page .reseller-dashboard-notif {
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .reseller-dashboard-page .reseller-dashboard-notif-menu {
+            width: min(100vw - 2rem, 22rem) !important;
+        }
+    }
+</style>
 @endsection

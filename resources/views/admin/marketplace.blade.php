@@ -5,7 +5,7 @@
 @section('content')
 <div class="min-h-screen bg-[#F5F0E8] flex">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -121,7 +121,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto" 
+    <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto" 
       x-data="marketplaceState()" 
       @open-delete="openDelete($event.detail.id, $event.detail.title, $event.detail.type)">
         <!-- Flash Message Alert -->
@@ -273,6 +273,16 @@
     <option value="all">All Categories</option>
     <option value="Coffee Beans">Coffee Beans</option>
     <option value="Ground Coffee">Ground Coffee</option>
+    <option value="Hot Drinks">Hot Drinks</option>
+    <option value="Iced Drinks">Iced Drinks</option>
+    <option value="Iced Blended Drinks">Iced Blended Drinks</option>
+    <option value="Tea">Tea</option>
+    <option value="Rice Meals">Rice Meals</option>
+    <option value="Pastas">Pastas</option>
+    <option value="Appetizers">Appetizers</option>
+    <option value="Sandwiches">Sandwiches</option>
+    <option value="Burgers">Burgers</option>
+    <option value="Pastries">Pastries</option>
   </select>
 </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -308,6 +318,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
         'moq' => $product->moq,
         'seller_name' => $product->seller?->name,
         'seller_type' => $product->seller_label,
+        'seller_kind' => $product->seller_type,
         'establishment' => $product->establishment?->name,
         'barangay' => $product->establishment?->barangay,
         'image_url' => $product->image_url,
@@ -348,6 +359,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
     </div>
     @endif
 
+    @if($product->seller_type !== 'cafe_owner')
     <div class="flex items-center gap-1 mb-1.5">
       <span class="text-xs text-[#9E8C78]">Available:</span>
       <span class="text-xs font-semibold 
@@ -356,6 +368,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
         {{ $product->stock_quantity === 1 ? 'unit' : 'units' }}
       </span>
     </div>
+    @endif
 
     {{-- Seller Info --}}
     <div class="flex items-center gap-2 mb-2">
@@ -381,14 +394,18 @@ x-transition:enter-end="opacity-100 translate-y-0">
       </p>
     @endif
 
-    <div class="flex items-center justify-between mt-2">
+    <div class="flex items-center {{ $product->seller_type === 'cafe_owner' ? 'justify-start' : 'justify-between' }} mt-2">
       <div>
         <span class="font-bold text-sm text-[#2C1A0E]">
           ₱{{ number_format($product->price_per_unit, 2) }}
         </span>
+        @if($product->seller_type !== 'cafe_owner')
         <span class="text-xs text-[#9E8C78]">/{{ $product->unit }}</span>
+        @endif
       </div>
+      @if($product->seller_type !== 'cafe_owner')
       <span class="text-xs text-[#9E8C78]">MOQ: {{ $product->moq }}</span>
+      @endif
     </div>
 
     {{-- Delete button --}}
@@ -430,7 +447,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
   x-transition:leave="transition ease-in duration-150"
   x-transition:leave-start="opacity-100"
   x-transition:leave-end="opacity-0"
-  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+  class="marketplace-details-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
   @click.self="showProductModal = false">
 
   <div x-show="showProductModal"
@@ -440,16 +457,16 @@ x-transition:enter-end="opacity-100 translate-y-0">
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100 scale-100"
     x-transition:leave-end="opacity-0 scale-95"
-    class="bg-white rounded-2xl shadow-xl w-full max-w-4xl mx-4 overflow-hidden 
+    class="marketplace-details-modal bg-white rounded-2xl shadow-xl w-full max-w-4xl mx-4 overflow-hidden 
 max-h-[90vh]">
 
-    <div class="flex min-h-72">
+    <div class="marketplace-details-content flex min-h-72">
       
       {{-- Left: Image --}}
-      <div class="w-72 flex-shrink-0 min-h-full">
+      <div class="marketplace-details-media w-72 flex-shrink-0 min-h-full">
         <template x-if="selectedProduct && selectedProduct.image_url">
           <img :src="selectedProduct.image_url" :alt="selectedProduct.name"
-            class="w-full h-full object-cover min-h-48">
+            class="marketplace-details-image w-full h-full object-cover min-h-48">
         </template>
         <template x-if="!selectedProduct || !selectedProduct.image_url">
           <div class="w-full h-full min-h-48 bg-gray-100 flex flex-col 
@@ -460,13 +477,13 @@ max-h-[90vh]">
       </div>
 
       {{-- Right: Details --}}
-      <div class="flex-1 p-7 flex flex-col justify-between overflow-y-auto">
+      <div class="marketplace-details-body flex-1 p-7 flex flex-col justify-between overflow-y-auto">
         
         {{-- Header --}}
         <div>
-          <div class="flex items-start justify-between mb-1">
+          <div class="marketplace-details-header flex items-start justify-between mb-1">
             <div>
-              <h2 class="text-lg font-bold text-[#2C1A0E]" x-text="selectedProduct?.name"></h2>
+              <h2 class="marketplace-details-title text-lg font-bold text-[#2C1A0E]" x-text="selectedProduct?.name"></h2>
               <p class="text-sm italic text-[#9E8C78]" x-text="selectedProduct?.category"></p>
             </div>
             <button @click="showProductModal = false"
@@ -490,28 +507,33 @@ max-h-[90vh]">
             </template>
           </div>
 
-          <p class="text-sm text-[#9E8C78] line-clamp-3" x-text="selectedProduct?.description"></p>
+          <p class="marketplace-details-description text-sm text-[#9E8C78] line-clamp-3" x-text="selectedProduct?.description"></p>
         </div>
 
         {{-- Info Grid --}}
-        <div class="grid grid-cols-3 gap-3 mt-3">
+        <div class="marketplace-details-grid grid grid-cols-3 gap-3 mt-3">
           <div class="bg-[#F5F0E8] rounded-lg p-2.5">
             <p class="text-xs text-[#9E8C78] mb-0.5">Price</p>
             <p class="text-sm font-bold text-[#2C1A0E]">
               ₱<span x-text="parseFloat(selectedProduct?.price_per_unit).toLocaleString('en-PH', {minimumFractionDigits:2})"></span>
-              / <span x-text="selectedProduct?.unit"></span>
+              <template x-if="selectedProduct?.seller_kind !== 'cafe_owner'">
+                <span>/ <span x-text="selectedProduct?.unit"></span></span>
+              </template>
             </p>
           </div>
+          <template x-if="selectedProduct?.seller_kind !== 'cafe_owner'">
           <div class="bg-[#F5F0E8] rounded-lg p-2.5">
             <p class="text-xs text-[#9E8C78] mb-0.5">MOQ</p>
             <p class="text-sm font-bold text-[#2C1A0E]" x-text="selectedProduct?.moq"></p>
           </div>
+          </template>
           <div class="bg-[#F5F0E8] rounded-lg p-2.5">
             <p class="text-xs text-[#9E8C78] mb-0.5">Published</p>
             <p class="text-sm font-bold"
               :class="selectedProduct?.is_active ? 'text-green-600' : 'text-red-400'"
               x-text="selectedProduct?.is_active ? 'Listed' : 'Unlisted'"></p>
           </div>
+          <template x-if="selectedProduct?.seller_kind !== 'cafe_owner'">
           <div class="bg-[#F5F0E8] rounded-lg p-2.5">
             <p class="text-xs text-[#9E8C78] mb-0.5">Available Stock</p>
             <p class="text-sm font-bold"
@@ -520,6 +542,7 @@ max-h-[90vh]">
               x-text="(selectedProduct?.stock_quantity ?? 0) + ' units'">
             </p>
           </div>
+          </template>
           <div class="bg-[#F5F0E8] rounded-lg p-2.5">
             <p class="text-xs text-[#9E8C78] mb-0.5">Seller</p>
             <p class="text-sm font-semibold text-[#2C1A0E] truncate" 
@@ -567,6 +590,16 @@ max-h-[90vh]">
     <option value="all">All Categories</option>
     <option value="Coffee Beans">Coffee Beans</option>
     <option value="Ground Coffee">Ground Coffee</option>
+    <option value="Hot Drinks">Hot Drinks</option>
+    <option value="Iced Drinks">Iced Drinks</option>
+    <option value="Iced Blended Drinks">Iced Blended Drinks</option>
+    <option value="Tea">Tea</option>
+    <option value="Rice Meals">Rice Meals</option>
+    <option value="Pastas">Pastas</option>
+    <option value="Appetizers">Appetizers</option>
+    <option value="Sandwiches">Sandwiches</option>
+    <option value="Burgers">Burgers</option>
+    <option value="Pastries">Pastries</option>
   </select>
 </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1043,6 +1076,85 @@ max-h-[90vh]">
 
     </main>
 </div>
+
+@push('styles')
+<style>
+  @media (max-width: 767px) {
+    .marketplace-details-overlay {
+      align-items: center !important;
+      justify-content: center !important;
+      overflow-y: auto;
+      min-height: 100dvh;
+      padding: 0.85rem;
+    }
+
+    .marketplace-details-modal {
+      width: 100% !important;
+      max-width: 26rem !important;
+      margin: 0 auto !important;
+      max-height: none !important;
+      border-radius: 14px !important;
+    }
+
+    .marketplace-details-content {
+      display: block !important;
+      min-height: 0 !important;
+    }
+
+    .marketplace-details-media {
+      width: 100% !important;
+      min-height: 0 !important;
+    }
+
+    .marketplace-details-image,
+    .marketplace-details-media > div {
+      min-height: 165px !important;
+      height: 165px !important;
+    }
+
+    .marketplace-details-body {
+      padding: 0.85rem !important;
+      gap: 0.5rem;
+      overflow: visible;
+    }
+
+    .marketplace-details-header {
+      margin-bottom: 0.3rem !important;
+      gap: 0.5rem;
+    }
+
+    .marketplace-details-title {
+      font-size: 1rem !important;
+      line-height: 1.3rem;
+      overflow-wrap: anywhere;
+    }
+
+    .marketplace-details-description {
+      font-size: 0.78rem !important;
+      line-height: 1.2rem;
+      overflow-wrap: anywhere;
+    }
+
+    .marketplace-details-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.5rem !important;
+      margin-top: 0.55rem !important;
+    }
+
+    .marketplace-details-grid > div {
+      padding: 0.55rem !important;
+      border-radius: 10px;
+      min-width: 0;
+    }
+
+    .marketplace-details-grid p.text-sm {
+      font-size: 0.78rem !important;
+      line-height: 1.1rem;
+      word-break: break-word;
+    }
+  }
+</style>
+@endpush
 
 <script>
 function marketplaceState() {

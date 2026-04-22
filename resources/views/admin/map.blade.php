@@ -15,7 +15,7 @@
 @section('content')
 <div class="admin-map-page min-h-screen flex bg-[#F5F0E8] text-[#3A2E22]">
     <!-- Sidebar -->
-    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg z-30">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <div class="flex items-center mb-8">
                 <svg class="w-6 h-6 mr-3 text-[#F5F0E8]" fill="currentColor" viewBox="0 0 24 24">
@@ -126,7 +126,7 @@
     </aside>
 
     <!-- Main content -->
-    <main class="admin-main flex-1 ml-64 h-screen overflow-hidden p-6">
+    <main class="admin-main flex-1 ml-0 md:ml-64 h-screen overflow-hidden p-6">
         <div class="max-w-full h-full flex flex-col gap-6">
             <header class="bg-white rounded-[20px] shadow-sm p-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -157,7 +157,7 @@
                     <button
                         id="map-barangay-search-btn"
                         type="button"
-                        class="text-xs px-3 py-1.5 rounded-lg bg-[#4A6741] text-white font-medium hover:bg-[#3A2E22] transition-colors"
+                        class="map-search-trigger text-xs px-3 py-1.5 rounded-lg bg-[#4A6741] text-white font-medium hover:bg-[#3A2E22] transition-colors"
                     >
                         Search
                     </button>
@@ -407,10 +407,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Details Panel -->
-                <div id="details-panel" class="details-panel"></div>
-
                 <!-- ...existing code... -->
             </section>
         </div>

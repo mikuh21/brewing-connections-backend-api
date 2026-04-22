@@ -148,6 +148,7 @@ Route::prefix('cafe-owner')
         Route::post('/my-cafe', [CafeOwnerMyCafeController::class, 'update'])->name('my-cafe.update');
         Route::get('/coupon-promos', [CafeOwnerCouponPromoController::class, 'index'])->name('coupon-promos');
         Route::post('/coupon-promos', [CafeOwnerCouponPromoController::class, 'store'])->name('coupon-promos.store');
+        Route::post('/coupon-promos/redeem-scan', [CafeOwnerCouponPromoController::class, 'redeemScan'])->name('coupon-promos.redeem-scan');
         Route::patch('/coupon-promos/{id}', [CafeOwnerCouponPromoController::class, 'update'])->name('coupon-promos.update');
         Route::delete('/coupon-promos/{id}', [CafeOwnerCouponPromoController::class, 'destroy'])->name('coupon-promos.destroy');
         Route::get('/marketplace', [CafeOwnerMarketplaceController::class, 'index'])->name('marketplace');

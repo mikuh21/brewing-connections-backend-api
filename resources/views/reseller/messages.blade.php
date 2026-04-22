@@ -3,10 +3,10 @@
 @section('title', 'Messages - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
-    <main class="flex-1 overflow-y-auto">
-        <div class="flex gap-6 h-[calc(100vh-160px)]">
-            <div class="w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
+<div class="reseller-messages-page min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
+    <main class="reseller-messages-main flex-1 overflow-y-auto">
+        <div class="reseller-messages-layout flex gap-6 h-[calc(100vh-160px)]">
+            <div class="reseller-conversations-panel w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-display font-bold text-[#3A2E22]">Messages</h1>
@@ -18,7 +18,7 @@
                         </button>
                     </div>
 
-                    <div class="relative">
+                    <div class="reseller-messages-search relative">
                         <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <div class="flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
+            <div class="reseller-chat-panel flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
                 @if($conversations->isEmpty() || !isset($conversation) || !$conversation)
                     <div class="flex-1 flex items-center justify-center">
                         <div class="text-center">
@@ -293,6 +293,42 @@
 
     .chat-modal-scrollbar::-webkit-scrollbar-thumb:hover {
         background: rgba(107, 114, 128, 0.75);
+    }
+
+    @media (max-width: 767px) {
+        .reseller-messages-page .reseller-messages-main {
+            padding: 0 !important;
+        }
+
+        .reseller-messages-page .reseller-messages-layout {
+            flex-direction: column;
+            gap: 0.75rem !important;
+            height: auto !important;
+            min-height: 0;
+        }
+
+        .reseller-messages-page .reseller-conversations-panel,
+        .reseller-messages-page .reseller-chat-panel {
+            width: 100% !important;
+            border-radius: 14px;
+        }
+
+        .reseller-messages-page .reseller-conversations-panel {
+            max-height: 42vh;
+        }
+
+        .reseller-messages-page .reseller-chat-panel {
+            min-height: 52vh;
+        }
+
+        .reseller-messages-page .reseller-messages-search,
+        .reseller-messages-page .reseller-messages-search input {
+            width: 100% !important;
+        }
+
+        .reseller-messages-page #messages-container .max-w-xs {
+            max-width: min(82vw, 21rem) !important;
+        }
     }
 </style>
 

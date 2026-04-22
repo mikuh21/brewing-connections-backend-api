@@ -3,9 +3,9 @@
 @section('title', 'Messages - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
+<div class="chat-page min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
     <!-- Sidebar Navigation -->
-    <aside class="fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-20">
+    <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
             <!-- Logo -->
             <div class="flex items-center mb-8">
@@ -120,10 +120,10 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="ml-64 flex-1 p-8 overflow-y-auto">
-        <div class="flex gap-6 h-[calc(100vh-120px)]">
+    <main class="chat-main ml-0 md:ml-64 flex-1 p-8 overflow-y-auto">
+        <div class="chat-layout flex gap-6 h-[calc(100vh-120px)]">
             <!-- LEFT PANEL: Conversations List -->
-            <div class="w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
+            <div class="chat-conversations-panel w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
                 <!-- Header -->
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center justify-between mb-4">
@@ -145,7 +145,7 @@
                             type="text"
                             x-model="searchQuery"
                             placeholder="Search conversations..."
-                            class="pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent w-64"
+                            class="chat-search-input pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent w-64"
                         />
                     </div>
                 </div>
@@ -209,7 +209,7 @@
             </div>
 
             <!-- RIGHT PANEL: Messages or Empty State -->
-            <div class="flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
+            <div class="chat-messages-panel flex-1 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
                 @if($conversations->isEmpty() || !isset($conversation))
                     <!-- Empty State -->
                     <div class="flex-1 flex items-center justify-center">
@@ -413,6 +413,44 @@
 
     .chat-modal-scrollbar::-webkit-scrollbar-thumb:hover {
         background: rgba(107, 114, 128, 0.75);
+    }
+
+    @media (max-width: 767px) {
+        .chat-page .chat-main {
+            padding-top: 4.75rem !important;
+            padding-left: 0.85rem !important;
+            padding-right: 0.85rem !important;
+            padding-bottom: 0.85rem !important;
+        }
+
+        .chat-page .chat-layout {
+            flex-direction: column;
+            gap: 0.75rem !important;
+            height: auto !important;
+            min-height: 0;
+        }
+
+        .chat-page .chat-conversations-panel,
+        .chat-page .chat-messages-panel {
+            width: 100% !important;
+            border-radius: 14px;
+        }
+
+        .chat-page .chat-conversations-panel {
+            max-height: 42vh;
+        }
+
+        .chat-page .chat-messages-panel {
+            min-height: 52vh;
+        }
+
+        .chat-page .chat-search-input {
+            width: 100% !important;
+        }
+
+        .chat-page #messages-container .max-w-xs {
+            max-width: min(82vw, 21rem) !important;
+        }
     }
 </style>
 

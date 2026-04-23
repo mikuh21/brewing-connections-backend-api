@@ -274,8 +274,8 @@
                                         </div>
                                     </td>
                                     <td class="px-3 py-2 whitespace-nowrap">
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full {{ $coupon->status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                            {{ ucfirst($coupon->status) }}
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full {{ $coupon->display_status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ ucfirst($coupon->display_status) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -356,7 +356,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Left side - QR Code -->
                         <div class="p-3 flex flex-col items-center justify-center rounded-xl bg-white">
-                            <canvas id="qrCanvas" class="bg-white border p-2 rounded-lg" width="220" height="220"></canvas>
+                            <div id="qrCanvas" class="w-[220px] h-[220px] bg-white border p-2 rounded-lg flex items-center justify-center text-sm text-gray-500">QR preview</div>
                         </div>
 
                         <!-- Right side - Details -->
@@ -449,21 +449,52 @@
 </style>
 
 <script>
-    // Load QRCode library from CDN
-    let qrCodeLoaded = false;
-    if (!window.QRCode) {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
-        script.onload = function() {
-            qrCodeLoaded = true;
-            console.log('QRCode library loaded');
-        };
-        script.onerror = function() {
-            console.error('Failed to load QRCode library');
-        };
-        document.head.appendChild(script);
-    } else {
-        qrCodeLoaded = true;
+    // Load QRCode library with fallback sources to avoid blank QR on blocked CDN.
+    let qrCodeReadyPromise = null;
+
+    function loadScript(source) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = source;
+            script.async = true;
+            script.onload = () => resolve(true);
+            script.onerror = () => reject(new Error(`Failed to load script: ${source}`));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function ensureQRCodeLibrary() {
+        if (typeof window.QRCode === 'function') {
+            return true;
+        }
+
+        if (qrCodeReadyPromise) {
+            return qrCodeReadyPromise;
+        }
+
+        const sources = [
+            'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+            'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js',
+            'https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js',
+        ];
+
+        qrCodeReadyPromise = (async () => {
+            for (const source of sources) {
+                try {
+                    await loadScript(source);
+                    if (typeof window.QRCode === 'function') {
+                        console.log('QRCode library loaded from:', source);
+                        return true;
+                    }
+                } catch (error) {
+                    console.error(error.message);
+                }
+            }
+
+            return false;
+        })();
+
+        return qrCodeReadyPromise;
     }
 
     // Initialize Alpine store for QR modal
@@ -527,6 +558,299 @@
 document.addEventListener('DOMContentLoaded', function() {
     const qrModal = document.getElementById('qr-modal');
     const toast = document.getElementById('toast');
+    const qrCanvas = document.getElementById('qrCanvas');
+    const downloadBtn = document.getElementById('download-qr');
+    let selectedCouponForDownload = null;
+
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function formatDateShort(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    }
+
+    function roundedRect(ctx, x, y, width, height, radius) {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+        const words = String(text || '').split(' ');
+        const lines = [];
+        let line = '';
+
+        for (let i = 0; i < words.length; i++) {
+            const testLine = line ? `${line} ${words[i]}` : words[i];
+            const metrics = ctx.measureText(testLine);
+
+            if (metrics.width > maxWidth && line) {
+                lines.push(line);
+                line = words[i];
+                if (lines.length >= maxLines - 1) {
+                    break;
+                }
+            } else {
+                line = testLine;
+            }
+        }
+
+        if (line && lines.length < maxLines) {
+            lines.push(line);
+        }
+
+        lines.forEach((content, index) => {
+            let rendered = content;
+            if (index === maxLines - 1 && words.length > 0) {
+                const originalText = String(text || '');
+                const combined = lines.join(' ');
+                if (combined.length < originalText.length) {
+                    while (ctx.measureText(`${rendered}...`).width > maxWidth && rendered.length > 0) {
+                        rendered = rendered.slice(0, -1);
+                    }
+                    rendered = `${rendered}...`;
+                }
+            }
+
+            ctx.fillText(rendered, x, y + (index * lineHeight));
+        });
+
+        return lines.length;
+    }
+
+    function dataUrlToFile(dataUrl, filename) {
+        const parts = String(dataUrl).split(',');
+        const meta = parts[0] || '';
+        const base64 = parts[1] || '';
+        const mimeMatch = meta.match(/data:(.*?);base64/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index++) {
+            bytes[index] = binary.charCodeAt(index);
+        }
+
+        return new File([bytes], filename, { type: mimeType });
+    }
+
+    async function tryShareQrImage(imageUrl, filename) {
+        if (!navigator.share || !navigator.canShare) {
+            return false;
+        }
+
+        try {
+            const file = dataUrlToFile(imageUrl, filename);
+            if (!navigator.canShare({ files: [file] })) {
+                return false;
+            }
+
+            await navigator.share({
+                title: 'Coupon QR',
+                text: 'Coupon promo QR code',
+                files: [file],
+            });
+
+            return true;
+        } catch (error) {
+            // User cancelled share panel; this is not an app error.
+            if (error && error.name === 'AbortError') {
+                return true;
+            }
+
+            return false;
+        }
+    }
+
+    function triggerDirectDownload(imageUrl, filename) {
+        const file = dataUrlToFile(imageUrl, filename);
+        const blobUrl = URL.createObjectURL(file);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        link.rel = 'noopener';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+        }, 1000);
+    }
+
+    async function buildModalStyledDownloadImage(qrNode, couponData) {
+        const width = 1200;
+        const height = 780;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // Backdrop
+        ctx.fillStyle = '#F3EFE7';
+        ctx.fillRect(0, 0, width, height);
+
+        // Modal card
+        const cardX = 70;
+        const cardY = 55;
+        const cardW = width - 140;
+        const cardH = height - 110;
+        ctx.fillStyle = '#FFFFFF';
+        roundedRect(ctx, cardX, cardY, cardW, cardH, 28);
+        ctx.fill();
+
+        // Header
+        ctx.fillStyle = '#3A2E22';
+        ctx.font = 'bold 54px Playfair Display, serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(String(couponData.establishment || ''), cardX + 34, cardY + 78);
+
+        // Inner panel
+        const panelX = cardX + 34;
+        const panelY = cardY + 115;
+        const panelW = cardW - 68;
+        const panelH = cardH - 145;
+        ctx.fillStyle = '#F3E9D7';
+        roundedRect(ctx, panelX, panelY, panelW, panelH, 20);
+        ctx.fill();
+
+        // Left QR container
+        const leftX = panelX + 20;
+        const leftY = panelY + 18;
+        const leftW = 430;
+        const leftH = panelH - 36;
+        ctx.fillStyle = '#FFFFFF';
+        roundedRect(ctx, leftX, leftY, leftW, leftH, 20);
+        ctx.fill();
+
+        // Draw QR code in left container
+        const qrSize = 280;
+        const qrX = leftX + Math.floor((leftW - qrSize) / 2);
+        const qrY = leftY + Math.floor((leftH - qrSize) / 2);
+        const qrImage = await new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error('Unable to render QR image for download.'));
+
+            image.src = qrNode.tagName.toLowerCase() === 'canvas'
+                ? qrNode.toDataURL('image/png')
+                : qrNode.src;
+        });
+
+        ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+
+        // Right details column
+        const rightX = leftX + leftW + 44;
+        const rightY = leftY + 38;
+        const rightW = panelX + panelW - rightX - 28;
+
+        ctx.fillStyle = '#1F2937';
+        ctx.font = 'bold 46px Playfair Display, serif';
+        const titleLines = drawWrappedText(ctx, couponData.title || '', rightX, rightY, rightW, 50, 2);
+
+        const titleBottomY = rightY + (Math.max(titleLines, 1) * 50);
+        ctx.fillStyle = '#4B5563';
+        ctx.font = '400 24px Poppins, sans-serif';
+        const descStartY = titleBottomY + 14;
+        const descLines = drawWrappedText(ctx, couponData.description || '', rightX, descStartY, rightW, 30, 2);
+
+        const descBottomY = descStartY + (Math.max(descLines, 1) * 30);
+        const detailsStartY = descBottomY + 24;
+
+        ctx.fillStyle = '#374151';
+        ctx.font = '600 30px Poppins, sans-serif';
+        ctx.fillText('Discount:', rightX, detailsStartY);
+        ctx.fillStyle = '#16A34A';
+        ctx.font = '700 30px Poppins, sans-serif';
+        const discountLines = drawWrappedText(ctx, String(couponData.discountLabel || ''), rightX, detailsStartY + 36, rightW, 34, 1);
+
+        const validLabelY = detailsStartY + 36 + (Math.max(discountLines, 1) * 34) + 12;
+        ctx.fillStyle = '#374151';
+        ctx.font = '600 30px Poppins, sans-serif';
+        ctx.fillText('Valid Period:', rightX, validLabelY);
+        ctx.font = '400 24px Poppins, sans-serif';
+        ctx.fillStyle = '#4B5563';
+        const validText = `${couponData.validFromLabel || ''} - ${couponData.validUntilLabel || ''}`;
+        const validLines = drawWrappedText(ctx, validText, rightX, validLabelY + 34, rightW, 30, 2);
+
+        // Branding footer in panel
+        const brandCenterX = rightX + Math.floor(rightW / 2);
+        const brandSecondLineY = panelY + panelH - 22;
+        const brandFirstLineY = brandSecondLineY - 34;
+        const detailsBottomY = validLabelY + 34 + (Math.max(validLines, 1) * 30);
+
+        if (detailsBottomY > brandFirstLineY - 12) {
+            // Compact fallback for tight layouts: shrink detail copy once more.
+            ctx.fillStyle = '#F3E9D7';
+            ctx.fillRect(rightX, detailsStartY - 8, rightW + 8, brandFirstLineY - detailsStartY - 4);
+
+            ctx.fillStyle = '#374151';
+            ctx.font = '600 26px Poppins, sans-serif';
+            ctx.fillText('Discount:', rightX, detailsStartY);
+            ctx.fillStyle = '#16A34A';
+            ctx.font = '700 26px Poppins, sans-serif';
+            drawWrappedText(ctx, String(couponData.discountLabel || ''), rightX, detailsStartY + 30, rightW, 30, 1);
+
+            const fallbackValidLabelY = detailsStartY + 68;
+            ctx.fillStyle = '#374151';
+            ctx.font = '600 26px Poppins, sans-serif';
+            ctx.fillText('Valid Period:', rightX, fallbackValidLabelY);
+            ctx.fillStyle = '#4B5563';
+            ctx.font = '400 22px Poppins, sans-serif';
+            drawWrappedText(ctx, validText, rightX, fallbackValidLabelY + 28, rightW, 26, 2);
+        }
+
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#4B3A2A';
+        ctx.font = '400 22px Playfair Display, serif';
+        ctx.fillText('Brewing Connections', brandCenterX, brandFirstLineY);
+
+        ctx.fillStyle = '#3A2E22';
+        ctx.font = '600 22px Poppins, sans-serif';
+        ctx.fillText(String(couponData.establishment || ''), brandCenterX, brandSecondLineY);
+
+        return canvas.toDataURL('image/png');
+    }
+
+    function drawQrPlaceholder(message) {
+        if (!qrCanvas) {
+            return;
+        }
+
+        qrCanvas.innerHTML = `<span class="text-sm text-gray-500">${message}</span>`;
+        qrCanvas.dataset.qrReady = 'false';
+    }
+
+    function setDownloadAvailability(isEnabled) {
+        if (!downloadBtn) {
+            return;
+        }
+
+        downloadBtn.disabled = !isEnabled;
+        downloadBtn.classList.toggle('opacity-50', !isEnabled);
+        downloadBtn.classList.toggle('cursor-not-allowed', !isEnabled);
+    }
 
     function openQrModal(id) {
         console.log('openQrModal called with ID:', id);
@@ -537,18 +861,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .then(response => response.json())
-        .then(data => {
+        .then(async data => {
             console.log(data);
-
-            // Format dates
-            const formatDate = (dateStr) => {
-                const date = new Date(dateStr);
-                return date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-            };
 
             document.getElementById('modal-cafe-header').textContent = data.establishment;
             document.getElementById('modal-cafe-footer-text').textContent = data.establishment;
@@ -559,33 +873,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modal-valid').textContent = `${formatDate(data.valid_from)} - ${formatDate(data.valid_until)}`;
             document.getElementById('modal-usage').textContent = `${data.used_count} / ${data.max_usage}`;
 
-            // Generate QR
-            const generateQR = function() {
-                if (window.QRCode) {
-                    window.QRCode.toCanvas(document.getElementById('qrCanvas'), data.qr_code_token, { width: 240, height: 240 }, function(error) {
-                        if (error) console.error('QR Code generation failed:', error);
-                    });
-                } else {
-                    console.error('QRCode library not available');
-                }
+            selectedCouponForDownload = {
+                title: data.title,
+                description: data.description,
+                establishment: data.establishment,
+                discountLabel,
+                validFromLabel: formatDateShort(data.valid_from),
+                validUntilLabel: formatDateShort(data.valid_until),
             };
 
-            if (qrCodeLoaded) {
-                generateQR();
-            } else {
-                // Wait for library to load
-                const checkLoaded = setInterval(function() {
-                    if (qrCodeLoaded) {
-                        clearInterval(checkLoaded);
-                        generateQR();
-                    }
-                }, 100);
-                // Timeout after 5 seconds
-                setTimeout(function() {
-                    clearInterval(checkLoaded);
-                    console.error('QRCode library failed to load within timeout');
-                }, 5000);
-            }
+            drawQrPlaceholder('Loading QR...');
+            setDownloadAvailability(false);
 
             // Show modal using Alpine.js store
             console.log('Showing QR modal via Alpine store');
@@ -594,9 +892,54 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.error('Alpine.js store not available');
             }
+
+            const qrToken = (data.qr_code_token || '').trim();
+            if (!qrToken) {
+                drawQrPlaceholder('QR unavailable');
+                showToast('QR token is missing for this promo.', 'error');
+                return;
+            }
+
+            const qrLibraryReady = await ensureQRCodeLibrary();
+            if (!qrLibraryReady) {
+                drawQrPlaceholder('QR unavailable');
+                showToast('Unable to load QR generator. Please try again.', 'error');
+                return;
+            }
+
+            const qrPayload = `{{ url('/redeem') }}/${qrToken}`;
+            qrCanvas.innerHTML = '';
+
+            try {
+                new window.QRCode(qrCanvas, {
+                    text: qrPayload,
+                    width: 220,
+                    height: 220,
+                    colorDark: '#3A2E22',
+                    colorLight: '#FFFFFF',
+                    correctLevel: window.QRCode.CorrectLevel.H
+                });
+
+                setTimeout(() => {
+                    const renderedNode = qrCanvas.querySelector('canvas, img');
+                    if (!renderedNode) {
+                        drawQrPlaceholder('QR unavailable');
+                        showToast('Failed to generate QR code.', 'error');
+                        return;
+                    }
+
+                    qrCanvas.dataset.qrReady = 'true';
+                    setDownloadAvailability(true);
+                }, 100);
+            } catch (error) {
+                console.error('QR Code generation failed:', error);
+                drawQrPlaceholder('QR unavailable');
+                showToast('Failed to generate QR code.', 'error');
+            }
         })
         .catch(error => {
             console.error('Error fetching coupon data:', error);
+            showToast('Failed to load promo details.', 'error');
         });
     }
 
@@ -620,23 +963,48 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Table not found');
     }
 
-    // Debug: Check if QRCode library loads
-    setTimeout(function() {
-        console.log('QRCode library available:', typeof window.QRCode !== 'undefined');
-    }, 2000);
+    ensureQRCodeLibrary().then((loaded) => {
+        console.log('QRCode library available:', loaded);
+    });
 
     // Download QR
-    document.getElementById('download-qr').addEventListener('click', function() {
-        const canvas = document.getElementById('qrCanvas');
+    document.getElementById('download-qr').addEventListener('click', async function() {
+        const qrHolder = document.getElementById('qrCanvas');
         const title = document.getElementById('modal-title').textContent;
+        const normalizedTitle = String(title || 'coupon').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const filename = `coupon-qr-${normalizedTitle || 'download'}.png`;
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-            window.open(canvas.toDataURL('image/png'));
-        } else {
-            const link = document.createElement('a');
-            link.download = `coupon-qr-${title}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+
+        if (qrHolder.dataset.qrReady !== 'true') {
+            showToast('QR code is not ready yet.', 'error');
+            return;
+        }
+
+        const qrNode = qrHolder.querySelector('canvas, img');
+        if (!qrNode) {
+            showToast('QR code is not ready yet.', 'error');
+            return;
+        }
+
+        if (!selectedCouponForDownload) {
+            showToast('Promo details are not available yet.', 'error');
+            return;
+        }
+
+        try {
+            const imageUrl = await buildModalStyledDownloadImage(qrNode, selectedCouponForDownload);
+
+            if (isMobile) {
+                const shared = await tryShareQrImage(imageUrl, filename);
+                if (shared) {
+                    return;
+                }
+            }
+
+            triggerDirectDownload(imageUrl, filename);
+        } catch (error) {
+            console.error(error);
+            showToast('Failed to create QR download image.', 'error');
         }
     });
 

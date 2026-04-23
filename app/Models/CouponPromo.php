@@ -46,7 +46,14 @@ class CouponPromo extends Model
 
     public function getIsExpiredAttribute()
     {
-        return $this->valid_until < Carbon::today() || $this->used_count >= $this->max_usage;
+        return $this->status === 'expired'
+            || $this->valid_until < Carbon::today()
+            || $this->used_count >= $this->max_usage;
+    }
+
+    public function getDisplayStatusAttribute()
+    {
+        return $this->is_expired ? 'expired' : $this->status;
     }
 
     public function getUsagePercentageAttribute()
@@ -57,7 +64,9 @@ class CouponPromo extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'active')
+                     ->where('valid_from', '<=', Carbon::today())
                      ->where('valid_until', '>=', Carbon::today())
+                     ->whereColumn('used_count', '<', 'max_usage')
                      ->whereNull('deleted_at');
     }
 
@@ -65,7 +74,8 @@ class CouponPromo extends Model
     {
         return $query->where(function ($q) {
             $q->where('status', 'expired')
-              ->orWhere('valid_until', '<', Carbon::today());
+              ->orWhere('valid_until', '<', Carbon::today())
+              ->orWhereColumn('used_count', '>=', 'max_usage');
         })->whereNull('deleted_at');
     }
 }

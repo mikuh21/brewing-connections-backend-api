@@ -114,7 +114,7 @@ class CouponPromoController extends Controller
             ], 422);
         }
 
-        if ($promo->status !== 'active' || Carbon::parse($promo->valid_until)->lt(Carbon::today())) {
+        if ($promo->status !== 'active' || $promo->is_expired) {
             return response()->json([
                 'status' => 'invalid',
                 'message' => 'Invalid or Expired QR Code',

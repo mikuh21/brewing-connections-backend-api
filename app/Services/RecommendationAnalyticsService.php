@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 class RecommendationAnalyticsService
 {
+    private const ATTENTION_THRESHOLD = 3.0;
+    private const MEDIUM_PRIORITY_THRESHOLD = 4.0;
+
     public function getOverallAnalytics()
     {
         $stats = DB::table('rating')
@@ -38,7 +41,7 @@ class RecommendationAnalyticsService
             'service' => (float) ($stats->service_avg ?? 0),
         ];
 
-        $lowestCategory = array_keys($categories, min($categories))[0];
+        $lowestCategory = $this->determineNeedsAttentionCategory($categories);
 
         $impactPercentages = $this->calculateImpactPercentages($categories, $stats->overall_avg);
 
@@ -82,7 +85,7 @@ class RecommendationAnalyticsService
             'service' => (float) ($stats->service_avg ?? 0),
         ];
 
-        $lowestCategory = array_keys($categories, min($categories))[0];
+        $lowestCategory = $this->determineNeedsAttentionCategory($categories);
 
         $impactPercentages = $this->calculateImpactPercentages($categories, $stats->overall_avg);
 
@@ -115,36 +118,7 @@ class RecommendationAnalyticsService
                 continue;
             }
 
-            $categories = [
-                'taste' => $stats->taste_avg,
-                'environment' => $stats->environment_avg,
-                'cleanliness' => $stats->cleanliness_avg,
-                'service' => $stats->service_avg,
-            ];
-
-            $lowestCategory = array_keys($categories, min($categories))[0];
-            $lowestAvg = $categories[$lowestCategory];
-
-            $priority = $this->calculatePriority($lowestAvg);
-            $impactScore = round((5 - $lowestAvg) * 0.15, 2);
-
-            $insight = $this->getInsightText($lowestCategory);
-            $suggestedAction = $this->getSuggestedAction($lowestCategory);
-
-            Recommendation::updateOrCreate(
-                [
-                    'establishment_id' => $establishment->id,
-                    'category' => $lowestCategory,
-                ],
-                [
-                    'priority' => $priority,
-                    'insight' => $insight,
-                    'suggested_action' => $suggestedAction,
-                    'impact_score' => $impactScore,
-                    'based_on_reviews' => $stats->review_count,
-                    'generated_at' => now(),
-                ]
-            );
+            $this->syncRecommendationsForEstablishment($establishment->id, $stats);
         }
     }
 
@@ -171,13 +145,64 @@ class RecommendationAnalyticsService
 
     private function calculatePriority($avg)
     {
-        if ($avg < 3.5) {
+        $avg = round((float) $avg, 1);
+
+        if ($avg < self::ATTENTION_THRESHOLD) {
             return 'high';
-        } elseif ($avg <= 4.0) {
+        } elseif ($avg < self::MEDIUM_PRIORITY_THRESHOLD) {
             return 'medium';
         } else {
             return 'low';
         }
+    }
+
+    private function syncRecommendationsForEstablishment(int $establishmentId, object $stats): void
+    {
+        $categories = [
+            'taste' => (float) ($stats->taste_avg ?? 0),
+            'environment' => (float) ($stats->environment_avg ?? 0),
+            'cleanliness' => (float) ($stats->cleanliness_avg ?? 0),
+            'service' => (float) ($stats->service_avg ?? 0),
+        ];
+
+        Recommendation::where('establishment_id', $establishmentId)
+            ->whereNotIn('category', array_keys($categories))
+            ->delete();
+
+        foreach ($categories as $category => $average) {
+            Recommendation::updateOrCreate(
+                [
+                    'establishment_id' => $establishmentId,
+                    'category' => $category,
+                ],
+                [
+                    'priority' => $this->calculatePriority($average),
+                    'insight' => $this->getInsightText($category),
+                    'suggested_action' => $this->getSuggestedAction($category),
+                    'impact_score' => round((5 - $average) * 0.15, 2),
+                    'based_on_reviews' => (int) ($stats->review_count ?? 0),
+                    'generated_at' => now(),
+                ]
+            );
+        }
+    }
+
+    private function determineNeedsAttentionCategory(array $categories): ?string
+    {
+        if (empty($categories)) {
+            return null;
+        }
+
+        $roundedCategories = collect($categories)
+            ->map(fn ($avg) => round((float) $avg, 1))
+            ->toArray();
+
+        $lowestAverage = min($roundedCategories);
+        if ($lowestAverage >= self::ATTENTION_THRESHOLD) {
+            return null;
+        }
+
+        return array_keys($roundedCategories, $lowestAverage)[0] ?? null;
     }
 
     private function getInsightText($category)
@@ -227,36 +252,7 @@ class RecommendationAnalyticsService
             return;
         }
 
-        $categories = [
-            'taste' => $stats->taste_avg,
-            'environment' => $stats->environment_avg,
-            'cleanliness' => $stats->cleanliness_avg,
-            'service' => $stats->service_avg,
-        ];
-
-        $lowestCategory = array_keys($categories, min($categories))[0];
-        $lowestAvg = $categories[$lowestCategory];
-
-        $priority = $this->calculatePriority($lowestAvg);
-        $impactScore = round((5 - $lowestAvg) * 0.15, 2);
-
-        $insight = $this->getInsightText($lowestCategory);
-        $suggestedAction = $this->getSuggestedAction($lowestCategory);
-
-        Recommendation::updateOrCreate(
-            [
-                'establishment_id' => $establishment->id,
-                'category' => $lowestCategory,
-            ],
-            [
-                'priority' => $priority,
-                'insight' => $insight,
-                'suggested_action' => $suggestedAction,
-                'impact_score' => $impactScore,
-                'based_on_reviews' => $stats->review_count,
-                'generated_at' => now(),
-            ]
-        );
+        $this->syncRecommendationsForEstablishment($establishment->id, $stats);
     }
 
     public function getRecentReviews()
@@ -268,6 +264,8 @@ class RecommendationAnalyticsService
                 'users.name as user_name',
                 'establishments.name as establishment_name',
                 'rating.created_at',
+                'rating.image',
+                'rating.overall_rating',
                 'rating.taste_rating',
                 'rating.environment_rating',
                 'rating.cleanliness_rating',

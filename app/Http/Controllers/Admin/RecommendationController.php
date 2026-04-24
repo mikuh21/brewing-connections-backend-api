@@ -20,21 +20,10 @@ class RecommendationController extends Controller
     public function index(Request $request)
     {
         $priority = $request->query('priority', 'all');
+        $this->analyticsService->generateInsights();
         $overallAnalytics = $this->analyticsService->getOverallAnalytics();
         $recentReviews = $this->analyticsService->getRecentReviews();
-        if (in_array($priority, ['high', 'medium', 'low'])) {
-            // When filtering by priority, only fetch recommendations for that priority
-            $filteredRecommendations = Recommendation::with('establishment')
-                ->where('priority', $priority)
-                ->get();
-            $recommendations = collect([
-                'high' => $priority === 'high' ? $filteredRecommendations : collect(),
-                'medium' => $priority === 'medium' ? $filteredRecommendations : collect(),
-                'low' => $priority === 'low' ? $filteredRecommendations : collect(),
-            ]);
-        } else {
-            $recommendations = Recommendation::with('establishment')->get()->groupBy('priority');
-        }
+        $recommendations = Recommendation::with('establishment')->get()->groupBy('priority');
         $establishments = Establishment::all()->map(function ($est) {
             return [
                 'establishment' => $est,

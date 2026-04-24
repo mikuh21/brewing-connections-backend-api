@@ -13,20 +13,34 @@
         overflow: hidden !important;
         height: 100vh !important;
     }
+
+    @media (max-width: 767px) {
+        body,
+        html {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            height: auto !important;
+            min-height: 100vh !important;
+        }
+    }
 </style>
 @endpush
 
 @section('bodyClass', 'login-page')
 
-<div class="flex h-screen w-screen overflow-hidden bg-[#E8DDD0] items-center justify-center">
-    <div class="w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex" style="height: 540px;">
+<div class="auth-shell flex h-screen w-screen overflow-hidden bg-[#E8DDD0] items-center justify-center">
+    <a href="{{ url('/') }}" class="mobile-auth-logo md:hidden fixed top-5 left-5 z-30 inline-flex items-center text-[#3A2E22] hover:text-[#2E5A3D] transition-colors">
+        <span class="brand-wordmark text-xl"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+    </a>
+
+    <div class="auth-layout w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex" style="height: 540px;">
         <!-- Left Panel: Onboarding Slider -->
         <div class="w-full md:w-2/5 bg-gradient-to-b from-[#3A2E22] to-[#2E5A3D] hidden md:flex flex-col relative overflow-hidden rounded-l-3xl">
             <!-- Logo -->
             <div class="absolute top-6 left-6 z-20">
-                <span class="text-white font-bold text-xl font-display">
-                    BrewHub
-                </span>
+                <a href="{{ url('/') }}" class="inline-flex items-center text-white hover:text-[#F3E9D7] transition-colors" aria-label="Go to landing page">
+                    <span class="brand-wordmark text-xl"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+                </a>
             </div>
 
             <!-- Carousel -->
@@ -82,24 +96,22 @@
         </div>
 
         <!-- Right Panel: Login Form -->
-        <div class="w-full md:w-3/5 bg-[#F3E9D7] flex items-center justify-center h-full">
-            <div class="max-w-xl w-full h-full px-6 md:px-8 py-4 md:py-0 flex items-center justify-center">
+        <div class="auth-form-column w-full md:w-3/5 bg-[#F3E9D7] flex items-center justify-center h-full">
+            <div class="auth-form-inner max-w-xl w-full h-full px-6 md:px-8 py-4 md:py-0 flex items-center justify-center">
                 @php
                     $hasResellerErrors = $errors->resellerRegistration->any();
                 @endphp
 
                 <!-- Mobile Logo -->
-                <div class="md:hidden text-center mb-8">
-                    <h1 class="text-2xl font-bold text-[#3A2E22] font-display">Brewing Connections</h1>
-                </div>
+                <div class="md:hidden sr-only" aria-hidden="true"></div>
 
                 <!-- Login Card -->
                 <div id="formPanelsStage" class="relative w-full panel-stage">
                     <div id="loginFormPanel" class="form-panel {{ $hasResellerErrors ? 'is-hidden' : 'is-active' }}">
-                        <h2 class="text-3xl font-bold italic text-[#3A2E22] font-display mb-1">Welcome Back,</h2>
-                        <p class="text-sm text-gray-500 font-body mb-8">Log in to access your dashboard</p>
+                        <h2 class="text-3xl font-bold italic text-[#3A2E22] font-display mb-1 auth-title">Welcome Back,</h2>
+                        <p class="text-sm text-gray-500 font-body mb-8 auth-subtitle">Log in to access your dashboard</p>
 
-                        <form method="POST" action="{{ route('login') }}">
+                        <form method="POST" action="{{ route('login') }}" class="auth-login-form">
                             @csrf
 
                             <!-- Email Field -->
@@ -148,13 +160,13 @@
                     </div>
 
                     <div id="registerFormPanel" class="form-panel {{ $hasResellerErrors ? 'is-active' : 'is-hidden' }}">
-                        <h2 class="text-2xl font-bold italic text-[#3A2E22] font-display mb-1">Create an Account</h2>
-                        <p class="text-sm text-gray-500 font-body mb-4">Join BrewHub as a Coffee Reseller</p>
+                        <h2 class="text-2xl font-bold italic text-[#3A2E22] font-display mb-1 auth-title">Create an Account</h2>
+                        <p class="text-sm text-gray-500 font-body mb-4 auth-subtitle">Join BrewHub as a Coffee Reseller</p>
 
                         <form method="POST" action="{{ route('reseller.register') }}" id="resellerRegistrationForm">
                             @csrf
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                            <div class="register-grid grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                             <div>
                                 <label for="register_name" class="block text-sm text-[#3A2E22] font-body mb-1">Full Name</label>
                                 <input type="text" id="register_name" name="name" value="{{ old('name') }}" class="bg-white border border-gray-300 rounded-lg w-full px-4 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" placeholder="Full name/business name" required>
@@ -376,6 +388,156 @@
 #termsModalBody::-webkit-scrollbar-thumb:hover {
     background: rgba(120, 120, 120, 0.75);
 }
+
+@media (max-width: 767px) {
+    .auth-shell {
+        min-height: 100svh;
+        height: auto !important;
+        overflow: visible !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 4.5rem 0 1.5rem;
+        background: linear-gradient(180deg, #e8ddd0 0%, #efe6d8 45%, #e8ddd0 100%);
+    }
+
+    .mobile-auth-logo {
+        letter-spacing: -0.02em;
+    }
+
+    .auth-layout {
+        max-width: none !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: calc(100svh - 6rem);
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        background: transparent !important;
+    }
+
+    .auth-form-column {
+        background: transparent !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: calc(100svh - 6rem) !important;
+    }
+
+    .auth-form-inner {
+        max-width: none !important;
+        height: auto !important;
+        min-height: calc(100svh - 6rem) !important;
+        padding: 0 1.05rem 1rem !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .panel-stage {
+        min-height: 0 !important;
+        overflow: visible !important;
+    }
+
+    .form-panel {
+        position: relative !important;
+        inset: auto !important;
+        justify-content: flex-start !important;
+        padding: 0.8rem 0 0.9rem;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+    }
+
+    .form-panel.is-active {
+        display: flex;
+    }
+
+    .form-panel.is-hidden {
+        display: none;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transform: none !important;
+    }
+
+    .auth-title {
+        font-size: 1.85rem !important;
+        line-height: 1.05 !important;
+        margin-top: 0.25rem;
+    }
+
+    .auth-subtitle {
+        margin-bottom: 1rem !important;
+    }
+
+    .auth-login-form .mb-6 {
+        margin-bottom: 1rem !important;
+    }
+
+    .register-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.7rem !important;
+    }
+
+    .register-grid > div {
+        min-width: 0;
+    }
+
+    .register-grid .md\:col-span-2 {
+        grid-column: 1 / -1;
+    }
+
+    .register-grid label,
+    .auth-login-form label {
+        font-size: 0.74rem !important;
+        margin-bottom: 0.32rem !important;
+    }
+
+    .register-grid input,
+    .auth-login-form input {
+        padding: 0.72rem 0.85rem !important;
+        font-size: 0.78rem !important;
+        min-height: 44px;
+    }
+
+    .register-grid input.pr-10,
+    .auth-login-form input.pr-10 {
+        padding-right: 2.35rem !important;
+    }
+
+    .register-grid .text-xs,
+    .auth-login-form .text-xs {
+        font-size: 0.68rem !important;
+        line-height: 1rem !important;
+    }
+
+    .register-grid .h-5.w-5,
+    .auth-login-form .h-5.w-5 {
+        width: 1rem !important;
+        height: 1rem !important;
+    }
+
+    #showRegisterForm,
+    #showLoginForm {
+        white-space: nowrap;
+    }
+
+    #loginFormPanel .text-center.mt-4,
+    #registerFormPanel .text-center.mt-4 {
+        margin-top: 0.9rem !important;
+    }
+
+    #registerFormPanel .text-center.mt-4:last-child {
+        margin-bottom: 0.1rem;
+    }
+
+    #termsModal {
+        padding: 0.9rem !important;
+    }
+
+    #termsModal > div {
+        max-height: calc(100svh - 1.8rem);
+    }
+}
 </style>
 
 <script>
@@ -474,6 +636,12 @@ const showLoginForm = document.getElementById('showLoginForm');
 const panelTransitionMs = 420;
 
 function syncPanelStageHeight() {
+    if (window.innerWidth <= 767) {
+        const activePanel = loginFormPanel.classList.contains('is-active') ? loginFormPanel : registerFormPanel;
+        formPanelsStage.style.height = `${activePanel.scrollHeight}px`;
+        return;
+    }
+
     const maxPanelHeight = Math.max(loginFormPanel.scrollHeight, registerFormPanel.scrollHeight);
     formPanelsStage.style.height = `${maxPanelHeight}px`;
 }

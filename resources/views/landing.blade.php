@@ -147,7 +147,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 md:h-20">
                 <div class="flex items-center">
-                    <a href="#home" class="nav-logo text-xl md:text-2xl font-bold text-white hover:text-[#F3E9D7]">BrewHub</a>
+                    <a href="#home" class="nav-logo text-xl md:text-2xl text-white hover:text-[#F3E9D7]">
+                        <span class="brand-wordmark"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+                    </a>
                 </div>
                 <div class="hidden md:flex items-center space-x-6 md:space-x-8">
                     <a href="#home" :class="active === 'home' ? 'nav-link text-white hover:text-[#F3E9D7] font-semibold' : 'nav-link text-white hover:text-[#F3E9D7]'" @click="active = 'home'" class="text-sm md:text-base">Home</a>

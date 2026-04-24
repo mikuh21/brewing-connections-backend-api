@@ -29,7 +29,7 @@
                 <svg class="w-6 h-6 mr-3 text-[#F5F0E8]" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                 </svg>
-                <span class="text-lg font-display font-bold">BrewHub</span>
+                <span class="brand-wordmark text-lg"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
             </div>
 
             <!-- Navigation -->
@@ -261,7 +261,7 @@
                             </div>
                         </div>
                         <div class="rating-card-date text-[#9E8C78] text-sm">
-                            {{ $rating->created_at->format('Y-m-d') }}
+                            {{ $rating->created_at->format('M d, Y') }}
                         </div>
                     </div>
 
@@ -309,14 +309,15 @@
 
                     <!-- Overall Rating -->
                     @php
+                        $overallValue = round((float) $rating->overall_rating, 1);
                         $overallBg = match(true) {
-                            $rating->overall_rating < 3 => 'bg-red-50 border-red-200',
-                            $rating->overall_rating == 3 => 'bg-yellow-50 border-yellow-200',
+                            $overallValue < 3.0 => 'bg-red-50 border-red-200',
+                            $overallValue < 4.0 => 'bg-yellow-50 border-yellow-200',
                             default => 'bg-green-50 border-green-200',
                         };
                         $overallStarColor = match(true) {
-                            $rating->overall_rating < 3 => 'text-red-500',
-                            $rating->overall_rating == 3 => 'text-yellow-500',
+                            $overallValue < 3.0 => 'text-red-500',
+                            $overallValue < 4.0 => 'text-yellow-500',
                             default => 'text-[#4A6741]',
                         };
                     @endphp

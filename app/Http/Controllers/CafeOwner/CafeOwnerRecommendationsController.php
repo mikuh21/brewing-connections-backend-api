@@ -73,7 +73,7 @@ class CafeOwnerRecommendationsController extends Controller
 
         if (!$establishment) {
             $avgRating = 0.0;
-            $priorityLevel = $this->resolvePriorityLevel($avgRating);
+            $priorityLevel = $this->resolvePriorityLevel(0.0);
 
             $emptyInsightsFilterPayload = [
                 'all' => [
@@ -111,6 +111,7 @@ class CafeOwnerRecommendationsController extends Controller
                 'lowCount' => 0,
                 'priorityLevel' => $priorityLevel,
                 'priorityCategory' => 'taste',
+                'priorityCategories' => ['taste'],
                 'categoryAverages' => [
                     'taste' => 0,
                     'environment' => 0,
@@ -154,7 +155,6 @@ class CafeOwnerRecommendationsController extends Controller
             }
         }
 
-        $priorityLevel = $this->resolvePriorityLevel($avgRating);
         $weeklyRatingsQuery = Rating::query()
             ->where('establishment_id', $establishment->id)
             ->whereBetween('created_at', [$weekStart, $weekEnd]);
@@ -205,10 +205,15 @@ class CafeOwnerRecommendationsController extends Controller
                 })
                 ->toArray();
 
-            $periodPriorityCategory = collect($periodCategoryAverages)
-                ->sort()
+            $periodLowestScore = collect($periodCategoryAverages)->min() ?? 0.0;
+            $periodPriorityCategories = collect($periodCategoryAverages)
+                ->filter(fn (float $score) => round($score, 1) === round((float) $periodLowestScore, 1))
                 ->keys()
-                ->first() ?? 'taste';
+                ->values()
+                ->all();
+
+            $periodPriorityCategory = $periodPriorityCategories[0] ?? 'taste';
+            $periodPriorityLevel = $this->resolvePriorityLevel((float) $periodLowestScore);
 
             $periodRecommendationsQuery = Recommendation::query()
                 ->where('establishment_id', $establishment->id);
@@ -264,8 +269,10 @@ class CafeOwnerRecommendationsController extends Controller
                 'count' => $periodRecommendationCount,
                 'has_ratings' => $periodHasRatings,
                 'date_label' => $dateLabel,
+                'priority_level' => $periodPriorityLevel,
                 'category_averages' => $periodCategoryAverages,
                 'priority_category' => $periodPriorityCategory,
+                'priority_categories' => $periodPriorityCategories,
                 'journey_insights' => $periodJourneyInsights,
             ];
         };
@@ -278,7 +285,9 @@ class CafeOwnerRecommendationsController extends Controller
 
         $weekInsightsPayload = $insightsFilterPayload['week'];
         $categoryAverages = (array) data_get($weekInsightsPayload, 'category_averages', []);
+        $priorityLevel = (string) data_get($weekInsightsPayload, 'priority_level', $this->resolvePriorityLevel(0.0));
         $priorityCategory = (string) data_get($weekInsightsPayload, 'priority_category', 'taste');
+        $priorityCategories = (array) data_get($weekInsightsPayload, 'priority_categories', [$priorityCategory]);
         $journeyInsights = (array) data_get($weekInsightsPayload, 'journey_insights', []);
         $currentWeekRecommendationCount = (int) data_get($weekInsightsPayload, 'count', 0);
         $weeklyHasRatings = (bool) data_get($weekInsightsPayload, 'has_ratings', false);
@@ -345,6 +354,7 @@ class CafeOwnerRecommendationsController extends Controller
             'lowCount',
             'priorityLevel',
             'priorityCategory',
+            'priorityCategories',
             'categoryAverages',
             'journeyInsights',
             'currentWeekRecommendationCount',
@@ -397,11 +407,13 @@ class CafeOwnerRecommendationsController extends Controller
 
     protected function priorityKeyFromScore(float $score): string
     {
-        if ($score < 3.5) {
+        $score = round($score, 1);
+
+        if ($score < 3.0) {
             return 'high';
         }
 
-        if ($score <= 4.0) {
+        if ($score < 4.0) {
             return 'medium';
         }
 
@@ -519,7 +531,9 @@ class CafeOwnerRecommendationsController extends Controller
 
     protected function resolvePriorityLevel(float $avgRating): string
     {
-        if ($avgRating < 2.5) {
+        $avgRating = round($avgRating, 1);
+
+        if ($avgRating < 3.0) {
             return 'High Priority';
         }
 

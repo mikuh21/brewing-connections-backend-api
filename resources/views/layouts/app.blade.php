@@ -35,6 +35,19 @@
             font-family: 'Poppins', sans-serif; 
         }
 
+        .brand-wordmark {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-wordmark .brand-hub {
+            font-style: italic;
+        }
+
         * {
             scrollbar-width: thin;
             scrollbar-color: rgba(156, 163, 175, 0.55) transparent;

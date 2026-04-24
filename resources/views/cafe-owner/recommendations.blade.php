@@ -75,20 +75,41 @@
         })
         ->toArray();
 
-    $priorityCategoryKey = strtolower((string) ($priorityCategory ?? 'taste'));
-    if (!array_key_exists($priorityCategoryKey, $categoryLabels)) {
-        $priorityCategoryKey = collect($categoryAveragesMap)->sort()->keys()->first() ?? 'taste';
+    $priorityCategoryKeys = collect($priorityCategories ?? [$priorityCategory ?? 'taste'])
+        ->map(fn ($key) => strtolower((string) $key))
+        ->filter(fn ($key) => array_key_exists($key, $categoryLabels))
+        ->values();
+
+    if ($priorityCategoryKeys->isEmpty()) {
+        $priorityCategoryKeys = collect($categoryAveragesMap)
+            ->sort()
+            ->keys()
+            ->take(1)
+            ->values();
     }
-    $priorityCategoryLabel = $categoryLabels[$priorityCategoryKey] ?? 'Taste';
+
+    $priorityCategoryLabel = $priorityCategoryKeys
+        ->map(fn ($key) => $categoryLabels[$key] ?? ucfirst($key))
+        ->join(', ');
+
+    $priorityCategorySummary = $priorityCategoryKeys->count() > 1
+        ? 'Priority Categories'
+        : 'Priority Category';
+
     $priorityCategoryFieldMap = [
         'taste' => 'taste_rating',
         'environment' => 'environment_rating',
         'cleanliness' => 'cleanliness_rating',
         'service' => 'service_rating',
     ];
-    $priorityCategoryField = $priorityCategoryFieldMap[$priorityCategoryKey] ?? 'taste_rating';
+
     $priorityTargetReview = collect($latestReviews ?? collect())
-        ->sortBy(fn ($review) => (int) data_get($review, $priorityCategoryField, 0))
+        ->sortBy(function ($review) use ($priorityCategoryKeys, $priorityCategoryFieldMap) {
+            return $priorityCategoryKeys->map(function ($key) use ($review, $priorityCategoryFieldMap) {
+                $field = $priorityCategoryFieldMap[$key] ?? 'taste_rating';
+                return (int) data_get($review, $field, 0);
+            })->min() ?? 0;
+        })
         ->first();
     $priorityTargetReviewId = (int) data_get($priorityTargetReview, 'review_id', 0);
 
@@ -167,11 +188,14 @@
 
     <div id="priorityStatusCard" data-target-review-id="{{ $priorityTargetReviewId }}" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#4A6741]/50" role="button" tabindex="0" aria-label="Jump to priority review">
         <p class="text-[#9E8C78] text-sm font-medium mb-3">Priority Status</p>
-        <p class="text-sm text-[#6B5B4A] mb-2">Priority Category: <span class="font-semibold text-[#3A2E22]">{{ $priorityCategoryLabel }}</span></p>
+        <p class="text-sm text-[#6B5B4A] mb-2">{{ $priorityCategorySummary }}: <span class="font-semibold text-[#3A2E22]">{{ $priorityCategoryLabel }}</span></p>
         <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $priorityCardClass }}">
             {{ $priorityLabel }}
         </span>
         <p class="text-sm text-[#6B5B4A] mt-3">{{ $priorityDesc }}</p>
+        @if($priorityCategoryKeys->count() > 1)
+            <p class="text-[11px] text-[#9E8C78] mt-2 leading-relaxed">These categories are tied at the same weakest score, so all of them are highlighted in the overview.</p>
+        @endif
         <p class="text-[11px] text-[#9E8C78] mt-2">Click to jump to a matching recent review</p>
     </div>
 </div>

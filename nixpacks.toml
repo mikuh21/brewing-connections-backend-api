@@ -18,8 +18,10 @@ nixPkgs = [
 
 [phases.build]
 cmds = [
-  "composer install --no-dev --optimize-autoloader"
+  "composer install --no-dev --optimize-autoloader",
+  "curl -L https://github.com/dunglas/frankenphp/releases/latest/download/frankenphp-linux-x86_64 -o /usr/local/bin/frankenphp",
+  "chmod +x /usr/local/bin/frankenphp"
 ]
 
 [start]
-cmd = "php artisan migrate --force 2>&1 && php -S 0.0.0.0:${PORT:-8000} -t public 2>&1"
+cmd = "php artisan migrate --force 2>&1 && frankenphp php-server --listen 0.0.0.0:${PORT:-8000} --root public"

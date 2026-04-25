@@ -64,7 +64,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Register model observers
-        \App\Models\Rating::observe(\App\Observers\RatingObserver::class);
+        if (config('app.env') === 'production') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
     }
 }

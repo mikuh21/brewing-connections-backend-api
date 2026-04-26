@@ -69,7 +69,7 @@
                 <div class="slide">
                     <div class="text-6xl mb-4">🛒</div>
                     <h3 class="text-2xl font-bold text-white font-display mb-2">Marketplace</h3>
-                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Order premium Kapeng Barako directly from local farms to your doorstep</p>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Order premium coffee directly from local farms to your doorstep</p>
                 </div>
 
                 <!-- Navigation Arrows -->

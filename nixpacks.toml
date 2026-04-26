@@ -13,12 +13,23 @@ nixPkgs = [
   "php83Extensions.ctype",
   "php83Extensions.fileinfo",
   "php83Extensions.openssl",
-  "composer"
+  "composer",
+  "nodejs_20",
+  "npm-9_x"
+]
+
+[phases.install]
+cmds = [
+  "composer install --no-dev --optimize-autoloader",
+  "npm ci"
 ]
 
 [phases.build]
 cmds = [
-  "composer install --no-dev --optimize-autoloader",
+  "npm run build",
+  "php artisan config:cache",
+  "php artisan route:cache",
+  "php artisan view:cache",
   "curl -L https://github.com/dunglas/frankenphp/releases/latest/download/frankenphp-linux-x86_64 -o /usr/local/bin/frankenphp",
   "chmod +x /usr/local/bin/frankenphp"
 ]

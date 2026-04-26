@@ -48,8 +48,8 @@
                 <!-- Slides -->
                 <div class="slide active">
                     <div class="text-6xl mb-4">🗺️</div>
-                    <h3 class="text-2xl font-bold text-white font-display mb-2">GIS Farm Mapping</h3>
-                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Interactive maps to view, register and manage coffee farms with precise location data across Lipa, Batangas</p>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">GIS Mapping</h3>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Interactive maps to view, register and manage coffee establishments with precise location data across Lipa, Batangas</p>
                 </div>
                 <div class="slide">
                     <div class="text-6xl mb-4">☕</div>

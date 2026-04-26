@@ -185,25 +185,38 @@ function initializeMap() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
 
-    const mapboxLayer = L.tileLayer(
-        'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token={accessToken}',
-        {
-            attribution:
-                'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-            maxZoom: 18,
-            id: 'mapbox/streets-v11',
-            tileSize: 512,
-            zoomOffset: -1,
-            accessToken: window.MAPBOX_TOKEN
-        }
-    );
+    const mapboxToken = String(window.MAPBOX_TOKEN || '').trim();
+    const mapboxLayer = mapboxToken
+        ? L.tileLayer(
+            'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token={accessToken}',
+            {
+                attribution:
+                    'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                maxZoom: 18,
+                id: 'mapbox/streets-v12',
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: mapboxToken
+            }
+        )
+        : null;
 
     osmLayer.addTo(map);
 
     const baseLayers = {
         OpenStreetMap: osmLayer,
-        'Mapbox Streets': mapboxLayer
     };
+
+    if (mapboxLayer) {
+        baseLayers['Mapbox Streets'] = mapboxLayer;
+
+        mapboxLayer.on('tileerror', () => {
+            if (!map.hasLayer(osmLayer)) {
+                osmLayer.addTo(map);
+            }
+            showToast('Mapbox Streets unavailable. Switched to OpenStreetMap.', true);
+        });
+    }
 
     L.control.layers(baseLayers, {}, { position: 'topright' }).addTo(map);
 

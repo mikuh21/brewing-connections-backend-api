@@ -27,25 +27,34 @@ function initMap() {
         attribution: '&copy; OpenStreetMap contributors',
     });
 
-    const mapboxLayer = L.tileLayer(
-        'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token={accessToken}',
-        {
-            attribution: '&copy; OpenStreetMap contributors, Imagery © Mapbox',
-            maxZoom: 18,
-            id: 'mapbox/streets-v11',
-            tileSize: 512,
-            zoomOffset: -1,
-            accessToken: window.MAPBOX_TOKEN,
-        }
-    );
+    const mapboxToken = String(window.MAPBOX_TOKEN || '').trim();
+    const mapboxLayer = mapboxToken
+        ? L.tileLayer(
+            'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token={accessToken}',
+            {
+                attribution: '&copy; OpenStreetMap contributors, Imagery © Mapbox',
+                maxZoom: 18,
+                id: 'mapbox/streets-v12',
+                tileSize: 512,
+                zoomOffset: -1,
+                accessToken: mapboxToken,
+            }
+        )
+        : null;
 
     osmLayer.addTo(map);
 
-    L.control.layers(
-        { OpenStreetMap: osmLayer, 'Mapbox Streets': mapboxLayer },
-        {},
-        { position: 'topright' }
-    ).addTo(map);
+    const baseLayers = { OpenStreetMap: osmLayer };
+    if (mapboxLayer) {
+        baseLayers['Mapbox Streets'] = mapboxLayer;
+        mapboxLayer.on('tileerror', () => {
+            if (!map.hasLayer(osmLayer)) {
+                osmLayer.addTo(map);
+            }
+        });
+    }
+
+    L.control.layers(baseLayers, {}, { position: 'topright' }).addTo(map);
 
     markerLayer.addTo(map);
 

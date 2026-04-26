@@ -35,8 +35,8 @@ class CafeOwnerMapController extends Controller
 
     public function index()
     {
-        $mapboxToken = env('MAPBOX_API_KEY');
-        $googleMapsKey = env('GOOGLE_MAPS_KEY');
+        $mapboxToken = config('services.mapbox.api_key');
+        $googleMapsKey = config('services.google_maps.key');
         $verifiedResellers = $this->getVerifiedResellersForMap();
 
         $establishments = Establishment::with([

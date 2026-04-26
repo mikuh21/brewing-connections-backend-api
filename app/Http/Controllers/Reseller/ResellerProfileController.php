@@ -130,8 +130,10 @@ class ResellerProfileController extends Controller
             }
 
             if ($userPhotoColumn && $request->hasFile('profile_photo')) {
-                $path = $request->file('profile_photo')->store('profile-photos', 'public');
-                $userPayload[$userPhotoColumn] = Storage::url($path);
+                $path = $request->file('profile_photo')->store('profile-photos', 'supabase');
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+                $supabaseDisk = Storage::disk('supabase');
+                $userPayload[$userPhotoColumn] = $supabaseDisk->url($path);
             }
 
             if (Schema::hasColumn('users', 'updated_at')) {

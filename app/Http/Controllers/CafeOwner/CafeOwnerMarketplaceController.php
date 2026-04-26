@@ -225,8 +225,10 @@ class CafeOwnerMarketplaceController extends Controller
         }
 
         if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
-            $storedPath = $request->file('image')->store('products', 'public');
-            $payload['image_url'] = Storage::url($storedPath);
+            $storedPath = $request->file('image')->store('products', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $payload['image_url'] = $supabaseDisk->url($storedPath);
         }
 
         Product::create($payload);
@@ -279,8 +281,10 @@ class CafeOwnerMarketplaceController extends Controller
 
         $imageUrl = $product->image_url;
         if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imageUrl = Storage::url($path);
+            $path = $request->file('image')->store('products', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $imageUrl = $supabaseDisk->url($path);
         }
 
         $updatePayload = [

@@ -485,8 +485,10 @@ class FarmOwnerController extends Controller
         }
 
         if ($request->hasFile('image') && Schema::hasColumn('establishments', 'image')) {
-            $path = $request->file('image')->store('establishments', 'public');
-            $updatePayload['image'] = Storage::url($path);
+            $path = $request->file('image')->store('establishments', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $updatePayload['image'] = $supabaseDisk->url($path);
         }
 
         $establishment->update($updatePayload);
@@ -802,8 +804,10 @@ class FarmOwnerController extends Controller
 
         $imageUrl = null;
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imageUrl = Storage::url($path);
+            $path = $request->file('image')->store('products', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $imageUrl = $supabaseDisk->url($path);
         }
 
         Product::create([
@@ -854,8 +858,10 @@ class FarmOwnerController extends Controller
 
         $imageUrl = $product->image_url;
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('products', 'public');
-            $imageUrl = Storage::url($path);
+            $path = $request->file('image')->store('products', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $imageUrl = $supabaseDisk->url($path);
         }
 
         $product->update([
@@ -916,8 +922,8 @@ class FarmOwnerController extends Controller
 
     public function map()
     {
-        $mapboxToken = env('MAPBOX_API_KEY');
-        $googleMapsKey = env('GOOGLE_MAPS_KEY');
+        $mapboxToken = config('services.mapbox.api_key');
+        $googleMapsKey = config('services.google_maps.key');
         $verifiedResellers = $this->getVerifiedResellersForMap();
 
         $establishments = Establishment::with([

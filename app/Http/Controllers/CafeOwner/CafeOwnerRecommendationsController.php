@@ -304,9 +304,11 @@ class CafeOwnerRecommendationsController extends Controller
                 $imageUrl = null;
 
                 if ($image !== '') {
+                    /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+                    $supabaseDisk = Storage::disk('supabase');
                     $imageUrl = Str::startsWith($image, ['http://', 'https://', '/'])
                         ? $image
-                        : Storage::url($image);
+                        : $supabaseDisk->url($image);
                 }
 
                 return [

@@ -121,10 +121,12 @@ class CafeOwnerMyCafeController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $storedPath = $request->file('image')->store('establishments', 'public');
+            $storedPath = $request->file('image')->store('establishments', 'supabase');
 
             if (Schema::hasColumn('establishments', 'image')) {
-                $payload['image'] = Storage::url($storedPath);
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+                $supabaseDisk = Storage::disk('supabase');
+                $payload['image'] = $supabaseDisk->url($storedPath);
             }
         }
 

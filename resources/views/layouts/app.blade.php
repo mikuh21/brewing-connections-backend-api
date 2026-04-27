@@ -263,6 +263,7 @@
 
     @stack('head')
     @stack('styles')
+    <link rel="icon" type="image/png" href="{{ asset('images/brewhublogo.png') }}">
 </head>
 <body class="bg-[#F3E9D7] text-[#3A2E22]" x-data="{ logoutModalOpen: false }" :class="{ 'logout-modal-open': logoutModalOpen }" @open-logout-modal.window="logoutModalOpen = true" @keydown.escape.window="logoutModalOpen = false">
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password - BrewHub</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/brewhublogo.png') }}">
 </head>
 <body style="margin:0;padding:0;background:#F3E9D7;font-family:Arial,sans-serif;color:#3A2E22;">
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">

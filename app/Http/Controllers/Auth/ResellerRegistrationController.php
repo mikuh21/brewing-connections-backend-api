@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class ResellerRegistrationController extends Controller
 {
@@ -38,10 +39,18 @@ class ResellerRegistrationController extends Controller
             'is_verified_reseller' => false,
         ]);
 
-        Mail::to($user->email)->send(new ResellerPendingMail($user));
-
         Auth::login($user);
         $request->session()->regenerate();
+
+        try {
+            Mail::to($user->email)->send(new ResellerPendingMail($user));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('reseller.dashboard')
+                ->with('warning', 'Your account was created, but we could not send the pending review email right now.');
+        }
 
         return redirect()->route('reseller.dashboard');
     }

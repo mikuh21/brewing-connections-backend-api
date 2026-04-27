@@ -23,7 +23,6 @@ class ResellerPendingMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            to: $this->user->email,
             subject: 'Your BrewHub Reseller Account Is Under Review'
         );
     }

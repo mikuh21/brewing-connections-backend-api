@@ -38,7 +38,7 @@ class ResellerRegistrationController extends Controller
             'is_verified_reseller' => false,
         ]);
 
-        Mail::send(new ResellerPendingMail($user));
+        Mail::to($user->email)->send(new ResellerPendingMail($user));
 
         Auth::login($user);
         $request->session()->regenerate();

@@ -385,6 +385,14 @@
                             @php
                                 $selected = in_array($variety->id, old('varieties', $selectedVarietyIds), true);
                                 $oldPrimary = old('primary_variety', $primaryVarietyId);
+                                $legendColorFallbacks = [
+                                    'liberica' => '#4A6741',
+                                    'excelsa' => '#B8860B',
+                                    'robusta' => '#6B3A2A',
+                                    'arabica' => '#8B1A1A',
+                                ];
+                                $varietyKey = strtolower(trim((string) $variety->name));
+                                $dotColor = $variety->color ?: ($legendColorFallbacks[$varietyKey] ?? '#4A6741');
                             @endphp
 
                             <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-[#F5F0E8] px-3 py-2">
@@ -396,7 +404,7 @@
                                     :disabled="!editMode"
                                     class="rounded border-gray-300 text-[#4A6741] focus:ring-[#4A6741]"
                                 />
-                                <span class="w-3 h-3 rounded-full" style="background: {{ $variety->color ?: '#4A6741' }}"></span>
+                                <span class="w-3 h-3 rounded-full" style="background: {{ $dotColor }}"></span>
                                 <span class="flex-1 text-sm font-medium text-[#3A2E22]">{{ $variety->name }}</span>
                                 <label class="text-xs text-[#6B5B4A] flex items-center gap-1">
                                     <input

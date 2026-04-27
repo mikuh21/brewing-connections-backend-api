@@ -919,64 +919,64 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 >
-    <div @click.away="closeReceiptViewer()" class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+    <div @click.away="closeReceiptViewer()" class="w-full max-w-lg md:max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
         <div x-ref="receiptPrintContent">
-            <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 text-white">
+            <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 md:px-4 md:py-3 text-white">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="text-xs tracking-[0.2em] uppercase text-[#F3E9D7]/80 font-body">BrewHub</p>
-                        <h3 class="text-lg sm:text-xl font-semibold font-poppins leading-tight mt-1">Official Reservation Receipt</h3>
+                        <h3 class="text-lg sm:text-xl md:text-lg font-semibold font-poppins leading-tight mt-1">Official Reservation Receipt</h3>
                         <p class="text-xs sm:text-sm text-[#F3E9D7]/80 font-body mt-1" x-text="`Seller: ${receiptData.seller}`">Seller: Coffee Marketplace</p>
                     </div>
                     <button type="button" @click="closeReceiptViewer()" class="text-[#F3E9D7] hover:text-white text-2xl leading-none">&times;</button>
                 </div>
             </div>
-            <div class="px-4 py-4 sm:px-5 sm:py-5 space-y-3">
+            <div class="px-4 py-4 sm:px-5 sm:py-5 md:px-4 md:py-3 md:space-y-2.5 space-y-3">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5">
+                    <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5 md:py-2">
                         <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Reservation ID</p>
                         <p class="text-sm sm:text-base text-[#3A2E22] font-poppins font-semibold mt-0.5" x-text="receiptData.reservationId"></p>
                     </div>
-                    <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5">
+                    <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-3 py-2.5 md:py-2">
                         <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Product</p>
                         <p class="text-sm sm:text-base text-[#3A2E22] font-poppins font-semibold mt-0.5" x-text="receiptData.product"></p>
                     </div>
                 </div>
 
                 <div class="rounded-lg border border-[#E2D5C1] divide-y divide-[#E2D5C1] overflow-hidden">
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Status</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.status"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Quantity</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.quantity"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Total</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.total"></span></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Customer</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.customer"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Address</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body break-words" x-text="receiptData.address"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.phone"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupDate(receiptData.pickupDate)"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupTime(receiptData.pickupTime)"></p>
                     </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Created</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.generatedAt"></p>
                     </div>
@@ -984,7 +984,7 @@
             </div>
         </div>
 
-        <div class="px-4 py-2.5 sm:px-5 bg-[#FAF7F1] border-t border-[#E6DDCF] flex flex-col sm:flex-row sm:justify-end gap-2">
+        <div class="px-4 py-2.5 sm:px-5 md:px-4 md:py-2 bg-[#FAF7F1] border-t border-[#E6DDCF] flex flex-col sm:flex-row sm:justify-end gap-2">
             <button @click="closeReceiptViewer()" class="w-full sm:w-auto bg-white text-[#3A2E22] border border-[#C8B69A] px-3.5 py-2 rounded-lg text-sm font-body hover:bg-[#F3E9D7] transition-colors duration-200">
                 Close
             </button>

@@ -31,9 +31,7 @@
 <div class="auth-shell flex h-screen w-screen overflow-hidden bg-[#E8DDD0] items-center justify-center">
     <a href="{{ url('/') }}" class="mobile-auth-logo md:hidden fixed top-5 left-5 z-30 inline-flex items-center text-[#3A2E22] hover:text-[#2E5A3D] transition-colors">
         <span class="inline-flex items-center gap-2">
-            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#3A2E22]">
-                <img src="{{ asset('images/brewhublogo2.png') }}" alt="BrewHub logo" class="w-5 h-5 object-contain shrink-0">
-            </span>
+            <img src="{{ asset('images/brewhublogo.png') }}" alt="BrewHub logo" class="w-7 h-7 object-contain shrink-0">
             <span class="brand-wordmark text-xl"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
         </span>
     </a>

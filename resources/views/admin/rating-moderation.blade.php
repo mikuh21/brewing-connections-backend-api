@@ -337,7 +337,7 @@
                     @if($rating->image)
                         <div class="mb-4">
                             <p class="text-xs text-[#9E8C78] mb-2">Submitted Photo</p>
-                            <img src="{{ asset('storage/' . $rating->image) }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover w-full max-w-[220px]">
+                                                <img src="{{ $rating->image }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover w-full max-w-[220px]">
                         </div>
                     @endif
 

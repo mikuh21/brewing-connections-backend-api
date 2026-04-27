@@ -186,17 +186,22 @@
         <p class="text-[11px] text-[#9E8C78] mt-2">Click to view descriptive and prescriptive insights</p>
     </div>
 
-    <div id="priorityStatusCard" data-target-review-id="{{ $priorityTargetReviewId }}" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#4A6741]/50" role="button" tabindex="0" aria-label="Jump to priority review">
+    <div id="priorityStatusCard" data-target-review-id="{{ $weeklyHasRatings ? $priorityTargetReviewId : 0 }}" data-has-ratings="{{ $weeklyHasRatings ? '1' : '0' }}" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6 {{ $weeklyHasRatings ? 'cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#4A6741]/50' : '' }}" role="{{ $weeklyHasRatings ? 'button' : 'region' }}" tabindex="{{ $weeklyHasRatings ? '0' : '-1' }}" aria-label="{{ $weeklyHasRatings ? 'Jump to priority review' : 'Priority status summary' }}">
         <p class="text-[#9E8C78] text-sm font-medium mb-3">Priority Status</p>
-        <p class="text-sm text-[#6B5B4A] mb-2">{{ $priorityCategorySummary }}: <span class="font-semibold text-[#3A2E22]">{{ $priorityCategoryLabel }}</span></p>
-        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $priorityCardClass }}">
-            {{ $priorityLabel }}
-        </span>
-        <p class="text-sm text-[#6B5B4A] mt-3">{{ $priorityDesc }}</p>
-        @if($priorityCategoryKeys->count() > 1)
-            <p class="text-[11px] text-[#9E8C78] mt-2 leading-relaxed">These categories are tied at the same weakest score, so all of them are highlighted in the overview.</p>
+        @if($weeklyHasRatings)
+            <p class="text-sm text-[#6B5B4A] mb-2">{{ $priorityCategorySummary }}: <span class="font-semibold text-[#3A2E22]">{{ $priorityCategoryLabel }}</span></p>
+            <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $priorityCardClass }}">
+                {{ $priorityLabel }}
+            </span>
+            <p class="text-sm text-[#6B5B4A] mt-3">{{ $priorityDesc }}</p>
+            @if($priorityCategoryKeys->count() > 1)
+                <p class="text-[11px] text-[#9E8C78] mt-2 leading-relaxed">These categories are tied at the same weakest score, so all of them are highlighted in the overview.</p>
+            @endif
+            <p class="text-[11px] text-[#9E8C78] mt-2">Click to jump to a matching recent review</p>
+        @else
+            <p class="text-sm text-[#6B5B4A]">No ratings received in this week yet.</p>
+            <p class="text-[11px] text-[#9E8C78] mt-2">Priority category and level appear once the week has at least one rating.</p>
         @endif
-        <p class="text-[11px] text-[#9E8C78] mt-2">Click to jump to a matching recent review</p>
     </div>
 </div>
 
@@ -739,7 +744,9 @@
         setActiveReviewIndex(0);
     }
 
-    if (priorityCard) {
+    const priorityCardHasRatings = priorityCard ? priorityCard.dataset.hasRatings === '1' : false;
+
+    if (priorityCard && priorityCardHasRatings) {
         const showPriorityReviewFocus = () => {
             const targetReviewId = Number(priorityCard.dataset.targetReviewId || 0);
             if (!targetReviewId) {

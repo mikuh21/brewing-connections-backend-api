@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ResellerPendingMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class ResellerRegistrationController extends Controller
 {
@@ -35,6 +37,8 @@ class ResellerRegistrationController extends Controller
             'status' => 'active',
             'is_verified_reseller' => false,
         ]);
+
+        Mail::send(new ResellerPendingMail($user));
 
         Auth::login($user);
         $request->session()->regenerate();

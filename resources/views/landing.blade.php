@@ -148,7 +148,10 @@
             <div class="flex justify-between h-16 md:h-20">
                 <div class="flex items-center">
                     <a href="#home" class="nav-logo text-xl md:text-2xl text-white hover:text-[#F3E9D7]">
-                        <span class="brand-wordmark"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+                        <span class="inline-flex items-center gap-2">
+                            <img src="{{ asset('images/brewhublogo2.png') }}" alt="BrewHub logo" class="w-7 h-7 object-contain shrink-0">
+                            <span class="brand-wordmark"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+                        </span>
                     </a>
                 </div>
                 <div class="hidden md:flex items-center space-x-6 md:space-x-8">

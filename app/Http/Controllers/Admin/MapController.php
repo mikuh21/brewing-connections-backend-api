@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Establishment;
 use App\Models\User;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 
 class MapController extends Controller
@@ -176,8 +177,10 @@ class MapController extends Controller
         $establishment->longitude = $request->longitude;
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('establishments', 'public');
-            $establishment->image = '/storage/' . $path;
+            $path = $request->file('image')->store('establishments', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $establishment->image = $supabaseDisk->url($path);
         }
 
         $establishment->save();

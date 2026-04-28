@@ -240,8 +240,8 @@ class DashboardController extends Controller
             ]);
         }
 
-        $items = $registrationItems
-            ->merge($resellerRegistrationItems)
+        $items = collect($registrationItems->toArray())
+            ->merge(collect($resellerRegistrationItems->toArray()))
             ->merge($chatItems)
             ->sortByDesc('timestamp')
             ->take(12)

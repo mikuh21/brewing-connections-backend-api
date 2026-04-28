@@ -236,7 +236,7 @@ class DashboardController extends Controller
                 'subtitle' => Str::limit((string) $latestUnreadIncoming->body, 60),
                 'time' => optional($latestUnreadIncoming->created_at)->diffForHumans(),
                 'timestamp' => optional($latestUnreadIncoming->created_at)?->timestamp ?? 0,
-                'url' => route('chat.show', $conversation),
+                    'url' => route('chat.show', $conversation->id),
             ]);
         }
 

@@ -23,11 +23,6 @@
     $hasIncompleteProfile = $missingProfileFields->isNotEmpty();
 
     $activities = collect($recentActivity ?? collect())
-        ->filter(function ($activity) {
-            $type = (string) ($activity['type'] ?? '');
-
-            return str_contains($type, 'order');
-        })
         ->map(function ($activity) {
             $occurredAt = !empty($activity['occurred_at'])
                 ? \Illuminate\Support\Carbon::parse($activity['occurred_at'])

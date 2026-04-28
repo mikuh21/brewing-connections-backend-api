@@ -313,8 +313,30 @@ class ResellerDashboardController extends Controller
             ];
         });
 
+        $chatActivity = collect();
+        $user = \App\Models\User::find($resellerId);
+        if ($user) {
+            $conversations = $user->conversations()->get();
+            foreach ($conversations as $conversation) {
+                $latest = $conversation->messages()
+                    ->with('sender:id,name')
+                    ->where('sender_id', '!=', $resellerId)
+                    ->latest()
+                    ->first();
+                if ($latest) {
+                    $chatActivity->push([
+                        'type' => 'new_message',
+                        'title' => 'New message from ' . ($latest->sender->name ?? 'User'),
+                        'meta' => \Illuminate\Support\Str::limit((string) $latest->body, 60),
+                        'occurred_at' => $latest->created_at,
+                    ]);
+                }
+            }
+        }
+
         return $productActivity
             ->merge($orderActivity)
+            ->merge($chatActivity)
             ->filter(fn (array $activity) => !empty($activity['occurred_at']))
             ->sortByDesc('occurred_at')
             ->take(5)

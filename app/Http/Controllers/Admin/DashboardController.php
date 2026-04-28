@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class DashboardController extends Controller
@@ -127,6 +128,12 @@ class DashboardController extends Controller
 
         $resellerDisplayData = collect();
         if ($missingIds->isNotEmpty()) {
+            $resellerSelect = ['id', 'name', 'barangay'];
+
+            if (Schema::hasColumn('users', 'business_name')) {
+                $resellerSelect[] = 'business_name';
+            }
+
             $resellerDisplayData = User::query()
                 ->whereIn('id', $missingIds->all())
                 ->where('role', 'reseller')
@@ -136,7 +143,7 @@ class DashboardController extends Controller
                         ->orWhere('status', '!=', 'deactivated');
                 })
                 ->whereNull('deactivated_at')
-                ->get(['id', 'name', 'business_name', 'barangay'])
+                ->get($resellerSelect)
                 ->mapWithKeys(function (User $reseller) {
                     return [
                         (int) $reseller->id => [

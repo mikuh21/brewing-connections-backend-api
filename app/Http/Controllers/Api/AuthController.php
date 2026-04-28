@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
@@ -43,6 +44,15 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'Authentication service is temporarily unavailable. Please try again shortly.',
             ], 503);
+        } catch (Throwable $exception) {
+            Log::error('API register unexpected failure', [
+                'type' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Authentication service is temporarily unavailable. Please try again shortly.',
+            ], 503);
         }
     }
 
@@ -68,6 +78,15 @@ class AuthController extends Controller
             ]);
         } catch (QueryException $exception) {
             Log::error('API login database failure', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Authentication service is temporarily unavailable. Please try again shortly.',
+            ], 503);
+        } catch (Throwable $exception) {
+            Log::error('API login unexpected failure', [
+                'type' => $exception::class,
                 'message' => $exception->getMessage(),
             ]);
 

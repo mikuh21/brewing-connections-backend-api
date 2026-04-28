@@ -49,9 +49,6 @@ class ResellerDashboardController extends Controller
                 'total' => (int) array_sum($productsByType),
             ];
 
-            $recentOrders = $this->resolveRecentOrders($resellerId);
-            $recentActivity = $this->resolveRecentActivity($resellerId, $recentOrders);
-
             $ordersInWindow = $this->resolveOrderCount($resellerId, null, $windowSince);
             $pendingOrders = $this->resolveOrderCount($resellerId, 'pending', $windowSince);
             $completedOrders = $this->resolveOrderCount($resellerId, 'completed', $windowSince);
@@ -70,6 +67,9 @@ class ResellerDashboardController extends Controller
             $pendingOrdersTrend = $this->buildTrendMeta($pendingOrders, $prevPendingOrders);
             $completedOrdersTrend = $this->buildTrendMeta($completedOrders, $prevCompletedOrders);
         }
+
+        $recentOrders = $this->resolveRecentOrders($resellerId);
+        $recentActivity = $this->resolveRecentActivity($resellerId, $recentOrders);
 
         return view('reseller.dashboard', compact(
             'reseller',

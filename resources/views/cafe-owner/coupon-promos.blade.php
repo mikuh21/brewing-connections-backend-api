@@ -88,57 +88,6 @@
                 colorLight: '#F5F0E8'
             });
         },
-        generateMockSeries(slotCount, totalCount) {
-            if (totalCount <= 0) {
-                return Array.from({ length: slotCount }, () => 0);
-            }
-
-            const base = Array.from({ length: slotCount }, () => Math.floor(Math.random() * 3));
-            let baseSum = base.reduce((sum, value) => sum + value, 0);
-
-            if (baseSum === 0) {
-                base[0] = 1;
-                baseSum = 1;
-            }
-
-            const normalized = base.map((value) => Math.floor((value / baseSum) * totalCount));
-            let remainder = totalCount - normalized.reduce((sum, value) => sum + value, 0);
-
-            while (remainder > 0) {
-                const idx = Math.floor(Math.random() * slotCount);
-                normalized[idx] += 1;
-                remainder -= 1;
-            }
-
-            return normalized;
-        },
-        buildRecentClaimsRows(couponData) {
-            const rows = [];
-            const discountLabel = couponData.discount_type === 'percentage'
-                ? `${couponData.discount_value}% OFF`
-                : `PHP ${Number(couponData.discount_value || 0).toFixed(2)} OFF`;
-
-            for (let i = 0; i < 5; i += 1) {
-                const claimDate = new Date();
-                claimDate.setHours(claimDate.getHours() - (i * 3 + 1));
-
-                rows.push({
-                    dateTime: claimDate.toLocaleString(undefined, {
-                        month: 'short',
-                        day: '2-digit',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                    }),
-                    customer: `Customer #${i + 1}`,
-                    location: this.establishmentName,
-                    discount: discountLabel,
-                    status: 'Claimed'
-                });
-            }
-
-            this.analyticsRows = rows;
-        },
         downloadAnalyticsReport() {
             if (typeof jspdf === 'undefined') return;
 
@@ -318,17 +267,11 @@
                 return;
             }
 
-            const totalClaims = Number(couponData.used_count || 0);
-            const dailyData = this.generateMockSeries(7, totalClaims);
-            const timeData = this.generateMockSeries(5, totalClaims);
-
-            const dailyLabels = Array.from({ length: 7 }, (_, index) => {
-                const date = new Date();
-                date.setDate(date.getDate() - (6 - index));
-                return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-            });
-
-            const timeLabels = ['8-10 AM', '10-12 PM', '12-2 PM', '2-4 PM', '4-6 PM'];
+            const analytics = couponData.analytics || {};
+            const dailyLabels = Array.isArray(analytics.daily_labels) ? analytics.daily_labels : [];
+            const dailyData = Array.isArray(analytics.daily_data) ? analytics.daily_data : [];
+            const timeLabels = Array.isArray(analytics.time_labels) ? analytics.time_labels : [];
+            const timeData = Array.isArray(analytics.time_data) ? analytics.time_data : [];
 
             const dailyCtx = document.getElementById('daily-claims-chart');
             const timeCtx = document.getElementById('time-of-day-chart');
@@ -433,7 +376,7 @@
                 }
             });
 
-            this.buildRecentClaimsRows(couponData);
+            this.analyticsRows = Array.isArray(analytics.recent_claims) ? analytics.recent_claims : [];
         },
         selectedCoupon: {
             id: null,
@@ -446,7 +389,14 @@
             max_usage: 0,
             used_count: 0,
             status: '',
-            qr_code_token: ''
+            qr_code_token: '',
+            analytics: {
+                daily_labels: [],
+                daily_data: [],
+                time_labels: [],
+                time_data: [],
+                recent_claims: []
+            }
         },
         init() {
             this.$watch('createModalOpen', (isOpen) => {
@@ -944,7 +894,8 @@
                                             max_usage: {{ (int) $coupon->max_usage }},
                                             used_count: {{ (int) $coupon->used_count }},
                                             status: @js($derivedStatus),
-                                            qr_code_token: @js($coupon->qr_code_token)
+                                            qr_code_token: @js($coupon->qr_code_token),
+                                            analytics: @js($coupon->analytics ?? [])
                                         }; setCurrentCoupon(selectedCoupon); qrModalOpen = true"
                                     >
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -967,7 +918,8 @@
                                             max_usage: {{ (int) $coupon->max_usage }},
                                             used_count: {{ (int) $coupon->used_count }},
                                             status: @js($derivedStatus),
-                                            qr_code_token: @js($coupon->qr_code_token)
+                                            qr_code_token: @js($coupon->qr_code_token),
+                                            analytics: @js($coupon->analytics ?? [])
                                         }; analyticsModalOpen = true; $nextTick(() => initAnalyticsCharts(selectedCoupon))"
                                     >
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1417,10 +1369,14 @@
                                     </td>
                                 </tr>
                             </template>
+                            <template x-if="analyticsRows.length === 0">
+                                <tr>
+                                    <td colspan="5" class="py-6 text-center text-sm text-[#7A6957]">No claims recorded yet.</td>
+                                </tr>
+                            </template>
                         </tbody>
                     </table>
                 </div>
-                <p class="mt-3 text-xs text-[#9E8C78]">Live claim tracking will be available when customers scan the QR code</p>
             </div>
         </div>
     </template>

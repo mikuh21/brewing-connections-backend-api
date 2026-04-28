@@ -66,6 +66,14 @@ class CafeOwnerCouponPromoController extends Controller
                 ])
                 ->orderByDesc('created_at')
                 ->get();
+
+            $analyticsByCoupon = $this->buildCouponAnalytics($coupons, (int) $establishmentId);
+
+            $coupons->transform(function (CouponPromo $coupon) use ($analyticsByCoupon) {
+                $coupon->setAttribute('analytics', $analyticsByCoupon[$coupon->id] ?? $this->emptyCouponAnalytics());
+
+                return $coupon;
+            });
         }
 
         $establishment = Establishment::where('owner_id', $userId)->first();
@@ -372,6 +380,106 @@ class CafeOwnerCouponPromoController extends Controller
             'active' => $activeCoupons,
             'expired' => $expiredCoupons,
             'draft' => $draftCoupons,
+        ];
+    }
+
+    protected function buildCouponAnalytics($coupons, int $establishmentId): array
+    {
+        if ($coupons->isEmpty()) {
+            return [];
+        }
+
+        $timezone = config('app.timezone', 'Asia/Manila');
+        $couponIds = $coupons->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $establishmentName = optional(Establishment::query()->select(['id', 'name'])->find($establishmentId))->name ?? 'Your Cafe';
+
+        $redemptionsByCoupon = CouponPromoRedemption::query()
+            ->with('consumer:id,name')
+            ->where('establishment_id', $establishmentId)
+            ->whereIn('coupon_promo_id', $couponIds)
+            ->orderByDesc('redeemed_at')
+            ->get()
+            ->groupBy('coupon_promo_id');
+
+        $startDate = Carbon::now($timezone)->startOfDay()->subDays(6);
+        $dailyLabels = collect(range(0, 6))
+            ->map(fn ($offset) => $startDate->copy()->addDays($offset)->format('M j'))
+            ->all();
+
+        $timeLabels = collect(range(0, 23))
+            ->map(fn ($hour) => Carbon::createFromTime($hour, 0, 0, $timezone)->format('g A'))
+            ->all();
+
+        $analytics = [];
+
+        foreach ($coupons as $coupon) {
+            $redemptions = $redemptionsByCoupon->get($coupon->id, collect());
+
+            $dailyCounts = array_fill_keys($dailyLabels, 0);
+            $timeCounts = array_fill(0, 24, 0);
+
+            foreach ($redemptions as $redemption) {
+                $redeemedAt = optional($redemption->redeemed_at)?->copy()->timezone($timezone);
+                if (! $redeemedAt) {
+                    continue;
+                }
+
+                $dayKey = $redeemedAt->format('M j');
+                if (array_key_exists($dayKey, $dailyCounts)) {
+                    $dailyCounts[$dayKey] += 1;
+                }
+
+                $hour = (int) $redeemedAt->format('G');
+                $timeCounts[$hour] += 1;
+            }
+
+            $discountLabel = $coupon->discount_type === 'percentage'
+                ? rtrim(rtrim(number_format((float) $coupon->discount_value, 2, '.', ''), '0'), '.') . '% OFF'
+                : 'PHP ' . number_format((float) $coupon->discount_value, 2) . ' OFF';
+
+            $recentClaims = $redemptions
+                ->take(5)
+                ->map(function (CouponPromoRedemption $redemption) use ($timezone, $establishmentName, $discountLabel) {
+                    $redeemedAt = optional($redemption->redeemed_at)?->copy()->timezone($timezone);
+
+                    return [
+                        'dateTime' => $redeemedAt ? $redeemedAt->format('M d, Y g:i A') : '',
+                        'customer' => $redemption->consumer?->name ?? 'Unknown Customer',
+                        'location' => $establishmentName,
+                        'discount' => $discountLabel,
+                        'status' => 'Claimed',
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $analytics[$coupon->id] = [
+                'daily_labels' => $dailyLabels,
+                'daily_data' => array_values($dailyCounts),
+                'time_labels' => $timeLabels,
+                'time_data' => $timeCounts,
+                'recent_claims' => $recentClaims,
+            ];
+        }
+
+        return $analytics;
+    }
+
+    protected function emptyCouponAnalytics(): array
+    {
+        $timezone = config('app.timezone', 'Asia/Manila');
+        $startDate = Carbon::now($timezone)->startOfDay()->subDays(6);
+
+        return [
+            'daily_labels' => collect(range(0, 6))
+                ->map(fn ($offset) => $startDate->copy()->addDays($offset)->format('M j'))
+                ->all(),
+            'daily_data' => array_fill(0, 7, 0),
+            'time_labels' => collect(range(0, 23))
+                ->map(fn ($hour) => Carbon::createFromTime($hour, 0, 0, $timezone)->format('g A'))
+                ->all(),
+            'time_data' => array_fill(0, 24, 0),
+            'recent_claims' => [],
         ];
     }
 

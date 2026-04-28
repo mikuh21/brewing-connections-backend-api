@@ -108,11 +108,48 @@ class DashboardController extends Controller
             return [];
         }
 
-        $allEstablishments = Establishment::query()
+        $establishmentDisplayData = Establishment::query()
             ->whereIn('id', $establishmentIds->all())
-            ->select(['id', 'name', 'barangay', 'address', 'latitude', 'longitude', 'image'])
+            ->select(['id', 'name', 'barangay', 'address', 'image'])
             ->get()
-            ->keyBy('id');
+            ->mapWithKeys(function (Establishment $establishment) {
+                return [
+                    (int) $establishment->id => [
+                        'name' => $establishment->name,
+                        'barangay' => $establishment->barangay,
+                        'address' => $establishment->address,
+                        'image' => $establishment->image,
+                    ],
+                ];
+            });
+
+        $missingIds = $establishmentIds->diff($establishmentDisplayData->keys())->values();
+
+        $resellerDisplayData = collect();
+        if ($missingIds->isNotEmpty()) {
+            $resellerDisplayData = User::query()
+                ->whereIn('id', $missingIds->all())
+                ->where('role', 'reseller')
+                ->where('is_verified_reseller', true)
+                ->where(function ($query) {
+                    $query->whereNull('status')
+                        ->orWhere('status', '!=', 'deactivated');
+                })
+                ->whereNull('deactivated_at')
+                ->get(['id', 'name', 'business_name', 'barangay'])
+                ->mapWithKeys(function (User $reseller) {
+                    return [
+                        (int) $reseller->id => [
+                            'name' => $reseller->business_name ?? $reseller->name,
+                            'barangay' => $reseller->barangay,
+                            'address' => null,
+                            'image' => null,
+                        ],
+                    ];
+                });
+        }
+
+        $displayData = $establishmentDisplayData->union($resellerDisplayData);
 
         $scoreByEstablishment = $establishmentIds
             ->mapWithKeys(function ($id) use ($destinationPoints, $markerPoints) {
@@ -126,22 +163,22 @@ class DashboardController extends Controller
             ->take(5);
 
         return $scoreByEstablishment
-            ->map(function ($popularityScore, $establishmentId) use ($allEstablishments, $destinationVisits, $markerViews) {
-                $establishment = $allEstablishments->get((int) $establishmentId);
+            ->map(function ($popularityScore, $establishmentId) use ($displayData, $destinationVisits, $markerViews) {
+                $establishment = $displayData->get((int) $establishmentId, []);
                 $trailDestinations = (int) $destinationVisits->get((int) $establishmentId, 0);
                 $markerViewCount = (int) $markerViews->get((int) $establishmentId, 0);
 
                 return [
                     'id' => (int) $establishmentId,
-                    'name' => $establishment?->name ?? 'Unknown Establishment',
-                    'city' => $establishment?->barangay
-                        ?? $establishment?->address
+                    'name' => $establishment['name'] ?? 'Unknown Establishment',
+                    'city' => $establishment['barangay']
+                        ?? $establishment['address']
                         ?? 'Unknown Location',
                     'visits' => (int) $popularityScore,
                     'popularity_score' => (int) $popularityScore,
                     'trail_destinations' => $trailDestinations,
                     'marker_views' => $markerViewCount,
-                    'image_url' => $establishment?->image,
+                    'image_url' => $establishment['image'] ?? null,
                 ];
             })
             ->values()

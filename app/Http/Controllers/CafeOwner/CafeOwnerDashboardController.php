@@ -97,7 +97,7 @@ class CafeOwnerDashboardController extends Controller
 
         if (Schema::hasTable('orders') && Schema::hasTable('products')) {
             $orderQuery = Order::query()
-                ->with(['user:id,name', 'product:id,name,establishment_id,seller_id,seller_type,user_id'])
+                ->with(['user:id,name', 'product:id,name,establishment_id,seller_id,seller_type'])
                 ->whereHas('product', function ($query) use ($userId, $establishmentId) {
                     if ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
                         $query->where('establishment_id', $establishmentId);

@@ -10,11 +10,13 @@ use App\Services\OrderReceiptNotifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class LandingReservationController extends Controller
 {
@@ -124,9 +126,6 @@ class LandingReservationController extends Controller
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $prefillToken = Str::random(48);
-        $cacheKey = $this->prefillCacheKey($prefillToken);
-
         $payload = [
             'full_name' => (string) ($authenticatedUser->name ?? ''),
             'email' => (string) ($authenticatedUser->email ?? ''),
@@ -136,7 +135,7 @@ class LandingReservationController extends Controller
             'pickup_time' => isset($validated['pickup_time']) ? (string) $validated['pickup_time'] : null,
         ];
 
-        Cache::put($cacheKey, $payload, now()->addMinutes(20));
+        $prefillToken = $this->encodePrefillPayload($payload, now()->addMinutes(20)->timestamp);
 
         $landingParams = array_filter([
             'prefill_token' => $prefillToken,
@@ -155,7 +154,11 @@ class LandingReservationController extends Controller
 
     public function getPrefillData(string $token): JsonResponse
     {
-        $payload = Cache::get($this->prefillCacheKey($token));
+        $payload = $this->decodePrefillPayload($token);
+
+        if (!is_array($payload)) {
+            $payload = Cache::get($this->prefillCacheKey($token));
+        }
 
         if (!is_array($payload)) {
             return response()->json([
@@ -282,5 +285,46 @@ class LandingReservationController extends Controller
     private function prefillCacheKey(string $token): string
     {
         return 'landing_reservation_prefill:' . $token;
+    }
+
+    private function encodePrefillPayload(array $payload, int $expiresAtTimestamp): string
+    {
+        $serializedPayload = json_encode([
+            'exp' => $expiresAtTimestamp,
+            'data' => $payload,
+        ], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+        $encryptedPayload = Crypt::encryptString($serializedPayload);
+
+        return rtrim(strtr(base64_encode($encryptedPayload), '+/', '-_'), '=');
+    }
+
+    private function decodePrefillPayload(string $token): ?array
+    {
+        try {
+            $encryptedPayload = base64_decode(strtr($token, '-_', '+/'), true);
+
+            if ($encryptedPayload === false || $encryptedPayload === '') {
+                return null;
+            }
+
+            $serializedPayload = Crypt::decryptString($encryptedPayload);
+            $decodedPayload = json_decode($serializedPayload, true, 512, JSON_THROW_ON_ERROR);
+
+            if (!is_array($decodedPayload)) {
+                return null;
+            }
+
+            $expiresAtTimestamp = (int) ($decodedPayload['exp'] ?? 0);
+            if ($expiresAtTimestamp <= now()->timestamp) {
+                return null;
+            }
+
+            $payload = $decodedPayload['data'] ?? null;
+
+            return is_array($payload) ? $payload : null;
+        } catch (Throwable) {
+            return null;
+        }
     }
 }

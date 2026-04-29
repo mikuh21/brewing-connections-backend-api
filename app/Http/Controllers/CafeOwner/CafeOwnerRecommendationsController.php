@@ -168,12 +168,16 @@ class CafeOwnerRecommendationsController extends Controller
             'service' => 'service_rating',
         ];
 
+        $recommendationTimestampColumn = Schema::hasColumn('recommendations', 'generated_at')
+            ? 'generated_at'
+            : 'created_at';
+
         $firstRatingAt = Rating::query()
             ->where('establishment_id', $establishment->id)
             ->min('created_at');
         $firstRecommendationAt = Recommendation::query()
             ->where('establishment_id', $establishment->id)
-            ->min('created_at');
+            ->min($recommendationTimestampColumn);
 
         $allTimeStart = collect([$firstRatingAt, $firstRecommendationAt])
             ->filter()
@@ -185,7 +189,7 @@ class CafeOwnerRecommendationsController extends Controller
             $allTimeDateLabel = $allTimeStart->format('M d, Y').' - '.$now->format('M d, Y');
         }
 
-        $buildPeriodInsightsPayload = function (?Carbon $start, ?Carbon $end, string $dateLabel) use ($establishment, $categoryColumns) {
+        $buildPeriodInsightsPayload = function (?Carbon $start, ?Carbon $end, string $dateLabel) use ($establishment, $categoryColumns, $recommendationTimestampColumn) {
             $periodRatingsQuery = Rating::query()->where('establishment_id', $establishment->id);
             if ($start && $end) {
                 $periodRatingsQuery->whereBetween('created_at', [$start, $end]);
@@ -218,7 +222,7 @@ class CafeOwnerRecommendationsController extends Controller
             $periodRecommendationsQuery = Recommendation::query()
                 ->where('establishment_id', $establishment->id);
             if ($start && $end) {
-                $periodRecommendationsQuery->whereBetween('created_at', [$start, $end]);
+                $periodRecommendationsQuery->whereBetween($recommendationTimestampColumn, [$start, $end]);
             }
 
             $periodRecommendationsByCategory = $periodRecommendationsQuery->clone()
@@ -331,11 +335,11 @@ class CafeOwnerRecommendationsController extends Controller
 
         $recommendationRows = Recommendation::query()
             ->where('establishment_id', $establishment->id)
-            ->where('created_at', '>=', now()->startOfMonth()->subMonths(5))
-            ->get(['created_at']);
+            ->where($recommendationTimestampColumn, '>=', now()->startOfMonth()->subMonths(5))
+            ->get([$recommendationTimestampColumn]);
 
         $countByMonth = $recommendationRows
-            ->groupBy(fn ($row) => Carbon::parse($row->created_at)->format('Y-m'))
+            ->groupBy(fn ($row) => Carbon::parse(data_get($row, $recommendationTimestampColumn))->format('Y-m'))
             ->map(fn ($group) => $group->count())
             ->toArray();
 

@@ -975,20 +975,25 @@
         }
 
         const hasRatings = Boolean(periodData.has_ratings);
-        const count = Number(periodData.count || 0);
         const dateLabel = String(periodData.date_label || '-');
         const journeyInsights = Array.isArray(periodData.journey_insights) ? periodData.journey_insights : [];
+        const count = normalizedPeriod === 'all'
+            ? journeyInsights.length
+            : Number(periodData.count || 0);
+        const hasVisibleInsights = normalizedPeriod === 'all'
+            ? journeyInsights.length > 0
+            : hasRatings;
 
         if (insightsOverviewTitle) {
             insightsOverviewTitle.textContent = periodMeta.title;
         }
         if (insightsOverviewCount) {
-            insightsOverviewCount.textContent = hasRatings ? String(count) : '--';
-            insightsOverviewCount.classList.toggle('text-[#3A2E22]', hasRatings);
-            insightsOverviewCount.classList.toggle('text-[#C6B8A6]', !hasRatings);
+            insightsOverviewCount.textContent = hasVisibleInsights ? String(count) : '--';
+            insightsOverviewCount.classList.toggle('text-[#3A2E22]', hasVisibleInsights);
+            insightsOverviewCount.classList.toggle('text-[#C6B8A6]', !hasVisibleInsights);
         }
         if (insightsOverviewSubtext) {
-            insightsOverviewSubtext.textContent = hasRatings ? periodMeta.countText : periodMeta.emptyText;
+            insightsOverviewSubtext.textContent = hasVisibleInsights ? periodMeta.countText : periodMeta.emptyText;
         }
         if (insightsOverviewDate) {
             insightsOverviewDate.textContent = dateLabel;

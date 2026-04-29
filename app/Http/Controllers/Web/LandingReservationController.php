@@ -20,6 +20,8 @@ use Throwable;
 
 class LandingReservationController extends Controller
 {
+    private const PRODUCTION_LANDING_BASE_URL = 'https://brewing-hub.online';
+
     public function __construct(
         private readonly OrderReceiptNotifier $orderReceiptNotifier,
     ) {
@@ -148,7 +150,7 @@ class LandingReservationController extends Controller
         return response()->json([
             'prefill_token' => $prefillToken,
             'expires_in_seconds' => 1200,
-            'landing_url' => url('/?' . http_build_query($landingParams) . '#farm-products'),
+            'landing_url' => $this->buildLandingUrl($landingParams),
         ]);
     }
 
@@ -285,6 +287,37 @@ class LandingReservationController extends Controller
     private function prefillCacheKey(string $token): string
     {
         return 'landing_reservation_prefill:' . $token;
+    }
+
+    private function buildLandingUrl(array $landingParams): string
+    {
+        $baseUrl = $this->resolveLandingBaseUrl();
+        $query = http_build_query($landingParams);
+
+        return $baseUrl . '/?' . $query . '#farm-products';
+    }
+
+    private function resolveLandingBaseUrl(): string
+    {
+        $configuredUrl = rtrim((string) config('app.url', self::PRODUCTION_LANDING_BASE_URL), '/');
+
+        if ($configuredUrl === '') {
+            return self::PRODUCTION_LANDING_BASE_URL;
+        }
+
+        $host = strtolower((string) parse_url($configuredUrl, PHP_URL_HOST));
+
+        $isLocalHost =
+            $host === '' ||
+            $host === 'localhost' ||
+            $host === '127.0.0.1' ||
+            $host === '0.0.0.0' ||
+            str_ends_with($host, '.localhost') ||
+            preg_match('/^192\.168\./', $host) === 1 ||
+            preg_match('/^10\./', $host) === 1 ||
+            preg_match('/^172\.(1[6-9]|2\d|3[0-1])\./', $host) === 1;
+
+        return $isLocalHost ? self::PRODUCTION_LANDING_BASE_URL : $configuredUrl;
     }
 
     private function encodePrefillPayload(array $payload, int $expiresAtTimestamp): string

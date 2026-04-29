@@ -32,6 +32,7 @@ class LandingReservationController extends Controller
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
+            'prefill_token' => ['nullable', 'string'],
             'pickup_date' => ['nullable', 'date_format:Y-m-d'],
             'pickup_time' => ['nullable', 'date_format:H:i'],
             'full_name' => ['required', 'string', 'max:120'],
@@ -129,6 +130,7 @@ class LandingReservationController extends Controller
         }
 
         $payload = [
+            'authenticated_user_id' => (int) $authenticatedUser->id,
             'full_name' => (string) ($authenticatedUser->name ?? ''),
             'email' => (string) ($authenticatedUser->email ?? ''),
             'product_id' => isset($validated['product_id']) ? (int) $validated['product_id'] : null,
@@ -232,6 +234,37 @@ class LandingReservationController extends Controller
     {
         if ($request->user()) {
             return $request->user();
+        }
+
+        $prefillToken = (string) ($validated['prefill_token'] ?? '');
+        if ($prefillToken !== '') {
+            $prefillPayload = $this->decodePrefillPayload($prefillToken);
+            $authenticatedUserId = (int) ($prefillPayload['authenticated_user_id'] ?? 0);
+
+            if ($authenticatedUserId > 0) {
+                $authenticatedUser = User::query()->find($authenticatedUserId);
+
+                if ($authenticatedUser) {
+                    $authenticatedUser->name = (string) $validated['full_name'];
+
+                    if ((string) $authenticatedUser->email !== (string) $validated['email']) {
+                        $emailInUse = User::query()
+                            ->where('email', (string) $validated['email'])
+                            ->where('id', '!=', $authenticatedUser->id)
+                            ->exists();
+
+                        if (!$emailInUse) {
+                            $authenticatedUser->email = (string) $validated['email'];
+                        }
+                    }
+
+                    $authenticatedUser->contact_number = (string) $validated['phone'];
+                    $authenticatedUser->address = (string) $validated['address'];
+                    $authenticatedUser->save();
+
+                    return $authenticatedUser;
+                }
+            }
         }
 
         $phone = (string) $validated['phone'];

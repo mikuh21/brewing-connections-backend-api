@@ -1687,6 +1687,8 @@
         }
 
         async function submitReservationOrder(payload) {
+            const prefillToken = getQueryParam('prefill_token');
+
             const response = await fetch('{{ route('reservations.orders.store') }}', {
                 method: 'POST',
                 headers: {
@@ -1697,6 +1699,7 @@
                 body: JSON.stringify({
                     product_id: Number(payload.productId),
                     quantity: Number(payload.quantity),
+                    prefill_token: prefillToken || null,
                     pickup_date: payload.pickupDate || null,
                     pickup_time: payload.pickupTime || null,
                     full_name: payload.fullName,

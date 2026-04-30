@@ -1034,26 +1034,17 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
     @keydown.escape.window="closeRatingImageViewer()"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4"
+    @click="closeRatingImageViewer()"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
 >
-    <div @click.away="closeRatingImageViewer()" class="w-full max-w-4xl overflow-hidden rounded-2xl bg-[#1E140D] shadow-2xl">
-        <div class="flex items-center justify-between border-b border-white/10 px-4 py-3 text-white sm:px-5">
-            <div>
-                <p class="text-xs uppercase tracking-[0.16em] text-white/60">Rating Photo</p>
-                <p class="mt-1 text-sm text-white/85">Expanded preview from the customer rating submission</p>
-            </div>
-            <button type="button" @click="closeRatingImageViewer()" class="text-2xl leading-none text-white/70 transition hover:text-white">&times;</button>
-        </div>
-
-        <div class="flex items-center justify-center bg-[#120C08] p-3 sm:p-5">
-            <img :src="ratingImagePreview.src" :alt="ratingImagePreview.alt" class="max-h-[75vh] w-auto max-w-full rounded-xl object-contain">
-        </div>
-
-        <div class="flex justify-end border-t border-white/10 bg-[#1E140D] px-4 py-3 sm:px-5">
-            <button type="button" @click="closeRatingImageViewer()" class="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/20">
-                Close
-            </button>
-        </div>
+    <div @click.stop class="relative inline-flex max-w-full items-start justify-center">
+        <button
+            type="button"
+            @click="closeRatingImageViewer()"
+            class="absolute right-2 top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-2xl leading-none text-white shadow-lg transition hover:bg-black/75"
+            aria-label="Close rating photo preview"
+        >&times;</button>
+        <img :src="ratingImagePreview.src" :alt="ratingImagePreview.alt" class="max-h-[78vh] w-auto max-w-full rounded-xl object-contain shadow-2xl">
     </div>
 </div>
 

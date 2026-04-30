@@ -760,23 +760,23 @@
                     @forelse(($recentProductRatings ?? collect()) as $rating)
                         @php
                             $ratingScore = (int) round((float) ($rating->overall_rating ?? 0));
-                            $productImage = $rating->product?->image_url;
                             $ratingImage = $rating->image_url;
                         @endphp
                         <div class="rounded-2xl border border-white/10 bg-white/6 p-3.5 backdrop-blur-[2px] sm:p-4">
                             <div class="flex items-start gap-3">
-                                <div class="relative mt-0.5 h-16 w-16 shrink-0 sm:h-[72px] sm:w-[72px]">
-                                    <div class="h-full w-full overflow-hidden rounded-xl border border-white/10 bg-white/10">
-                                        @if($productImage)
-                                            <img src="{{ $productImage }}" alt="{{ $rating->product?->name ?? 'Product' }}" class="h-full w-full object-cover">
-                                        @else
-                                            <div class="flex h-full w-full items-center justify-center px-2 text-center text-[10px] text-[#F3E9D7]/60">No product image</div>
-                                        @endif
-                                    </div>
+                                <div class="mt-0.5 h-16 w-16 shrink-0 sm:h-[72px] sm:w-[72px]">
                                     @if($ratingImage)
-                                        <div class="absolute -bottom-1.5 -right-1.5 h-9 w-9 overflow-hidden rounded-lg border-2 border-[#3A2E22] bg-white/10 shadow-lg sm:h-10 sm:w-10">
+                                        <button
+                                            type="button"
+                                            class="js-landing-rating-photo-trigger block h-full w-full overflow-hidden rounded-xl border border-white/10 bg-white/10 transition hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-[#D9A441] focus:ring-offset-2 focus:ring-offset-[#3A2E22]"
+                                            data-photo-src="{{ $ratingImage }}"
+                                            data-photo-alt="Rating photo for {{ $rating->product?->name ?? 'product' }}"
+                                            aria-label="Enlarge rating photo"
+                                        >
                                             <img src="{{ $ratingImage }}" alt="Rating photo for {{ $rating->product?->name ?? 'product' }}" class="h-full w-full object-cover">
-                                        </div>
+                                        </button>
+                                    @else
+                                        <div class="flex h-full w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/10 px-2 text-center text-[10px] text-[#F3E9D7]/60">No rating photo</div>
                                     @endif
                                 </div>
 
@@ -784,7 +784,12 @@
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                         <div class="min-w-0 pr-2">
                                             <h4 class="line-clamp-2 text-[15px] font-semibold leading-snug text-white font-poppins sm:text-base">{{ $rating->product?->name ?? 'Farm product' }}</h4>
-                                            <p class="mt-1 text-xs text-[#F3E9D7]/74 font-body sm:text-sm">
+                                            <div class="mt-1.5 flex flex-wrap gap-1" aria-label="{{ $ratingScore }} out of 5 stars">
+                                                @for ($star = 1; $star <= 5; $star++)
+                                                    <span class="text-base sm:text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
+                                                @endfor
+                                            </div>
+                                            <p class="mt-2 text-xs text-[#F3E9D7]/74 font-body sm:text-sm">
                                                 {{ $rating->product?->establishment?->name ?? 'Verified Farm Seller' }}
                                             </p>
                                         </div>
@@ -797,12 +802,6 @@
                                         <span class="truncate max-w-full">By {{ $rating->user?->name ?? 'Anonymous' }}</span>
                                         <span class="text-[#F3E9D7]/35">•</span>
                                         <span>{{ optional($rating->created_at)->format('M d, Y') }}</span>
-                                    </div>
-
-                                    <div class="mt-2.5 flex flex-wrap gap-1" aria-label="{{ $ratingScore }} out of 5 stars">
-                                        @for ($star = 1; $star <= 5; $star++)
-                                            <span class="text-base sm:text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
-                                        @endfor
                                     </div>
                                 </div>
                             </div>
@@ -818,6 +817,13 @@
             </div>
         </div>
     </section>
+
+    <div id="landingRatingPhotoModal" class="fixed inset-0 z-[70] hidden bg-black/85 opacity-0 transition-opacity duration-200">
+        <div class="flex min-h-full items-center justify-center p-4">
+            <button type="button" id="landingRatingPhotoModalClose" class="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-black/55 text-2xl leading-none text-white transition hover:bg-black/75" aria-label="Close rating photo preview">&times;</button>
+            <img id="landingRatingPhotoModalImage" src="" alt="" class="max-h-[80vh] max-w-full rounded-xl object-contain shadow-2xl">
+        </div>
+    </div>
 
     <section id="farm-products" class="py-24 bg-[#3A2E22] border-t border-[#F3E9D7]/30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1484,6 +1490,10 @@
         const reservationConfirmError = document.getElementById('reservationConfirmError');
         const receiptModal = document.getElementById('receiptModal');
         const receiptModalPanel = document.getElementById('receiptModalPanel');
+        const landingRatingPhotoModal = document.getElementById('landingRatingPhotoModal');
+        const landingRatingPhotoModalImage = document.getElementById('landingRatingPhotoModalImage');
+        const landingRatingPhotoModalClose = document.getElementById('landingRatingPhotoModalClose');
+        const landingRatingPhotoTriggers = document.querySelectorAll('.js-landing-rating-photo-trigger');
         const reservationToast = document.getElementById('reservationToast');
         const reservationToastMessage = document.getElementById('reservationToastMessage');
         let pendingReservationPayload = null;
@@ -1608,9 +1618,66 @@
         }
 
         function syncBodyScrollLock() {
-            const shouldLock = hasVisibleModal(reservationConfirmModal) || hasVisibleModal(receiptModal);
+            const shouldLock = hasVisibleModal(reservationConfirmModal) || hasVisibleModal(receiptModal) || hasVisibleModal(landingRatingPhotoModal);
             document.body.classList.toggle('overflow-hidden', shouldLock);
         }
+
+        function openLandingRatingPhotoModal(src, alt) {
+            if (!landingRatingPhotoModal || !landingRatingPhotoModalImage || !src) {
+                return;
+            }
+
+            landingRatingPhotoModalImage.src = src;
+            landingRatingPhotoModalImage.alt = alt || 'Rating photo preview';
+            landingRatingPhotoModal.classList.remove('hidden');
+
+            requestAnimationFrame(() => {
+                landingRatingPhotoModal.classList.remove('opacity-0');
+                landingRatingPhotoModal.classList.add('opacity-100');
+            });
+
+            syncBodyScrollLock();
+        }
+
+        function closeLandingRatingPhotoModal() {
+            if (!landingRatingPhotoModal || !landingRatingPhotoModalImage) {
+                return;
+            }
+
+            landingRatingPhotoModal.classList.remove('opacity-100');
+            landingRatingPhotoModal.classList.add('opacity-0');
+
+            window.setTimeout(() => {
+                landingRatingPhotoModal.classList.add('hidden');
+                landingRatingPhotoModalImage.src = '';
+                landingRatingPhotoModalImage.alt = '';
+                syncBodyScrollLock();
+            }, 200);
+        }
+
+        landingRatingPhotoTriggers.forEach((button) => {
+            button.addEventListener('click', () => {
+                openLandingRatingPhotoModal(button.dataset.photoSrc || '', button.dataset.photoAlt || 'Rating photo preview');
+            });
+        });
+
+        if (landingRatingPhotoModalClose) {
+            landingRatingPhotoModalClose.addEventListener('click', closeLandingRatingPhotoModal);
+        }
+
+        if (landingRatingPhotoModal) {
+            landingRatingPhotoModal.addEventListener('click', (event) => {
+                if (event.target === landingRatingPhotoModal) {
+                    closeLandingRatingPhotoModal();
+                }
+            });
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && hasVisibleModal(landingRatingPhotoModal)) {
+                closeLandingRatingPhotoModal();
+            }
+        });
 
         function setFieldError(field, errorElementId, message) {
             const errorElement = document.getElementById(errorElementId);

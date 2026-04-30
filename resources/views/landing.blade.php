@@ -789,7 +789,7 @@
                                                     <span class="text-base sm:text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
                                                 @endfor
                                             </div>
-                                            <p class="mt-2 text-xs text-[#F3E9D7]/74 font-body sm:text-sm">
+                                            <p class="mt-2 text-xs text-white font-body sm:text-sm">
                                                 {{ $rating->product?->establishment?->name ?? 'Verified Farm Seller' }}
                                             </p>
                                         </div>
@@ -798,9 +798,9 @@
                                         </span>
                                     </div>
 
-                                    <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#F3E9D7]/78 font-body sm:text-sm">
+                                    <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-white font-body sm:text-sm">
                                         <span class="truncate max-w-full">By {{ $rating->user?->name ?? 'Anonymous' }}</span>
-                                        <span class="text-[#F3E9D7]/35">•</span>
+                                        <span class="text-white/50">•</span>
                                         <span>{{ optional($rating->created_at)->format('M d, Y') }}</span>
                                     </div>
                                 </div>

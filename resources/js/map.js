@@ -3122,6 +3122,7 @@ function setupStaticEventListeners() {
 
             if (form.contact_number.value) formData.append('contact_number', form.contact_number.value.trim());
             if (form.email.value) formData.append('email', form.email.value.trim());
+            if (form.owner_password.value) formData.append('owner_password', form.owner_password.value);
             if (form.website.value) formData.append('website', form.website.value.trim());
             if (form.visit_hours.value) formData.append('visit_hours', form.visit_hours.value.trim());
             if (form.activities.value) formData.append('activities', form.activities.value.trim());

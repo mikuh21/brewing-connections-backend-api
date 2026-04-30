@@ -265,10 +265,16 @@
                                 <div>
                                     <label class="block text-sm font-semibold">Email</label>
                                     <input type="email" name="email" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <p class="mt-1 text-xs text-[#6B3A2A]">For cafes and roasters, this email is also used to link the owner account.</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold">Website</label>
                                     <input type="url" name="website" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold">Owner Account Password</label>
+                                    <input type="password" name="owner_password" autocomplete="new-password" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <p class="mt-1 text-xs text-[#6B3A2A]">Required only when this cafe or roaster owner account does not exist yet.</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold">Visit Hours</label>

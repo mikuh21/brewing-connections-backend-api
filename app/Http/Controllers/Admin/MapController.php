@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use App\Models\Establishment;
 use App\Models\User;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Hash;
 
 class MapController extends Controller
 {
@@ -17,7 +19,57 @@ class MapController extends Controller
     protected function resolveOwnerIdForMappedEstablishment(Request $request): ?int
     {
         if ($request->input('type') !== 'farm') {
-            return optional($request->user())->id;
+            $normalizedEmail = strtolower(trim((string) $request->input('email', '')));
+
+            if ($normalizedEmail === '') {
+                throw ValidationException::withMessages([
+                    'email' => 'Email is required for cafe and roaster establishments so BrewHub can link a dedicated owner account.',
+                ]);
+            }
+
+            $owner = User::query()
+                ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+                ->first();
+
+            if ($owner) {
+                if ($owner->role !== 'cafe_owner') {
+                    throw ValidationException::withMessages([
+                        'email' => 'This email is already assigned to a non cafe-owner account. Use a dedicated owner email instead.',
+                    ]);
+                }
+
+                return (int) $owner->id;
+            }
+
+            $ownerPassword = trim((string) $request->input('owner_password', ''));
+
+            if ($ownerPassword === '') {
+                throw ValidationException::withMessages([
+                    'owner_password' => 'Owner account password is required when creating a new cafe owner account.',
+                ]);
+            }
+
+            $ownerPayload = [
+                'name' => trim((string) $request->input('name', '')),
+                'email' => $normalizedEmail,
+                'password' => Hash::make($ownerPassword),
+                'role' => 'cafe_owner',
+                'email_verified_at' => now(),
+            ];
+
+            if (Schema::hasColumn('users', 'status')) {
+                $ownerPayload['status'] = 'active';
+            }
+
+            if (Schema::hasColumn('users', 'deactivated_at')) {
+                $ownerPayload['deactivated_at'] = null;
+            }
+
+            if (Schema::hasColumn('users', 'is_verified_reseller')) {
+                $ownerPayload['is_verified_reseller'] = false;
+            }
+
+            return (int) User::query()->create($ownerPayload)->id;
         }
 
         $farmOwner = User::query()
@@ -146,6 +198,7 @@ class MapController extends Controller
             'website' => 'nullable|url|max:255',
             'visit_hours' => 'nullable|string|max:255',
             'activities' => 'nullable|string|max:255',
+            'owner_password' => 'nullable|string|min:8|max:255',
             'latitude' => 'required|numeric|min:13.85|max:14.05',
             'longitude' => 'required|numeric|min:121.05|max:121.30',
             'varieties' => 'nullable|array',

@@ -8,7 +8,7 @@
     $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
     $existingRating = $order->productRating;
     $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
-    $existingRatingImageUrl = $existingRating?->image ? asset('storage/' . ltrim($existingRating->image, '/')) : null;
+    $existingRatingImageUrl = $existingRating?->image ? \Illuminate\Support\Facades\Storage::url($existingRating->image) : null;
 
     $pickupDateDisplay = 'N/A';
     if ($pickupDateRaw !== '') {
@@ -130,9 +130,9 @@
                                 </div>
 
                                 @if ($existingRatingImageUrl)
-                                    <a href="{{ $existingRatingImageUrl }}" target="_blank" rel="noreferrer" class="block h-24 w-full overflow-hidden rounded-xl border border-[#E6DDCF] bg-[#F7F1E8] sm:w-24" aria-label="View uploaded rating image">
+                                    <div class="block h-24 w-full overflow-hidden rounded-xl border border-[#E6DDCF] bg-[#F7F1E8] sm:w-24">
                                         <img src="{{ $existingRatingImageUrl }}" alt="Uploaded rating image for {{ $order->product?->name ?? 'product' }}" class="h-full w-full object-cover">
-                                    </a>
+                                    </div>
                                 @endif
                             </div>
                         </div>

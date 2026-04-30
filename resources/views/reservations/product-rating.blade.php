@@ -8,7 +8,7 @@
     $currentScore = old('overall_rating', $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : null);
     $productImage = $order->product?->image_url ?? null;
     $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
-    $existingRatingImageUrl = $existingRating?->image ? asset('storage/' . ltrim($existingRating->image, '/')) : null;
+    $existingRatingImageUrl = $existingRating?->image ? \Illuminate\Support\Facades\Storage::url($existingRating->image) : null;
 @endphp
 <div class="min-h-screen bg-[#F3E9D7] px-4 py-6 sm:px-6 sm:py-10">
     <div class="mx-auto flex max-w-5xl flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
@@ -83,11 +83,6 @@
                                     <a href="{{ $receiptUrl }}" class="inline-flex items-center justify-center rounded-lg border border-[#C8B69A] px-4 py-2.5 text-sm font-medium text-[#3A2E22] transition-colors duration-200 hover:bg-[#F3E9D7]">
                                         Back to Receipt
                                     </a>
-                                    @if ($existingRatingImageUrl)
-                                        <a href="{{ $existingRatingImageUrl }}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A]">
-                                            View Uploaded Photo
-                                        </a>
-                                    @endif
                                 </div>
                             </div>
                         @else
@@ -101,11 +96,12 @@
                             <form action="{{ $formAction }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                                 @csrf
 
-                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                                <div class="-mx-1 overflow-x-auto pb-1">
+                                    <div class="flex min-w-max gap-3 px-1">
                                     @for ($score = 1; $score <= 5; $score++)
-                                        <label class="group cursor-pointer">
+                                        <label class="group block w-[92px] shrink-0 cursor-pointer sm:w-[96px]">
                                             <input type="radio" name="overall_rating" value="{{ $score }}" class="peer sr-only" {{ (int) $currentScore === $score ? 'checked' : '' }}>
-                                            <span class="flex h-full min-h-[80px] flex-col items-center justify-center rounded-2xl border border-[#D7C9B1] bg-[#FAF6EE] px-2.5 py-3 text-center transition-all duration-150 peer-checked:border-[#2E5A3D] peer-checked:bg-[#EAF2EC] peer-checked:shadow-[0_10px_24px_rgba(46,90,61,0.14)] group-hover:border-[#B69574] sm:min-h-[88px] sm:px-3 sm:py-4">
+                                            <span class="flex h-full min-h-[88px] flex-col items-center justify-center rounded-2xl border border-[#D7C9B1] bg-[#FAF6EE] px-3 py-4 text-center transition-all duration-150 peer-checked:border-[#2E5A3D] peer-checked:bg-[#EAF2EC] peer-checked:shadow-[0_10px_24px_rgba(46,90,61,0.14)] group-hover:border-[#B69574]">
                                                 <span class="text-2xl font-semibold text-[#3A2E22] font-poppins">{{ $score }}</span>
                                                 <span class="mt-1 text-xs uppercase tracking-[0.14em] text-[#946042] font-body">
                                                     {{ $score === 1 ? 'Poor' : ($score === 2 ? 'Fair' : ($score === 3 ? 'Good' : ($score === 4 ? 'Great' : 'Excellent'))) }}
@@ -113,6 +109,7 @@
                                             </span>
                                         </label>
                                     @endfor
+                                    </div>
                                 </div>
 
                                 <div class="rounded-2xl border border-dashed border-[#D7C9B1] bg-[#FCF9F4] px-4 py-4 sm:px-5">
@@ -120,7 +117,7 @@
                                     <p class="mt-1 text-sm leading-6 text-[#6B5B4A] font-body">
                                         Upload a product photo from your gallery or camera. This is optional.
                                     </p>
-                                    <input id="photo" name="photo" type="file" accept="image/*" capture="environment" class="mt-4 block w-full rounded-xl border border-[#D7C9B1] bg-white px-3 py-3 text-sm text-[#3A2E22] file:mr-3 file:rounded-lg file:border-0 file:bg-[#2E5A3D] file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#1E3A2A]">
+                                    <input id="photo" name="photo" type="file" accept="image/*" class="mt-4 block w-full rounded-xl border border-[#D7C9B1] bg-white px-3 py-3 text-sm text-[#3A2E22] file:mr-3 file:rounded-lg file:border-0 file:bg-[#2E5A3D] file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[#1E3A2A]">
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

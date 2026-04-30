@@ -48,10 +48,13 @@ class CafeOwnerDashboardController extends Controller
         $popularityTrend = $this->buildTrendMeta($popularityScore, $previousPopularityScore);
 
         $productsListed = $this->resolveProductsListed((int) $userId, $establishmentId);
+        $recommendationTimestampColumn = Schema::hasColumn('recommendations', 'generated_at')
+            ? 'generated_at'
+            : 'created_at';
         $recosThisWeek = $establishmentId
             ? Recommendation::query()
                 ->where('establishment_id', $establishmentId)
-                ->where('created_at', '>=', now()->startOfWeek())
+                ->where($recommendationTimestampColumn, '>=', now()->startOfWeek(Carbon::MONDAY))
                 ->count()
             : 0;
 

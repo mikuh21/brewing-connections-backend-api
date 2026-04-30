@@ -80,6 +80,7 @@ class MarketplaceController extends Controller
                 'product:id,name,category,price_per_unit,unit,image_url,seller_type,seller_id,establishment_id',
                 'product.seller:id,name',
                 'product.establishment:id,name,type',
+                'productRating:id,order_id,created_at,overall_rating',
             ])
             ->where('user_id', (int) $request->user()->id)
             ->latest()
@@ -164,6 +165,7 @@ class MarketplaceController extends Controller
             'product:id,name,category,price_per_unit,unit,image_url,seller_type,seller_id,establishment_id',
             'product.seller:id,name',
             'product.establishment:id,name,type',
+            'productRating:id,order_id,created_at,overall_rating',
         ]);
 
         $this->orderReceiptNotifier->sendOrderCreated($order);
@@ -192,6 +194,7 @@ class MarketplaceController extends Controller
                     'product:id,name,category,price_per_unit,unit,image_url,seller_type,seller_id,establishment_id',
                     'product.seller:id,name',
                     'product.establishment:id,name,type',
+                    'productRating:id,order_id,created_at,overall_rating',
                 ])),
             ], 422);
         }
@@ -202,6 +205,7 @@ class MarketplaceController extends Controller
             'product:id,name,category,price_per_unit,unit,image_url,seller_type,seller_id,establishment_id',
             'product.seller:id,name',
             'product.establishment:id,name,type',
+            'productRating:id,order_id,created_at,overall_rating',
         ]);
 
         return response()->json([
@@ -226,6 +230,8 @@ class MarketplaceController extends Controller
         $customerName = (string) ($receiptMeta['full_name'] ?? $order->user?->name ?? '');
         $customerAddress = (string) ($receiptMeta['address'] ?? $order->user?->address ?? '');
         $customerContactNumber = (string) ($receiptMeta['phone'] ?? $order->user?->contact_number ?? '');
+        $ratingUrl = route('reservations.orders.rating.form', $receiptUrlParams);
+        $productRatingSubmittedAt = optional($order->productRating?->created_at)?->toIso8601String();
 
         return [
             'id' => (int) $order->id,
@@ -234,6 +240,10 @@ class MarketplaceController extends Controller
             'total_price' => (float) ($order->total_price ?? 0),
             'notes' => is_string($customerNote) ? $customerNote : (!is_array($metadata) ? $order->notes : null),
             'receipt_url' => $receiptUrl,
+            'rating_url' => $ratingUrl,
+            'can_rate_product' => (int) ($order->product?->id ?? 0) > 0
+                && !in_array(strtolower((string) ($order->status ?? 'pending')), ['cancelled', 'canceled'], true),
+            'product_rating_submitted_at' => $productRatingSubmittedAt,
             'customer_name' => $customerName,
             'customer_address' => $customerAddress,
             'customer_contact_number' => $customerContactNumber,

@@ -58,6 +58,11 @@ class Product extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'product_id');
+    }
+
     public function bulkOrders()
     {
         return $this->hasMany(BulkOrder::class);

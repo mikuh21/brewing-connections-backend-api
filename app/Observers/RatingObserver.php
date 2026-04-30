@@ -19,7 +19,10 @@ class RatingObserver
      */
     public function created(Rating $rating): void
     {
-        // Generate insights for the establishment that received the new rating
-        $this->analyticsService->generateInsightsForEstablishment($rating->establishment_id);
+        if ((int) ($rating->establishment_id ?? 0) <= 0) {
+            return;
+        }
+
+        $this->analyticsService->generateInsightsForEstablishment((int) $rating->establishment_id);
     }
 }

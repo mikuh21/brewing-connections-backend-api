@@ -62,6 +62,10 @@ Route::get('/reservations/prefill/{token}', [LandingReservationController::class
     ->name('reservations.prefill.show');
 Route::get('/reservations/orders/{order}/receipt', [LandingReservationController::class, 'showReceipt'])
     ->name('reservations.orders.receipt');
+Route::get('/reservations/orders/{order}/rate', [LandingReservationController::class, 'showProductRatingForm'])
+    ->name('reservations.orders.rating.form');
+Route::post('/reservations/orders/{order}/rate', [LandingReservationController::class, 'storeProductRating'])
+    ->name('reservations.orders.rating.store');
 
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

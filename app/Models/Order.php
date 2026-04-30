@@ -32,4 +32,9 @@ class Order extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function productRating()
+    {
+        return $this->hasOne(Rating::class, 'order_id');
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Rating;
 use App\Models\User;
 use App\Services\OrderReceiptNotifier;
 use Illuminate\Http\JsonResponse;
@@ -182,30 +183,98 @@ class LandingReservationController extends Controller
 
     public function showReceipt(Request $request, Order $order)
     {
-        $metadata = json_decode((string) ($order->notes ?? ''), true);
-        $receiptMeta = is_array($metadata) ? $metadata : [];
-
-        $requestedToken = (string) $request->query('token', '');
-        $storedToken = (string) ($receiptMeta['receipt_token'] ?? '');
-        $tokenMatched = $requestedToken !== '' && hash_equals($storedToken, $requestedToken);
-
-        if (!$tokenMatched) {
-            if (!Auth::check() || !$this->isReceiptViewAllowedForAuthenticatedUser($order, $request->user()->id)) {
-                abort(Response::HTTP_FORBIDDEN);
-            }
-        }
+        $receiptMeta = $this->resolveReceiptMeta($order);
+        $this->authorizeReceiptAccess($request, $order, $receiptMeta);
 
         $order->loadMissing([
             'user:id,name',
             'product:id,name,unit,price_per_unit,establishment_id',
             'product.establishment:id,name,address',
+            'productRating:id,order_id,created_at,overall_rating,image',
         ]);
 
         return view('reservations.official-receipt', [
             'order' => $order,
             'receiptMeta' => $receiptMeta,
             'reservationCode' => 'BRH-ORDER-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT),
+            'productRatingUrl' => route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta)),
         ]);
+    }
+
+    public function showProductRatingForm(Request $request, Order $order)
+    {
+        $receiptMeta = $this->resolveReceiptMeta($order);
+        $this->authorizeReceiptAccess($request, $order, $receiptMeta);
+
+        $order->loadMissing([
+            'user:id,name,email',
+            'product:id,name,unit,price_per_unit,image_url,establishment_id',
+            'product.establishment:id,name,address',
+            'productRating:id,order_id,overall_rating,created_at,image',
+        ]);
+
+        abort_if((int) ($order->product?->id ?? 0) <= 0, Response::HTTP_NOT_FOUND);
+
+        return view('reservations.product-rating', [
+            'order' => $order,
+            'receiptMeta' => $receiptMeta,
+            'reservationCode' => 'BRH-ORDER-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT),
+            'receiptUrl' => route('reservations.orders.receipt', $this->buildReceiptRouteParams($order, $receiptMeta)),
+            'formAction' => route('reservations.orders.rating.store', $this->buildReceiptRouteParams($order, $receiptMeta)),
+        ]);
+    }
+
+    public function storeProductRating(Request $request, Order $order)
+    {
+        $receiptMeta = $this->resolveReceiptMeta($order);
+        $this->authorizeReceiptAccess($request, $order, $receiptMeta);
+
+        $order->loadMissing([
+            'product:id,name,establishment_id',
+            'productRating:id,order_id',
+        ]);
+
+        abort_if((int) ($order->product?->id ?? 0) <= 0, Response::HTTP_NOT_FOUND);
+
+        if (in_array(strtolower((string) ($order->status ?? 'pending')), ['cancelled', 'canceled'], true)) {
+            return redirect()
+                ->route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta))
+                ->withErrors(['overall_rating' => 'Cancelled orders cannot be rated.']);
+        }
+
+        if ($order->productRating) {
+            return redirect()
+                ->route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta))
+                ->with('status', 'You already rated this product.');
+        }
+
+        $validated = $request->validate([
+            'overall_rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'photo' => ['nullable', 'image', 'max:5120'],
+        ]);
+
+        $imagePath = null;
+        if ($request->hasFile('photo')) {
+            $imagePath = $request->file('photo')->store('ratings', 'public');
+        }
+
+        $score = (int) $validated['overall_rating'];
+
+        Rating::query()->create([
+            'user_id' => (int) $order->user_id,
+            'establishment_id' => null,
+            'product_id' => (int) $order->product_id,
+            'order_id' => (int) $order->id,
+            'taste_rating' => $score,
+            'environment_rating' => $score,
+            'cleanliness_rating' => $score,
+            'service_rating' => $score,
+            'image' => $imagePath,
+        ]);
+
+        return redirect()
+            ->route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta))
+            ->with('status', 'Product rating submitted successfully.');
     }
 
     private function isReceiptViewAllowedForAuthenticatedUser(Order $order, int $authenticatedUserId): bool
@@ -228,6 +297,40 @@ class LandingReservationController extends Controller
         }
 
         return (int) ($order->product?->establishment?->user_id ?? 0) === (int) $authenticatedUserId;
+    }
+
+    private function resolveReceiptMeta(Order $order): array
+    {
+        $metadata = json_decode((string) ($order->notes ?? ''), true);
+
+        return is_array($metadata) ? $metadata : [];
+    }
+
+    private function authorizeReceiptAccess(Request $request, Order $order, array $receiptMeta): void
+    {
+        $requestedToken = (string) $request->query('token', '');
+        $storedToken = (string) ($receiptMeta['receipt_token'] ?? '');
+        $tokenMatched = $requestedToken !== '' && hash_equals($storedToken, $requestedToken);
+
+        if ($tokenMatched) {
+            return;
+        }
+
+        if (!Auth::check() || !$this->isReceiptViewAllowedForAuthenticatedUser($order, $request->user()->id)) {
+            abort(Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    private function buildReceiptRouteParams(Order $order, array $receiptMeta): array
+    {
+        $params = ['order' => $order->id];
+        $receiptToken = (string) ($receiptMeta['receipt_token'] ?? '');
+
+        if ($receiptToken !== '') {
+            $params['token'] = $receiptToken;
+        }
+
+        return $params;
     }
 
     private function resolveOrderingUser(Request $request, array $validated): User

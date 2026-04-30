@@ -14,6 +14,7 @@ class RatingController extends Controller
         $perPage = max(1, min((int) $request->query("per_page", 20), 50));
 
         $ratings = Rating::query()
+            ->whereNotNull('establishment_id')
             ->with("user", "establishment")
             ->latest()
             ->paginate($perPage);

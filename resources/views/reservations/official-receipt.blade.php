@@ -89,6 +89,37 @@
             <p class="text-xs sm:text-sm text-[#3A2E22]/80 font-body leading-relaxed">
                 This is an official BrewHub reservation record. Sellers can view this order in their marketplace dashboard in real time.
             </p>
+
+            <div class="rounded-xl border border-[#D7C9B1] bg-[#FAF6EE] p-4 sm:p-5 space-y-3">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-[#3A2E22] font-poppins">Rate this product</p>
+                        <p class="text-xs sm:text-sm text-[#6B5B4A] font-body">
+                            Share one overall rating and an optional photo for {{ $order->product?->name ?? 'this product' }}.
+                        </p>
+                    </div>
+
+                    @if ($order->productRating)
+                        <span class="inline-flex items-center rounded-full bg-[#E6F2E9] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#2E5A3D]">
+                            Rated {{ optional($order->productRating->created_at)->format('M d, Y') }}
+                        </span>
+                    @endif
+                </div>
+
+                @if (! $order->productRating && ! in_array(strtolower((string) $order->status), ['cancelled', 'canceled'], true))
+                    <a href="{{ $productRatingUrl }}" class="inline-flex w-full sm:w-auto items-center justify-center rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A]">
+                        Open Rating Form
+                    </a>
+                @elseif ($order->productRating)
+                    <a href="{{ $productRatingUrl }}" class="inline-flex w-full sm:w-auto items-center justify-center rounded-lg border border-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-[#2E5A3D] transition-colors duration-200 hover:bg-[#EAF2EC]">
+                        View Rating
+                    </a>
+                @else
+                    <p class="text-xs sm:text-sm text-[#8A5A3A] font-body">
+                        Product ratings are unavailable for cancelled reservations.
+                    </p>
+                @endif
+            </div>
         </div>
 
         <div class="px-6 py-4 sm:px-8 bg-[#FAF7F1] border-t border-[#E6DDCF] flex flex-col sm:flex-row sm:justify-end gap-2">

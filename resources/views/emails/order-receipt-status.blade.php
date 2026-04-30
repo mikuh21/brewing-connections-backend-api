@@ -79,6 +79,25 @@
                                 <a href="{{ $receiptUrl }}" style="display:inline-block;background:#2E5A3D;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:13px;">View Official Receipt</a>
                             </p>
 
+                            @php
+                                $ratingParams = ['order' => $order->id];
+                                if (!empty($receiptMeta['receipt_token'])) {
+                                    $ratingParams['token'] = $receiptMeta['receipt_token'];
+                                }
+                                $ratingUrl = route('reservations.orders.rating.form', $ratingParams);
+                                $isCancelledOrder = in_array(strtolower((string) $order->status), ['cancelled', 'canceled'], true);
+                            @endphp
+
+                            @if (! $order->productRating && ! $isCancelledOrder)
+                                <p style="margin:12px 0 0 0;">
+                                    <a href="{{ $ratingUrl }}" style="display:inline-block;background:#8B5E34;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:13px;">Rate This Product</a>
+                                </p>
+                            @elseif ($order->productRating)
+                                <p style="margin:12px 0 0 0;font-size:12px;color:#2E5A3D;line-height:1.6;">
+                                    Thanks for rating this product on {{ optional($order->productRating->created_at)->format('M d, Y') }}.
+                                </p>
+                            @endif
+
                             <p style="margin:16px 0 0 0;font-size:12px;color:#6B5B4A;line-height:1.6;">
                                 Customer: {{ $receiptMeta['full_name'] ?? ($order->user?->name ?? 'N/A') }}<br>
                                 Address: {{ $receiptMeta['address'] ?? 'N/A' }}<br>

@@ -25,6 +25,7 @@ class OrderReceiptNotifier
             'user:id,name,email',
             'product:id,name,unit,price_per_unit,seller_id,seller_type,establishment_id',
             'product.establishment',
+            'productRating:id,order_id,created_at,overall_rating',
         ]);
 
         $metadata = json_decode((string) ($order->notes ?? ''), true);

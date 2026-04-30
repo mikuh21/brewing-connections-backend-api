@@ -15,6 +15,8 @@ class Rating extends Model
         'id',
         'user_id',
         'establishment_id',
+        'product_id',
+        'order_id',
         'taste_rating',
         'environment_rating',
         'cleanliness_rating',
@@ -49,5 +51,15 @@ class Rating extends Model
     public function establishment()
     {
         return $this->belongsTo(Establishment::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 }

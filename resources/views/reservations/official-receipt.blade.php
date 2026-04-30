@@ -6,6 +6,9 @@
 @php
     $pickupDateRaw = (string) ($receiptMeta['pickup_date'] ?? '');
     $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
+    $existingRating = $order->productRating;
+    $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
+    $existingRatingImageUrl = $existingRating?->image ? asset('storage/' . ltrim($existingRating->image, '/')) : null;
 
     $pickupDateDisplay = 'N/A';
     if ($pickupDateRaw !== '') {
@@ -111,9 +114,33 @@
                         Open Rating Form
                     </a>
                 @elseif ($order->productRating)
+                    <div class="space-y-3">
+                        <div class="rounded-xl border border-[#D7C9B1] bg-white px-4 py-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Your Rating</p>
+                                    <div class="mt-2 flex flex-wrap gap-1.5" aria-label="{{ $existingRatingScore }} out of 5 stars">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            <span class="text-xl {{ $star <= $existingRatingScore ? 'text-[#D18A2F]' : 'text-[#D8CFC2]' }}">&#9733;</span>
+                                        @endfor
+                                    </div>
+                                    <p class="mt-2 text-sm text-[#6B5B4A] font-body">
+                                        {{ number_format((float) ($existingRating->overall_rating ?? 0), 2) }}/5 overall rating
+                                    </p>
+                                </div>
+
+                                @if ($existingRatingImageUrl)
+                                    <a href="{{ $existingRatingImageUrl }}" target="_blank" rel="noreferrer" class="block h-24 w-full overflow-hidden rounded-xl border border-[#E6DDCF] bg-[#F7F1E8] sm:w-24" aria-label="View uploaded rating image">
+                                        <img src="{{ $existingRatingImageUrl }}" alt="Uploaded rating image for {{ $order->product?->name ?? 'product' }}" class="h-full w-full object-cover">
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+
                     <a href="{{ $productRatingUrl }}" class="inline-flex w-full sm:w-auto items-center justify-center rounded-lg border border-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-[#2E5A3D] transition-colors duration-200 hover:bg-[#EAF2EC]">
                         View Rating
                     </a>
+                    </div>
                 @else
                     <p class="text-xs sm:text-sm text-[#8A5A3A] font-body">
                         Product ratings become available once the reservation is completed.

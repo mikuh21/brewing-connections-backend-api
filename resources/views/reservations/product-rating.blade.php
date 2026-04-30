@@ -7,6 +7,8 @@
     $existingRating = $order->productRating;
     $currentScore = old('overall_rating', $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : null);
     $productImage = $order->product?->image_url ?? null;
+    $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
+    $existingRatingImageUrl = $existingRating?->image ? asset('storage/' . ltrim($existingRating->image, '/')) : null;
 @endphp
 <div class="min-h-screen bg-[#F3E9D7] px-4 py-6 sm:px-6 sm:py-10">
     <div class="mx-auto flex max-w-5xl flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
@@ -65,12 +67,24 @@
                                 <p class="mt-1 text-sm text-[#6B5B4A] font-body">
                                     You rated this order {{ (int) round((float) $existingRating->overall_rating) }}/5 on {{ optional($existingRating->created_at)->format('M d, Y') }}.
                                 </p>
+                                <div class="mt-4 flex flex-wrap gap-1.5" aria-label="{{ $existingRatingScore }} out of 5 stars">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        <span class="text-2xl {{ $star <= $existingRatingScore ? 'text-[#D18A2F]' : 'text-[#D8CFC2]' }}">&#9733;</span>
+                                    @endfor
+                                </div>
+
+                                @if ($existingRatingImageUrl)
+                                    <div class="mt-4 overflow-hidden rounded-2xl border border-[#E6DDCF] bg-white">
+                                        <img src="{{ $existingRatingImageUrl }}" alt="Uploaded rating image for {{ $order->product?->name ?? 'product' }}" class="h-52 w-full object-cover sm:h-64">
+                                    </div>
+                                @endif
+
                                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
                                     <a href="{{ $receiptUrl }}" class="inline-flex items-center justify-center rounded-lg border border-[#C8B69A] px-4 py-2.5 text-sm font-medium text-[#3A2E22] transition-colors duration-200 hover:bg-[#F3E9D7]">
                                         Back to Receipt
                                     </a>
-                                    @if ($existingRating->image)
-                                        <a href="{{ asset('storage/' . ltrim($existingRating->image, '/')) }}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A]">
+                                    @if ($existingRatingImageUrl)
+                                        <a href="{{ $existingRatingImageUrl }}" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A]">
                                             View Uploaded Photo
                                         </a>
                                     @endif

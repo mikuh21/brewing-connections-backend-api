@@ -170,7 +170,7 @@
         <div class="flex items-start justify-between gap-2">
             <p id="insightsOverviewTitle" class="text-[#9E8C78] text-sm font-medium">This Week's Insights</p>
             <select id="insightsPeriodFilterCard" class="h-8 rounded-lg border border-[#DCCFBD] bg-white px-2.5 text-[11px] text-[#6B5B4A] focus:outline-none focus:ring-2 focus:ring-[#4A6741]/30" aria-label="Filter insights period">
-                <option value="all">All</option>
+                <option value="all">All Time</option>
                 <option value="month">This Month</option>
                 <option value="week" selected>This Week</option>
             </select>
@@ -218,7 +218,10 @@
 
     <div id="monthlyRecommendationsSection" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-display font-bold text-[#3A2E22]">Monthly Recommendations</h2>
+            <div>
+                <h2 class="text-xl font-display font-bold text-[#3A2E22]">Monthly Recommendation Sets</h2>
+                <p class="text-[11px] text-[#9E8C78] mt-1">Each point counts stored recommendation generations, not category rows.</p>
+            </div>
             <p class="text-xs text-[#9E8C78]">Last 6 months</p>
         </div>
         <div class="h-72">
@@ -432,7 +435,7 @@
             <p id="insightsCoverageLabel" class="text-[11px] text-[#9E8C78] mt-1">Coverage: {{ $insightsDateLabel }}</p>
         </div>
         <select id="insightsPeriodFilterContainer" class="h-9 rounded-lg border border-[#DCCFBD] bg-white px-3 text-xs text-[#6B5B4A] focus:outline-none focus:ring-2 focus:ring-[#4A6741]/30" aria-label="Filter descriptive and prescriptive insights period">
-            <option value="all">All</option>
+            <option value="all">All Time</option>
             <option value="month">This Month</option>
             <option value="week" selected>This Week</option>
         </select>
@@ -491,6 +494,74 @@
             <div class="lg:col-span-2 border border-dashed border-[#DCCFBE] rounded-xl p-6 bg-[#F9F6F1]">
                 <p class="text-sm font-semibold text-[#6B5B4A]">No weekly insights available yet</p>
                 <p class="text-sm text-[#9E8C78] mt-1">We need at least one rating in the selected week to generate descriptive and prescriptive insights.</p>
+                <p class="text-[11px] text-[#9E8C78] mt-2">Coverage: {{ $insightsDateLabel }}</p>
+            </div>
+        @endforelse
+    </div>
+</div>
+
+<div class="mt-8 bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
+    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div>
+            <h2 class="text-xl font-display font-bold text-[#3A2E22]">Recommendation History</h2>
+            <p class="text-xs text-[#9E8C78] mt-1">Each set below is a stored recommendation generation, so repeated runs no longer collapse into one latest row per category.</p>
+            <p id="historyCoverageLabel" class="text-[11px] text-[#9E8C78] mt-1">Coverage: {{ $insightsDateLabel }}</p>
+        </div>
+        <div class="rounded-xl border border-[#E5DDD0] bg-[#FCFAF7] px-4 py-3 min-w-[160px]">
+            <p class="text-[11px] uppercase tracking-wide text-[#9E8C78] font-semibold">Sets</p>
+            <p id="historyOverviewCount" class="text-3xl font-bold text-[#3A2E22] mt-1">{{ count($historyEntries ?? []) }}</p>
+            <p id="historyOverviewSubtext" class="text-xs text-[#9E8C78] mt-1">Historical recommendation sets in this period</p>
+        </div>
+    </div>
+
+    <div id="recommendationHistoryList" class="mt-5 space-y-4">
+        @forelse(($historyEntries ?? []) as $entry)
+            @php
+                $entryPriorityKey = data_get($entry, 'priority_key', 'low');
+                $entryPriorityClass = $entryPriorityKey === 'high'
+                    ? 'bg-red-100 text-red-700 border-red-300'
+                    : ($entryPriorityKey === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-green-100 text-green-700 border-green-300');
+            @endphp
+            <div class="rounded-2xl border border-[#E5DDD0] bg-white p-5 shadow-sm">
+                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-[#3A2E22]">Generated {{ data_get($entry, 'generated_label', '-') }}</p>
+                        <p class="text-xs text-[#9E8C78] mt-1">{{ (int) data_get($entry, 'review_count', 0) }} cumulative ratings at generation time</p>
+                    </div>
+                    <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $entryPriorityClass }}">
+                        {{ data_get($entry, 'priority_label', 'Low Priority') }}
+                    </span>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    @foreach((array) data_get($entry, 'items', []) as $item)
+                        @php
+                            $itemPriorityKey = data_get($item, 'priority_key', 'low');
+                            $itemPriorityClass = $itemPriorityKey === 'high'
+                                ? 'bg-red-100 text-red-700 border-red-300'
+                                : ($itemPriorityKey === 'medium' ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-green-100 text-green-700 border-green-300');
+                        @endphp
+                        <div class="rounded-xl border border-[#EDE4D8] bg-[#FCFAF7] p-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-[#3A2E22]">{{ data_get($item, 'category_label', 'Category') }}</p>
+                                    <p class="text-[11px] text-[#9E8C78] mt-1">Average score: {{ number_format((float) data_get($item, 'average_score', 0), 2) }}/5</p>
+                                </div>
+                                <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold {{ $itemPriorityClass }}">
+                                    {{ data_get($item, 'priority_label', 'Low Priority') }}
+                                </span>
+                            </div>
+                            <p class="text-sm text-[#6B5B4A] mt-3 leading-relaxed">{{ data_get($item, 'insight') }}</p>
+                            <p class="text-[11px] text-[#7D6B57] mt-3 uppercase tracking-wide font-semibold">Suggested Action</p>
+                            <p class="text-sm text-[#6B5B4A] mt-1 leading-relaxed">{{ data_get($item, 'suggested_action') }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @empty
+            <div class="border border-dashed border-[#DCCFBE] rounded-xl p-6 bg-[#F9F6F1]">
+                <p class="text-sm font-semibold text-[#6B5B4A]">No recommendation sets for this week yet</p>
+                <p class="text-sm text-[#9E8C78] mt-1">Historical recommendation generations will appear here each time ratings trigger a new snapshot.</p>
                 <p class="text-[11px] text-[#9E8C78] mt-2">Coverage: {{ $insightsDateLabel }}</p>
             </div>
         @endforelse
@@ -602,6 +673,7 @@
 
     const monthlyRecommendationData = @json($monthlyRecommendationData);
     const insightsFilterPayload = @json($insightsFilterPayload ?? []);
+    const historyFilterPayload = @json($historyFilterPayload ?? []);
 
     const sharedScales = {
         x: {
@@ -658,7 +730,7 @@
             data: {
                 labels: monthlyRecommendationData.labels,
                 datasets: [{
-                    label: 'Recommendations',
+                    label: 'Recommendation Sets',
                     data: monthlyRecommendationData.series,
                     borderColor: '#4A6741',
                     backgroundColor: 'rgba(74, 103, 65, 0.10)',
@@ -692,6 +764,10 @@
     const insightsContainerSubtitle = document.getElementById('insightsContainerSubtitle');
     const insightsCoverageLabel = document.getElementById('insightsCoverageLabel');
     const journeyInsightsGrid = document.getElementById('journeyInsightsGrid');
+    const historyOverviewCount = document.getElementById('historyOverviewCount');
+    const historyOverviewSubtext = document.getElementById('historyOverviewSubtext');
+    const historyCoverageLabel = document.getElementById('historyCoverageLabel');
+    const recommendationHistoryList = document.getElementById('recommendationHistoryList');
     const insightsPeriodFilterCard = document.getElementById('insightsPeriodFilterCard');
     const insightsPeriodFilterContainer = document.getElementById('insightsPeriodFilterContainer');
     const priorityCard = document.getElementById('priorityStatusCard');
@@ -871,10 +947,10 @@
 
     const insightsPeriodMeta = {
         all: {
-            title: 'All Insights',
-            countText: 'Generated prescriptive insights across all time',
+            title: 'All-Time Summary',
+            countText: 'Current descriptive and prescriptive insight summary across all time',
             emptyText: 'No ratings available to generate all-time insights yet.',
-            subtitle: 'All-time star-rating based recommendations from experience-journey signals and rule-based generated actions.',
+            subtitle: 'All-time summary based on ratings, with historical generations listed separately below.',
         },
         month: {
             title: "This Month's Insights",
@@ -898,6 +974,64 @@
             return 'bg-amber-100 text-amber-700 border-amber-300';
         }
         return 'bg-green-100 text-green-700 border-green-300';
+    };
+
+    const renderRecommendationHistory = (entries, periodKey, dateLabel) => {
+        if (!recommendationHistoryList) {
+            return;
+        }
+
+        if (!Array.isArray(entries) || entries.length === 0) {
+            const emptyPeriodLabel = periodKey === 'all' ? 'all time' : (periodKey === 'month' ? 'this month' : 'this week');
+            recommendationHistoryList.innerHTML = `
+                <div class="border border-dashed border-[#DCCFBE] rounded-xl p-6 bg-[#F9F6F1]">
+                    <p class="text-sm font-semibold text-[#6B5B4A]">No recommendation sets for ${escapeHtml(emptyPeriodLabel)} yet</p>
+                    <p class="text-sm text-[#9E8C78] mt-1">Historical recommendation generations will appear here each time ratings trigger a new snapshot.</p>
+                    <p class="text-[11px] text-[#9E8C78] mt-2">Coverage: ${escapeHtml(dateLabel || '-')}</p>
+                </div>
+            `;
+            return;
+        }
+
+        recommendationHistoryList.innerHTML = entries.map((entry) => {
+            const entryPriorityClass = getPriorityBadgeClass(String(entry.priority_key || 'low').toLowerCase());
+            const items = Array.isArray(entry.items) ? entry.items : [];
+            const itemsHtml = items.map((item) => {
+                const itemPriorityClass = getPriorityBadgeClass(String(item.priority_key || 'low').toLowerCase());
+
+                return `
+                    <div class="rounded-xl border border-[#EDE4D8] bg-[#FCFAF7] p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-[#3A2E22]">${escapeHtml(item.category_label || 'Category')}</p>
+                                <p class="text-[11px] text-[#9E8C78] mt-1">Average score: ${escapeHtml(Number(item.average_score || 0).toFixed(2))}/5</p>
+                            </div>
+                            <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${itemPriorityClass}">
+                                ${escapeHtml(item.priority_label || 'Low Priority')}
+                            </span>
+                        </div>
+                        <p class="text-sm text-[#6B5B4A] mt-3 leading-relaxed">${escapeHtml(item.insight || '')}</p>
+                        <p class="text-[11px] text-[#7D6B57] mt-3 uppercase tracking-wide font-semibold">Suggested Action</p>
+                        <p class="text-sm text-[#6B5B4A] mt-1 leading-relaxed">${escapeHtml(item.suggested_action || '')}</p>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="rounded-2xl border border-[#E5DDD0] bg-white p-5 shadow-sm">
+                    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-[#3A2E22]">Generated ${escapeHtml(entry.generated_label || '-')}</p>
+                            <p class="text-xs text-[#9E8C78] mt-1">${escapeHtml(String(entry.review_count || 0))} cumulative ratings at generation time</p>
+                        </div>
+                        <span class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${entryPriorityClass}">
+                            ${escapeHtml(entry.priority_label || 'Low Priority')}
+                        </span>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">${itemsHtml}</div>
+                </div>
+            `;
+        }).join('');
     };
 
     const renderJourneyInsightsGrid = (insights, periodKey, dateLabel) => {
@@ -978,6 +1112,7 @@
         const hasRatings = Boolean(periodData.has_ratings);
         const dateLabel = String(periodData.date_label || '-');
         const journeyInsights = Array.isArray(periodData.journey_insights) ? periodData.journey_insights : [];
+        const historyEntries = Array.isArray(historyFilterPayload?.[normalizedPeriod]) ? historyFilterPayload[normalizedPeriod] : [];
         const insightCount = journeyInsights.length;
         const count = isAllPeriod ? insightCount : Number(periodData.count || 0);
         const hasVisibleInsights = isAllPeriod ? insightCount > 0 : hasRatings;
@@ -1002,8 +1137,20 @@
         if (insightsCoverageLabel) {
             insightsCoverageLabel.textContent = `Coverage: ${dateLabel}`;
         }
+        if (historyOverviewCount) {
+            historyOverviewCount.textContent = String(historyEntries.length);
+        }
+        if (historyOverviewSubtext) {
+            historyOverviewSubtext.textContent = historyEntries.length === 1
+                ? 'Historical recommendation set in this period'
+                : 'Historical recommendation sets in this period';
+        }
+        if (historyCoverageLabel) {
+            historyCoverageLabel.textContent = `Coverage: ${dateLabel}`;
+        }
 
         renderJourneyInsightsGrid(journeyInsights, normalizedPeriod, dateLabel);
+        renderRecommendationHistory(historyEntries, normalizedPeriod, dateLabel);
 
         if (insightsPeriodFilterCard && insightsPeriodFilterCard.value !== normalizedPeriod) {
             insightsPeriodFilterCard.value = normalizedPeriod;
@@ -1289,7 +1436,7 @@
             doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(58, 46, 34);
-            doc.text('Monthly Recommendations', margin + chartW + 6, y);
+            doc.text('Monthly Recommendation Sets', margin + chartW + 6, y);
             const img2 = monthlyCanvas.toDataURL('image/png');
             doc.addImage(img2, 'PNG', margin + chartW + 6, y + 3, chartW, chartH);
         }

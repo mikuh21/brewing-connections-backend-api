@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use App\Models\Rating;
 use App\Models\Recommendation;
+use App\Models\RecommendationSnapshot;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -96,6 +97,12 @@ class CafeOwnerRecommendationsController extends Controller
                 ],
             ];
 
+            $emptyHistoryFilterPayload = [
+                'all' => [],
+                'month' => [],
+                'week' => [],
+            ];
+
             return view('cafe-owner.recommendations', [
                 'avgRating' => $avgRating,
                 'averageRating' => 0,
@@ -123,6 +130,8 @@ class CafeOwnerRecommendationsController extends Controller
                 'weeklyHasRatings' => false,
                 'insightsDateLabel' => $weekDateLabel,
                 'insightsFilterPayload' => $emptyInsightsFilterPayload,
+                'historyFilterPayload' => $emptyHistoryFilterPayload,
+                'historyEntries' => [],
                 'establishment' => null,
             ]);
         }
@@ -168,6 +177,8 @@ class CafeOwnerRecommendationsController extends Controller
             'service' => 'service_rating',
         ];
 
+        $hasSnapshotHistory = Schema::hasTable('recommendation_snapshots')
+            && Schema::hasTable('recommendation_snapshot_items');
         $recommendationTimestampColumn = Schema::hasColumn('recommendations', 'generated_at')
             ? 'generated_at'
             : 'created_at';
@@ -175,9 +186,13 @@ class CafeOwnerRecommendationsController extends Controller
         $firstRatingAt = Rating::query()
             ->where('establishment_id', $establishment->id)
             ->min('created_at');
-        $firstRecommendationAt = Recommendation::query()
-            ->where('establishment_id', $establishment->id)
-            ->min($recommendationTimestampColumn);
+        $firstRecommendationAt = $hasSnapshotHistory
+            ? RecommendationSnapshot::query()
+                ->where('establishment_id', $establishment->id)
+                ->min('generated_at')
+            : Recommendation::query()
+                ->where('establishment_id', $establishment->id)
+                ->min($recommendationTimestampColumn);
 
         $allTimeStart = collect([$firstRatingAt, $firstRecommendationAt])
             ->filter()
@@ -189,7 +204,7 @@ class CafeOwnerRecommendationsController extends Controller
             $allTimeDateLabel = $allTimeStart->format('M d, Y').' - '.$now->format('M d, Y');
         }
 
-        $buildPeriodInsightsPayload = function (?Carbon $start, ?Carbon $end, string $dateLabel) use ($establishment, $categoryColumns, $recommendationTimestampColumn) {
+        $buildPeriodInsightsPayload = function (?Carbon $start, ?Carbon $end, string $dateLabel) use ($establishment, $categoryColumns, $recommendationTimestampColumn, $hasSnapshotHistory) {
             $periodRatingsQuery = Rating::query()->where('establishment_id', $establishment->id);
             if ($start && $end) {
                 $periodRatingsQuery->whereBetween('created_at', [$start, $end]);
@@ -219,20 +234,43 @@ class CafeOwnerRecommendationsController extends Controller
             $periodPriorityCategory = $periodPriorityCategories[0] ?? 'taste';
             $periodPriorityLevel = $this->resolvePriorityLevel((float) $periodLowestScore);
 
-            $periodRecommendationsQuery = Recommendation::query()
-                ->where('establishment_id', $establishment->id);
-            if ($start && $end) {
-                $periodRecommendationsQuery->whereBetween($recommendationTimestampColumn, [$start, $end]);
+            if ($hasSnapshotHistory) {
+                $periodSnapshotsQuery = RecommendationSnapshot::query()
+                    ->with('items')
+                    ->where('establishment_id', $establishment->id);
+
+                if ($start && $end) {
+                    $periodSnapshotsQuery->whereBetween('generated_at', [$start, $end]);
+                }
+
+                $periodSnapshots = $periodSnapshotsQuery
+                    ->orderByDesc('generated_at')
+                    ->orderByDesc('id')
+                    ->get();
+
+                $periodRecommendationsByCategory = $periodSnapshots
+                    ->flatMap(fn (RecommendationSnapshot $snapshot) => $snapshot->items)
+                    ->sortByDesc(fn ($item) => optional($item->generated_at)->timestamp ?? 0)
+                    ->unique('category')
+                    ->keyBy('category');
+
+                $periodRecommendationCount = $periodSnapshots->count();
+            } else {
+                $periodRecommendationsQuery = Recommendation::query()
+                    ->where('establishment_id', $establishment->id);
+                if ($start && $end) {
+                    $periodRecommendationsQuery->whereBetween($recommendationTimestampColumn, [$start, $end]);
+                }
+
+                $periodRecommendationsByCategory = $periodRecommendationsQuery->clone()
+                    ->orderByDesc('generated_at')
+                    ->orderByDesc('created_at')
+                    ->get()
+                    ->unique('category')
+                    ->keyBy('category');
+
+                $periodRecommendationCount = (int) ($periodRecommendationsQuery->clone()->count() ?? 0);
             }
-
-            $periodRecommendationsByCategory = $periodRecommendationsQuery->clone()
-                ->orderByDesc('generated_at')
-                ->orderByDesc('created_at')
-                ->get()
-                ->unique('category')
-                ->keyBy('category');
-
-            $periodRecommendationCount = (int) ($periodRecommendationsQuery->clone()->count() ?? 0);
 
             $periodJourneyInsights = $periodHasRatings
                 ? collect($periodCategoryAverages)
@@ -287,6 +325,62 @@ class CafeOwnerRecommendationsController extends Controller
             'week' => $buildPeriodInsightsPayload($weekStart, $weekEnd, $weekDateLabel),
         ];
 
+        $buildHistoryPayload = function (?Carbon $start, ?Carbon $end) use ($establishment, $hasSnapshotHistory) {
+            if (!$hasSnapshotHistory) {
+                return [];
+            }
+
+            $query = RecommendationSnapshot::query()
+                ->with('items')
+                ->where('establishment_id', $establishment->id)
+                ->orderByDesc('generated_at')
+                ->orderByDesc('id');
+
+            if ($start && $end) {
+                $query->whereBetween('generated_at', [$start, $end]);
+            }
+
+            return $query->get()->map(function (RecommendationSnapshot $snapshot) {
+                $items = $snapshot->items
+                    ->sortBy(fn ($item) => [$this->priorityWeight((string) $item->priority), (float) $item->average_score])
+                    ->values()
+                    ->map(function ($item) {
+                        return [
+                            'category_key' => (string) $item->category,
+                            'category_label' => ucfirst((string) $item->category),
+                            'priority_key' => (string) $item->priority,
+                            'priority_label' => ucfirst((string) $item->priority).' Priority',
+                            'average_score' => round((float) $item->average_score, 2),
+                            'insight' => (string) $item->insight,
+                            'suggested_action' => (string) $item->suggested_action,
+                            'based_on_reviews' => (int) $item->based_on_reviews,
+                        ];
+                    })
+                    ->all();
+
+                $highestPriority = collect($items)
+                    ->sortBy(fn (array $item) => $this->priorityWeight((string) data_get($item, 'priority_key', 'low')))
+                    ->first();
+
+                return [
+                    'snapshot_id' => (int) $snapshot->id,
+                    'generated_at' => optional($snapshot->generated_at)?->toIso8601String(),
+                    'generated_label' => optional($snapshot->generated_at)?->format('M d, Y g:i A') ?? '-',
+                    'review_count' => (int) $snapshot->review_count,
+                    'priority_label' => (string) data_get($highestPriority, 'priority_label', 'Low Priority'),
+                    'priority_key' => (string) data_get($highestPriority, 'priority_key', 'low'),
+                    'items' => $items,
+                ];
+            })->all();
+        };
+
+        $historyFilterPayload = [
+            'all' => $buildHistoryPayload(null, null),
+            'month' => $buildHistoryPayload($monthStart, $monthEnd),
+            'week' => $buildHistoryPayload($weekStart, $weekEnd),
+        ];
+        $historyEntries = $historyFilterPayload['week'];
+
         $weekInsightsPayload = $insightsFilterPayload['week'];
         $categoryAverages = (array) data_get($weekInsightsPayload, 'category_averages', []);
         $priorityLevel = (string) data_get($weekInsightsPayload, 'priority_level', $this->resolvePriorityLevel(0.0));
@@ -333,13 +427,20 @@ class CafeOwnerRecommendationsController extends Controller
             ->map(fn (int $offset) => now()->startOfMonth()->subMonths($offset))
             ->push(now()->startOfMonth());
 
-        $recommendationRows = Recommendation::query()
-            ->where('establishment_id', $establishment->id)
-            ->where($recommendationTimestampColumn, '>=', now()->startOfMonth()->subMonths(5))
-            ->get([$recommendationTimestampColumn]);
+        $recommendationRows = $hasSnapshotHistory
+            ? RecommendationSnapshot::query()
+                ->where('establishment_id', $establishment->id)
+                ->where('generated_at', '>=', now()->startOfMonth()->subMonths(5))
+                ->get(['generated_at'])
+            : Recommendation::query()
+                ->where('establishment_id', $establishment->id)
+                ->where($recommendationTimestampColumn, '>=', now()->startOfMonth()->subMonths(5))
+                ->get([$recommendationTimestampColumn]);
+
+        $monthlyCountColumn = $hasSnapshotHistory ? 'generated_at' : $recommendationTimestampColumn;
 
         $countByMonth = $recommendationRows
-            ->groupBy(fn ($row) => Carbon::parse(data_get($row, $recommendationTimestampColumn))->format('Y-m'))
+            ->groupBy(fn ($row) => Carbon::parse(data_get($row, $monthlyCountColumn))->format('Y-m'))
             ->map(fn ($group) => $group->count())
             ->toArray();
 
@@ -367,6 +468,8 @@ class CafeOwnerRecommendationsController extends Controller
             'weeklyHasRatings',
             'insightsDateLabel',
             'insightsFilterPayload',
+            'historyFilterPayload',
+            'historyEntries',
             'establishment'
         ));
     }

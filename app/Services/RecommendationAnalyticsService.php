@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Establishment;
 use App\Models\Recommendation;
+use App\Models\RecommendationSnapshot;
 use Illuminate\Support\Facades\DB;
 
 class RecommendationAnalyticsService
@@ -165,23 +166,130 @@ class RecommendationAnalyticsService
             'service' => (float) ($stats->service_avg ?? 0),
         ];
 
+        $this->persistRecommendationSnapshot(
+            $establishmentId,
+            $categories,
+            (int) ($stats->review_count ?? 0)
+        );
+    }
+
+    public function rebuildHistoricalSnapshots(?int $establishmentId = null): int
+    {
+        $establishmentIds = DB::table('rating')
+            ->select('establishment_id')
+            ->when($establishmentId, fn ($query) => $query->where('establishment_id', $establishmentId))
+            ->groupBy('establishment_id')
+            ->pluck('establishment_id');
+
+        $rebuiltCount = 0;
+
+        foreach ($establishmentIds as $currentEstablishmentId) {
+            DB::transaction(function () use ($currentEstablishmentId, &$rebuiltCount) {
+                RecommendationSnapshot::query()
+                    ->where('establishment_id', $currentEstablishmentId)
+                    ->delete();
+
+                Recommendation::query()
+                    ->where('establishment_id', $currentEstablishmentId)
+                    ->delete();
+
+                $ratings = DB::table('rating')
+                    ->where('establishment_id', $currentEstablishmentId)
+                    ->orderBy('created_at')
+                    ->get([
+                        'taste_rating',
+                        'environment_rating',
+                        'cleanliness_rating',
+                        'service_rating',
+                        'created_at',
+                    ]);
+
+                if ($ratings->isEmpty()) {
+                    return;
+                }
+
+                $runningTotals = [
+                    'taste' => 0.0,
+                    'environment' => 0.0,
+                    'cleanliness' => 0.0,
+                    'service' => 0.0,
+                ];
+
+                $reviewCount = 0;
+
+                foreach ($ratings as $rating) {
+                    $reviewCount++;
+                    $runningTotals['taste'] += (float) ($rating->taste_rating ?? 0);
+                    $runningTotals['environment'] += (float) ($rating->environment_rating ?? 0);
+                    $runningTotals['cleanliness'] += (float) ($rating->cleanliness_rating ?? 0);
+                    $runningTotals['service'] += (float) ($rating->service_rating ?? 0);
+
+                    $categories = collect($runningTotals)
+                        ->map(fn (float $total) => round($total / max(1, $reviewCount), 2))
+                        ->all();
+
+                    $this->persistRecommendationSnapshot(
+                        (int) $currentEstablishmentId,
+                        $categories,
+                        $reviewCount,
+                        $rating->created_at
+                    );
+
+                    $rebuiltCount++;
+                }
+            });
+        }
+
+        return $rebuiltCount;
+    }
+
+    private function persistRecommendationSnapshot(
+        int $establishmentId,
+        array $categories,
+        int $reviewCount,
+        $generatedAt = null
+    ): void {
+        $generatedAt = $generatedAt ?? now();
+
         Recommendation::where('establishment_id', $establishmentId)
             ->whereNotIn('category', array_keys($categories))
             ->delete();
 
+        $snapshot = RecommendationSnapshot::query()->create([
+            'establishment_id' => $establishmentId,
+            'review_count' => $reviewCount,
+            'generated_at' => $generatedAt,
+        ]);
+
         foreach ($categories as $category => $average) {
+            $priority = $this->calculatePriority($average);
+            $insight = $this->getInsightText($category);
+            $suggestedAction = $this->getSuggestedAction($category);
+            $impactScore = round((5 - $average) * 0.15, 2);
+
+            $snapshot->items()->create([
+                'category' => $category,
+                'priority' => $priority,
+                'average_score' => round((float) $average, 2),
+                'insight' => $insight,
+                'suggested_action' => $suggestedAction,
+                'impact_score' => $impactScore,
+                'based_on_reviews' => $reviewCount,
+                'generated_at' => $generatedAt,
+            ]);
+
             Recommendation::updateOrCreate(
                 [
                     'establishment_id' => $establishmentId,
                     'category' => $category,
                 ],
                 [
-                    'priority' => $this->calculatePriority($average),
-                    'insight' => $this->getInsightText($category),
-                    'suggested_action' => $this->getSuggestedAction($category),
-                    'impact_score' => round((5 - $average) * 0.15, 2),
-                    'based_on_reviews' => (int) ($stats->review_count ?? 0),
-                    'generated_at' => now(),
+                    'priority' => $priority,
+                    'insight' => $insight,
+                    'suggested_action' => $suggestedAction,
+                    'impact_score' => $impactScore,
+                    'based_on_reviews' => $reviewCount,
+                    'generated_at' => $generatedAt,
                 ]
             );
         }

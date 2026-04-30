@@ -31,7 +31,7 @@ Route::get('/', function () {
     $farmProducts = Product::query()
         ->with(['establishment'])
         ->where('seller_type', 'farm_owner')
-        ->orderByRaw('CASE WHEN stock_quantity > 0 AND is_active != 0 THEN 0 ELSE 1 END ASC')
+        ->orderByRaw('CASE WHEN stock_quantity > 0 AND is_active IS TRUE THEN 0 ELSE 1 END ASC')
         ->latest()
         ->take(8)
         ->get();

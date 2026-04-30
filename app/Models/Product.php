@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizesSupabaseMediaUrls;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
+    use NormalizesSupabaseMediaUrls;
+
     protected $fillable = [
         'name',
         'description',
@@ -81,5 +84,10 @@ class Product extends Model
             'reseller' => 'Reseller',
             default => 'Unknown'
         };
+    }
+
+    public function getImageUrlAttribute($value): ?string
+    {
+        return static::normalizeMediaUrl($value);
     }
 }

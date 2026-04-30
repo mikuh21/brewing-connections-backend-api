@@ -8,7 +8,6 @@ use App\Models\Establishment;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
 
@@ -231,9 +230,7 @@ class MapController extends Controller
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('establishments', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $establishment->image = $supabaseDisk->url($path);
+            $establishment->image = $path;
         }
 
         $establishment->save();

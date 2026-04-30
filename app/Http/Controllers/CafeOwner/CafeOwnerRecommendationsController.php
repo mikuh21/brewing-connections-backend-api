@@ -12,8 +12,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class CafeOwnerRecommendationsController extends Controller
 {
@@ -399,17 +397,6 @@ class CafeOwnerRecommendationsController extends Controller
             ->limit(5)
             ->get()
             ->map(function (Rating $rating) use ($ratingColumn) {
-                $image = (string) ($rating->image ?? '');
-                $imageUrl = null;
-
-                if ($image !== '') {
-                    /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-                    $supabaseDisk = Storage::disk('supabase');
-                    $imageUrl = Str::startsWith($image, ['http://', 'https://', '/'])
-                        ? $image
-                        : $supabaseDisk->url($image);
-                }
-
                 return [
                     'review_id' => (int) $rating->id,
                     'user_name' => $rating->user?->name ?? 'Anonymous',
@@ -419,7 +406,7 @@ class CafeOwnerRecommendationsController extends Controller
                     'cleanliness_rating' => (int) ($rating->cleanliness_rating ?? 0),
                     'service_rating' => (int) ($rating->service_rating ?? 0),
                     'owner_response' => $rating->owner_response,
-                    'image_url' => $imageUrl,
+                    'image_url' => $rating->image_url,
                     'created_at' => $rating->created_at,
                 ];
             });

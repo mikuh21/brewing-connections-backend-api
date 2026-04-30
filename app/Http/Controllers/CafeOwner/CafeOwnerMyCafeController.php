@@ -8,7 +8,6 @@ use App\Models\Establishment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class CafeOwnerMyCafeController extends Controller
 {
@@ -124,9 +123,7 @@ class CafeOwnerMyCafeController extends Controller
             $storedPath = $request->file('image')->store('establishments', 'supabase');
 
             if (Schema::hasColumn('establishments', 'image')) {
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-                $supabaseDisk = Storage::disk('supabase');
-                $payload['image'] = $supabaseDisk->url($storedPath);
+                $payload['image'] = $storedPath;
             }
         }
 

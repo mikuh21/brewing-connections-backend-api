@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizesSupabaseMediaUrls;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,7 +12,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, NormalizesSupabaseMediaUrls, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -175,5 +176,10 @@ class User extends Authenticatable implements JWTSubject
             'reseller_id',
             'coffee_variety_id'
         )->withPivot('is_primary')->withTimestamps();
+    }
+
+    public function getImageUrlAttribute($value): ?string
+    {
+        return static::normalizeMediaUrl($value);
     }
 }

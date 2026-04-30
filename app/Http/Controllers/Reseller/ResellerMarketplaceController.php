@@ -11,7 +11,6 @@ use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class ResellerMarketplaceController extends Controller
 {
@@ -231,9 +230,7 @@ class ResellerMarketplaceController extends Controller
 
         if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
             $storedPath = $request->file('image')->store('products', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $productPayload['image_url'] = $supabaseDisk->url($storedPath);
+            $productPayload['image_url'] = $storedPath;
         }
 
         $product = Product::create($productPayload);
@@ -280,9 +277,7 @@ class ResellerMarketplaceController extends Controller
 
             if (Schema::hasColumn('products', 'image_url') && $request->hasFile('image')) {
                 $path = $request->file('image')->store('products', 'supabase');
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-                $supabaseDisk = Storage::disk('supabase');
-                $productPayload['image_url'] = $supabaseDisk->url($path);
+                $productPayload['image_url'] = $path;
             }
 
             if (Schema::hasColumn('products', 'price_per_unit')) {

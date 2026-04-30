@@ -12,7 +12,6 @@ use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class CafeOwnerMarketplaceController extends Controller
 {
@@ -226,9 +225,7 @@ class CafeOwnerMarketplaceController extends Controller
 
         if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
             $storedPath = $request->file('image')->store('products', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $payload['image_url'] = $supabaseDisk->url($storedPath);
+            $payload['image_url'] = $storedPath;
         }
 
         Product::create($payload);
@@ -279,12 +276,10 @@ class CafeOwnerMarketplaceController extends Controller
                 ->withInput();
         }
 
-        $imageUrl = $product->image_url;
+        $imageUrl = $product->getRawOriginal('image_url') ?: $product->image_url;
         if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
             $path = $request->file('image')->store('products', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $imageUrl = $supabaseDisk->url($path);
+            $imageUrl = $path;
         }
 
         $updatePayload = [

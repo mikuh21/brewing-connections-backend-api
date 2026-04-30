@@ -17,7 +17,6 @@ use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class FarmOwnerController extends Controller
 {
@@ -487,9 +486,7 @@ class FarmOwnerController extends Controller
 
         if ($request->hasFile('image') && Schema::hasColumn('establishments', 'image')) {
             $path = $request->file('image')->store('establishments', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $updatePayload['image'] = $supabaseDisk->url($path);
+            $updatePayload['image'] = $path;
         }
 
         $establishment->update($updatePayload);
@@ -819,9 +816,7 @@ class FarmOwnerController extends Controller
         $imageUrl = null;
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $imageUrl = $supabaseDisk->url($path);
+            $imageUrl = $path;
         }
 
         Product::create([
@@ -870,12 +865,10 @@ class FarmOwnerController extends Controller
             'image' => 'nullable|image|max:5120',
         ]);
 
-        $imageUrl = $product->image_url;
+        $imageUrl = $product->getRawOriginal('image_url') ?: $product->image_url;
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('products', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
-            $imageUrl = $supabaseDisk->url($path);
+            $imageUrl = $path;
         }
 
         $product->update([

@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ResellerProfileController extends Controller
@@ -131,9 +130,7 @@ class ResellerProfileController extends Controller
 
             if ($userPhotoColumn && $request->hasFile('profile_photo')) {
                 $path = $request->file('profile_photo')->store('profile-photos', 'supabase');
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-                $supabaseDisk = Storage::disk('supabase');
-                $userPayload[$userPhotoColumn] = $supabaseDisk->url($path);
+                $userPayload[$userPhotoColumn] = $path;
             }
 
             if (Schema::hasColumn('users', 'updated_at')) {

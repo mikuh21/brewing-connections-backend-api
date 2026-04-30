@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\NormalizesSupabaseMediaUrls;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Establishment extends Model
 {
+    use NormalizesSupabaseMediaUrls;
     use SoftDeletes;
     /**
      * Coffee varieties relationship (many-to-many).
@@ -155,5 +157,10 @@ class Establishment extends Model
     public function toWaypoint()
     {
         return sprintf('%F,%F', $this->longitude, $this->latitude);
+    }
+
+    public function getImageAttribute($value): ?string
+    {
+        return static::normalizeMediaUrl($value);
     }
 }

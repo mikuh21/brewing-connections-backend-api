@@ -8,11 +8,7 @@
     $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
     $existingRating = $order->productRating;
     $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
-    $existingRatingImageUrl = $existingRating?->image
-        ? (\Illuminate\Support\Str::startsWith($existingRating->image, ['http://', 'https://'])
-            ? $existingRating->image
-            : \Illuminate\Support\Facades\Storage::url($existingRating->image))
-        : null;
+    $existingRatingImageUrl = $existingRating?->image_url;
 
     $pickupDateDisplay = 'N/A';
     if ($pickupDateRaw !== '') {

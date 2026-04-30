@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -294,10 +293,8 @@ class LandingReservationController extends Controller
 
         if ($this->hasSupabaseStorageConfig()) {
             $path = $photo->store('ratings', 'supabase');
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
-            $supabaseDisk = Storage::disk('supabase');
 
-            return $supabaseDisk->url($path);
+            return $path;
         }
 
         return $photo->store('ratings', 'public');

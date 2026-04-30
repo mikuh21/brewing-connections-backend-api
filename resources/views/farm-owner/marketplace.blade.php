@@ -915,11 +915,7 @@
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             @foreach($productRatings as $rating)
                 @php
-                    $ratingImageUrl = $rating->image
-                        ? (\Illuminate\Support\Str::startsWith($rating->image, ['http://', 'https://'])
-                            ? $rating->image
-                            : \Illuminate\Support\Facades\Storage::url($rating->image))
-                        : null;
+                    $ratingImageUrl = $rating->image_url;
                     $productImageUrl = $rating->product?->image_url ?: null;
                     $ratingScore = (int) round((float) ($rating->overall_rating ?? 0));
                 @endphp

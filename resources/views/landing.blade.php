@@ -745,10 +745,10 @@
                 @endforelse
             </div>
 
-            <div class="mt-8 border-t border-[#F3E9D7]/14 pt-6 sm:mt-10 sm:pt-8">
+            <div class="mt-8 border-t border-[#F3E9D7]/30 pt-6 sm:mt-10 sm:pt-8">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p class="text-[11px] uppercase tracking-[0.2em] text-white font-body">Recent Feedback</p>
+                        <p class="section-tag text-white">Recent Feedback</p>
                         <h3 class="mt-1.5 text-2xl font-semibold text-white font-display">Product Ratings</h3>
                     </div>
                     <p class="max-w-xl text-sm leading-6 text-[#F3E9D7]/72 font-body">

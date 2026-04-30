@@ -770,6 +770,7 @@
     const recommendationHistoryList = document.getElementById('recommendationHistoryList');
     const insightsPeriodFilterCard = document.getElementById('insightsPeriodFilterCard');
     const insightsPeriodFilterContainer = document.getElementById('insightsPeriodFilterContainer');
+    let currentInsightsPeriod = 'week';
     const priorityCard = document.getElementById('priorityStatusCard');
     const recentRatingsList = document.getElementById('recentRatingsList');
     const recentRatingsPrev = document.getElementById('recentRatingsPrev');
@@ -1101,6 +1102,7 @@
 
     const applyInsightsPeriod = (periodKey) => {
         const normalizedPeriod = ['all', 'month', 'week'].includes(periodKey) ? periodKey : 'week';
+        currentInsightsPeriod = normalizedPeriod;
         const isAllPeriod = normalizedPeriod === 'all';
         const periodData = insightsFilterPayload?.[normalizedPeriod] || insightsFilterPayload?.week || null;
         const periodMeta = insightsPeriodMeta[normalizedPeriod] || insightsPeriodMeta.week;
@@ -1353,6 +1355,21 @@
         const contentW = pageW - margin * 2;
         let y = 18;
 
+        const selectedPeriod = ['all', 'month', 'week'].includes(currentInsightsPeriod)
+            ? currentInsightsPeriod
+            : (insightsPeriodFilterCard?.value || insightsPeriodFilterContainer?.value || 'week');
+        const periodData = insightsFilterPayload?.[selectedPeriod] || insightsFilterPayload?.week || {};
+        const periodMeta = insightsPeriodMeta?.[selectedPeriod] || insightsPeriodMeta.week;
+        const periodHistoryEntries = Array.isArray(historyFilterPayload?.[selectedPeriod]) ? historyFilterPayload[selectedPeriod] : [];
+        const periodJourneyInsights = Array.isArray(periodData?.journey_insights) ? periodData.journey_insights : [];
+        const periodCategoryAverages = periodData?.category_averages || {};
+        const periodDateLabel = String(periodData?.date_label || '-');
+        const periodPriorityLabel = String(periodData?.priority_level || 'No Priority Yet');
+        const periodInsightCount = selectedPeriod === 'all'
+            ? periodJourneyInsights.length
+            : Number(periodData?.count || 0);
+        const periodHasRatings = Boolean(periodData?.has_ratings);
+
         const establishment = @js($establishment->name ?? 'BrewHub Cafe');
         const city = @js($establishment->city ?? 'Lipa');
 
@@ -1376,6 +1393,8 @@
         doc.text('Generated: ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), margin, y);
         y += 4;
         doc.text(establishment + ' \u2022 BrewHub \u2022 ' + city, margin, y);
+        y += 4;
+        doc.text('Report Filter: ' + periodMeta.title + ' \u2022 Coverage: ' + periodDateLabel, margin, y);
         y += 8;
 
         doc.setDrawColor(229, 221, 208);
@@ -1386,14 +1405,12 @@
         // ── Summary Cards ──
         const avgRating = @js($avgFormatted);
         const totalReviews = @js((int) ($totalReviews ?? 0));
-        const thisMonthRecos = @js($thisMonthRecos);
-        const priorityLabel = @js($priorityLabel);
 
         const summaryCards = [
             { label: 'Average Rating', value: String(avgRating) },
             { label: 'Total Ratings', value: String(totalReviews) },
-            { label: "This Month's Insights", value: String(thisMonthRecos) },
-            { label: 'Priority Status', value: priorityLabel },
+            { label: periodMeta.title, value: periodHasRatings || selectedPeriod === 'all' ? String(periodInsightCount) : '--' },
+            { label: 'Priority Status', value: periodHasRatings ? periodPriorityLabel : 'No Ratings Yet' },
         ];
 
         const cardW = (contentW - 9) / 4;
@@ -1487,14 +1504,13 @@
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(58, 46, 34);
-        doc.text('Category Averages', margin, y);
+        doc.text('Category Averages (' + periodMeta.title + ')', margin, y);
         y += 8;
 
-        const categoryAverages = @json($categoryAveragesMap);
         const catLabels = { taste: 'Taste', environment: 'Environment', cleanliness: 'Cleanliness', service: 'Service' };
 
         Object.entries(catLabels).forEach(([key, label]) => {
-            const score = Number(categoryAverages[key] || 0).toFixed(2);
+            const score = Number(periodCategoryAverages[key] || 0).toFixed(2);
             doc.setFontSize(9);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(58, 46, 34);
@@ -1506,20 +1522,20 @@
             doc.setFillColor(240, 233, 222);
             doc.roundedRect(margin, barY2, barW2, barH2, 1.5, 1.5, 'F');
             doc.setFillColor(74, 103, 65);
-            doc.roundedRect(margin, barY2, Math.max(1, barW2 * (Number(categoryAverages[key] || 0) / 5)), barH2, 1.5, 1.5, 'F');
+            doc.roundedRect(margin, barY2, Math.max(1, barW2 * (Number(periodCategoryAverages[key] || 0) / 5)), barH2, 1.5, 1.5, 'F');
             y += 10;
         });
         y += 6;
 
         // ── Descriptive & Prescriptive Insights ──
-        const insights = @json($journeyInsights ?? []);
+        const insights = periodJourneyInsights;
 
         if (insights.length > 0) {
             checkPage(20);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(58, 46, 34);
-            doc.text('Descriptive & Prescriptive Insights', margin, y);
+            doc.text('Descriptive & Prescriptive Insights (' + periodMeta.title + ')', margin, y);
             y += 8;
 
             insights.forEach((insight) => {
@@ -1590,17 +1606,133 @@
 
                 y += 6;
             });
+        } else {
+            checkPage(14);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(58, 46, 34);
+            doc.text('Descriptive & Prescriptive Insights (' + periodMeta.title + ')', margin, y);
+            y += 7;
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(107, 91, 74);
+            doc.text('No insights available for the selected filter.', margin, y);
+            y += 8;
+        }
+
+        // ── Recommendation History ──
+        checkPage(20);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(58, 46, 34);
+        doc.text('Recommendation History (' + periodMeta.title + ')', margin, y);
+        y += 8;
+
+        if (periodHistoryEntries.length === 0) {
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(107, 91, 74);
+            doc.text('No historical recommendation sets for the selected filter.', margin, y);
+            y += 8;
+        } else {
+            periodHistoryEntries.forEach((entry, entryIndex) => {
+                const entryItems = Array.isArray(entry.items) ? entry.items : [];
+                checkPage(18 + (entryItems.length * 16));
+
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(58, 46, 34);
+                doc.text('Set ' + String(entryIndex + 1) + ': ' + String(entry.generated_label || '-'), margin, y);
+                y += 5;
+
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(122, 105, 87);
+                doc.text('Priority: ' + String(entry.priority_label || 'Low Priority') + ' • Ratings at generation: ' + String(entry.review_count || 0), margin, y);
+                y += 6;
+
+                entryItems.forEach((item) => {
+                    checkPage(14);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(58, 46, 34);
+                    doc.text(String(item.category_label || 'Category') + ' (' + Number(item.average_score || 0).toFixed(2) + '/5)', margin, y);
+                    y += 4;
+
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(107, 91, 74);
+                    const historyInsightLines = doc.splitTextToSize(String(item.insight || ''), contentW);
+                    historyInsightLines.forEach((line) => {
+                        checkPage(5);
+                        doc.text(line, margin + 2, y);
+                        y += 3.5;
+                    });
+
+                    if (item.suggested_action) {
+                        const historyActionLines = doc.splitTextToSize('Suggested action: ' + String(item.suggested_action), contentW - 2);
+                        historyActionLines.forEach((line) => {
+                            checkPage(5);
+                            doc.text(line, margin + 2, y);
+                            y += 3.5;
+                        });
+                    }
+
+                    y += 3;
+                });
+
+                y += 4;
+            });
         }
 
         // ── Recent Ratings ──
-        const reviews = @json($reviewsForPdf);
+        const rawReviews = @json($latestReviews ?? []);
+        const nowDate = new Date();
+        const currentWeekStart = new Date(nowDate);
+        const currentDay = currentWeekStart.getDay();
+        const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+        currentWeekStart.setDate(currentWeekStart.getDate() + mondayOffset);
+        currentWeekStart.setHours(0, 0, 0, 0);
+        const currentWeekEnd = new Date(currentWeekStart);
+        currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+        currentWeekEnd.setHours(23, 59, 59, 999);
+
+        const reviews = rawReviews
+            .filter((review) => {
+                if (!review?.created_at || selectedPeriod === 'all') {
+                    return true;
+                }
+
+                const reviewDate = new Date(review.created_at);
+                if (Number.isNaN(reviewDate.getTime())) {
+                    return false;
+                }
+
+                if (selectedPeriod === 'month') {
+                    return reviewDate.getFullYear() === nowDate.getFullYear()
+                        && reviewDate.getMonth() === nowDate.getMonth();
+                }
+
+                return reviewDate >= currentWeekStart && reviewDate <= currentWeekEnd;
+            })
+            .map((review) => ({
+                name: review.user_name || 'Anonymous',
+                date: review.created_at
+                    ? new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+                    : '-',
+                score: Number(review.score || 0).toFixed(1),
+                taste: Number(review.taste_rating || 0),
+                environment: Number(review.environment_rating || 0),
+                cleanliness: Number(review.cleanliness_rating || 0),
+                service: Number(review.service_rating || 0),
+            }));
 
         if (reviews.length > 0) {
             checkPage(20);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(58, 46, 34);
-            doc.text('Recent Ratings', margin, y);
+            doc.text('Recent Ratings (' + periodMeta.title + ')', margin, y);
             y += 6;
 
             // Table header
@@ -1634,6 +1766,18 @@
                 doc.line(margin, y + 6, pageW - margin, y + 6);
                 y += 7;
             });
+        } else {
+            checkPage(12);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(58, 46, 34);
+            doc.text('Recent Ratings (' + periodMeta.title + ')', margin, y);
+            y += 6;
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(107, 91, 74);
+            doc.text('No recent ratings are available for the selected filter.', margin, y);
+            y += 8;
         }
 
         // ── Footer ──

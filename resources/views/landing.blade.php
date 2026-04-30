@@ -745,28 +745,28 @@
                 @endforelse
             </div>
 
-            <div class="mt-10 border-t border-[#F3E9D7]/14 pt-8 sm:mt-12 sm:pt-10">
+            <div class="mt-8 border-t border-[#F3E9D7]/14 pt-6 sm:mt-10 sm:pt-8">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p class="text-[11px] uppercase tracking-[0.2em] text-[#F3E9D7]/55 font-body">Recent Feedback</p>
-                        <h3 class="mt-2 text-2xl font-semibold text-white font-display">Product Ratings</h3>
+                        <p class="text-[11px] uppercase tracking-[0.2em] text-white font-body">Recent Feedback</p>
+                        <h3 class="mt-1.5 text-2xl font-semibold text-white font-display">Product Ratings</h3>
                     </div>
                     <p class="max-w-xl text-sm leading-6 text-[#F3E9D7]/72 font-body">
                         Verified product feedback from completed customer reservations.
                     </p>
                 </div>
 
-                <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div class="mt-5 grid grid-cols-1 gap-3 sm:mt-6 lg:grid-cols-2 lg:gap-4">
                     @forelse(($recentProductRatings ?? collect()) as $rating)
                         @php
                             $ratingScore = (int) round((float) ($rating->overall_rating ?? 0));
                             $productImage = $rating->product?->image_url;
                             $ratingImage = $rating->image_url;
                         @endphp
-                        <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-[2px] sm:p-5">
-                            <div class="flex items-start gap-3 sm:gap-4">
-                                <div class="flex shrink-0 gap-2">
-                                    <div class="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:h-20 sm:w-20">
+                        <div class="rounded-2xl border border-white/10 bg-white/6 p-3.5 backdrop-blur-[2px] sm:p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="relative mt-0.5 h-16 w-16 shrink-0 sm:h-[72px] sm:w-[72px]">
+                                    <div class="h-full w-full overflow-hidden rounded-xl border border-white/10 bg-white/10">
                                         @if($productImage)
                                             <img src="{{ $productImage }}" alt="{{ $rating->product?->name ?? 'Product' }}" class="h-full w-full object-cover">
                                         @else
@@ -774,7 +774,7 @@
                                         @endif
                                     </div>
                                     @if($ratingImage)
-                                        <div class="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:h-20 sm:w-20">
+                                        <div class="absolute -bottom-1.5 -right-1.5 h-9 w-9 overflow-hidden rounded-lg border-2 border-[#3A2E22] bg-white/10 shadow-lg sm:h-10 sm:w-10">
                                             <img src="{{ $ratingImage }}" alt="Rating photo for {{ $rating->product?->name ?? 'product' }}" class="h-full w-full object-cover">
                                         </div>
                                     @endif
@@ -782,26 +782,26 @@
 
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                        <div class="min-w-0">
-                                            <h4 class="truncate text-base font-semibold text-white font-poppins sm:text-lg">{{ $rating->product?->name ?? 'Farm product' }}</h4>
-                                            <p class="mt-1 text-sm text-[#F3E9D7]/74 font-body">
+                                        <div class="min-w-0 pr-2">
+                                            <h4 class="line-clamp-2 text-[15px] font-semibold leading-snug text-white font-poppins sm:text-base">{{ $rating->product?->name ?? 'Farm product' }}</h4>
+                                            <p class="mt-1 text-xs text-[#F3E9D7]/74 font-body sm:text-sm">
                                                 {{ $rating->product?->establishment?->name ?? 'Verified Farm Seller' }}
                                             </p>
                                         </div>
-                                        <span class="inline-flex items-center self-start rounded-full bg-[#F3E9D7]/10 px-3 py-1 text-xs font-semibold text-[#F3E9D7]">
+                                        <span class="inline-flex items-center self-start rounded-full bg-[#F3E9D7]/10 px-2.5 py-1 text-xs font-semibold text-[#F3E9D7]">
                                             {{ number_format((float) ($rating->overall_rating ?? 0), 2) }}/5
                                         </span>
                                     </div>
 
-                                    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#F3E9D7]/78 font-body">
-                                        <span>By {{ $rating->user?->name ?? 'Anonymous' }}</span>
-                                        <span class="hidden text-[#F3E9D7]/35 sm:inline">|</span>
+                                    <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#F3E9D7]/78 font-body sm:text-sm">
+                                        <span class="truncate max-w-full">By {{ $rating->user?->name ?? 'Anonymous' }}</span>
+                                        <span class="text-[#F3E9D7]/35">•</span>
                                         <span>{{ optional($rating->created_at)->format('M d, Y') }}</span>
                                     </div>
 
-                                    <div class="mt-3 flex flex-wrap gap-1.5" aria-label="{{ $ratingScore }} out of 5 stars">
+                                    <div class="mt-2.5 flex flex-wrap gap-1" aria-label="{{ $ratingScore }} out of 5 stars">
                                         @for ($star = 1; $star <= 5; $star++)
-                                            <span class="text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
+                                            <span class="text-base sm:text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
                                         @endfor
                                     </div>
                                 </div>

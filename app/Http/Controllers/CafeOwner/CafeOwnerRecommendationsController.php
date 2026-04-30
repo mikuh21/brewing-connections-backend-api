@@ -7,6 +7,7 @@ use App\Models\Establishment;
 use App\Models\Rating;
 use App\Models\Recommendation;
 use App\Models\RecommendationSnapshot;
+use App\Models\RecommendationSnapshotItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -474,7 +475,7 @@ class CafeOwnerRecommendationsController extends Controller
         ));
     }
 
-    protected function buildJourneyInsight(string $category, float $score, int $totalReviews, ?Recommendation $generated): array
+    protected function buildJourneyInsight(string $category, float $score, int $totalReviews, Recommendation|RecommendationSnapshotItem|null $generated): array
     {
         $labels = [
             'taste' => 'Taste',

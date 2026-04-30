@@ -314,6 +314,7 @@
                 '#products': 'my-listings',
                 '#browse': 'browse',
                 '#orders': 'orders',
+                '#ratings': 'ratings',
             };
 
             const applyHashTab = () => {
@@ -465,7 +466,7 @@
 @endif
 
 <div class="mb-6 border-b border-gray-200 pb-4">
-    <div class="farm-marketplace-tabs flex gap-2">
+    <div class="farm-marketplace-tabs flex gap-2 overflow-x-auto pb-1">
         <button
             type="button"
             @click="activeTab = 'my-listings'"
@@ -497,6 +498,17 @@
                 : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
         >
             Orders
+        </button>
+
+        <button
+            type="button"
+            @click="activeTab = 'ratings'"
+            class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
+            :style="activeTab === 'ratings'
+                ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F; background: #F5F0E8;'
+                : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
+        >
+            Ratings
         </button>
     </div>
 </div>
@@ -894,6 +906,87 @@
             </svg>
             <p class="text-lg font-display font-semibold text-gray-500">No orders yet</p>
             <p class="text-sm text-gray-400 mt-1">Orders will appear here once customers purchase your products.</p>
+        </div>
+    @endif
+</div>
+
+<div x-show="activeTab === 'ratings'" class="mt-6">
+    @if(($productRatings ?? collect())->count() > 0)
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            @foreach($productRatings as $rating)
+                @php
+                    $ratingImageUrl = $rating->image ? asset('storage/' . ltrim($rating->image, '/')) : null;
+                    $productImageUrl = $rating->product?->image_url ?: null;
+                    $ratingScore = (int) round((float) ($rating->overall_rating ?? 0));
+                @endphp
+                <div class="overflow-hidden rounded-2xl border border-[#E7DED1] bg-white shadow-sm">
+                    <div class="flex flex-col gap-4 p-4 sm:p-5">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+                            <div class="flex w-full gap-3 sm:w-auto sm:flex-col">
+                                <div class="h-20 w-20 overflow-hidden rounded-xl border border-[#E7DED1] bg-[#F7F1E8] sm:h-24 sm:w-24">
+                                    @if($productImageUrl)
+                                        <img src="{{ $productImageUrl }}" alt="{{ $rating->product?->name ?? 'Product' }}" class="h-full w-full object-cover">
+                                    @else
+                                        <div class="flex h-full w-full items-center justify-center px-2 text-center text-[11px] text-[#9E8C78]">No product image</div>
+                                    @endif
+                                </div>
+
+                                <div class="h-20 w-20 overflow-hidden rounded-xl border border-[#E7DED1] bg-[#F7F1E8] sm:h-24 sm:w-24">
+                                    @if($ratingImageUrl)
+                                        <img src="{{ $ratingImageUrl }}" alt="Rating photo for {{ $rating->product?->name ?? 'product' }}" class="h-full w-full object-cover">
+                                    @else
+                                        <div class="flex h-full w-full items-center justify-center px-2 text-center text-[11px] text-[#9E8C78]">No rating photo</div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="min-w-0">
+                                        <h3 class="truncate text-base font-semibold text-[#2C1A0E]" style="font-family: 'Poppins', sans-serif;">{{ $rating->product?->name ?? 'Product' }}</h3>
+                                        <p class="mt-1 text-sm text-[#6B5B4A]">Rated by {{ $rating->user?->name ?? 'Anonymous' }}</p>
+                                        <p class="mt-1 text-xs text-[#9E8C78]">{{ optional($rating->created_at)->format('M d, Y h:i A') }}</p>
+                                    </div>
+                                    <span class="inline-flex items-center self-start rounded-full bg-[#EEF6E6] px-3 py-1 text-xs font-semibold text-[#2D4A1E]">{{ number_format((float) ($rating->overall_rating ?? 0), 2) }}/5</span>
+                                </div>
+
+                                <div class="mt-4 flex flex-wrap gap-1.5">
+                                    @for($star = 1; $star <= 5; $star++)
+                                        <span class="text-lg {{ $star <= $ratingScore ? 'text-[#D18A2F]' : 'text-[#D8CFC2]' }}">&#9733;</span>
+                                    @endfor
+                                </div>
+
+                                <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-[#3A2E22] sm:grid-cols-2">
+                                    <div class="rounded-xl bg-[#FAF7F2] px-3 py-2">
+                                        <p class="text-[11px] uppercase tracking-[0.14em] text-[#9E8C78]">Order</p>
+                                        <p class="mt-1 font-medium">#{{ $rating->order?->id ?? 'N/A' }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-[#FAF7F2] px-3 py-2">
+                                        <p class="text-[11px] uppercase tracking-[0.14em] text-[#9E8C78]">Quantity</p>
+                                        <p class="mt-1 font-medium">{{ (int) ($rating->order?->quantity ?? 0) }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-[#FAF7F2] px-3 py-2">
+                                        <p class="text-[11px] uppercase tracking-[0.14em] text-[#9E8C78]">Order Total</p>
+                                        <p class="mt-1 font-medium">PHP {{ number_format((float) ($rating->order?->total_price ?? 0), 2) }}</p>
+                                    </div>
+                                    <div class="rounded-xl bg-[#FAF7F2] px-3 py-2">
+                                        <p class="text-[11px] uppercase tracking-[0.14em] text-[#9E8C78]">Order Status</p>
+                                        <p class="mt-1 font-medium">{{ ucfirst((string) ($rating->order?->status ?? 'unknown')) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @else
+        <div class="bg-white rounded-xl shadow-sm p-10 text-center">
+            <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.889a1 1 0 00-.364 1.118l1.519 4.674c.3.921-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.539-1.118l1.52-4.674a1 1 0 00-.364-1.118L2.98 10.1c-.783-.57-.38-1.81.588-1.81h4.915a1 1 0 00.95-.69l1.516-4.673z"/>
+            </svg>
+            <p class="text-lg font-display font-semibold text-gray-500">No product ratings yet</p>
+            <p class="text-sm text-gray-400 mt-1">Completed order ratings will appear here once customers submit them.</p>
         </div>
     @endif
 </div>

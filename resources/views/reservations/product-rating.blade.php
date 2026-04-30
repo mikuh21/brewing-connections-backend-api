@@ -8,8 +8,8 @@
     $currentScore = old('overall_rating', $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : null);
     $productImage = $order->product?->image_url ?? null;
 @endphp
-<div class="min-h-screen bg-[#F3E9D7] px-4 py-8 sm:px-6 sm:py-10">
-    <div class="mx-auto flex max-w-5xl flex-col gap-6 lg:flex-row lg:items-start">
+<div class="min-h-screen bg-[#F3E9D7] px-4 py-6 sm:px-6 sm:py-10">
+    <div class="mx-auto flex max-w-5xl flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">
         <div class="w-full lg:max-w-sm">
             <div class="overflow-hidden rounded-[28px] border border-[#E6DDCF] bg-[#3A2E22] text-white shadow-[0_24px_60px_rgba(58,46,34,0.18)]">
                 <div class="px-5 py-5 sm:px-6 sm:py-6">
@@ -46,7 +46,7 @@
         <div class="w-full flex-1">
             <div class="overflow-hidden rounded-[28px] border border-[#E6DDCF] bg-white shadow-[0_24px_60px_rgba(58,46,34,0.12)]">
                 <div class="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-                    <div class="px-5 py-6 sm:px-7 sm:py-8">
+                    <div class="px-4 py-5 sm:px-7 sm:py-8">
                         @if (session('status'))
                             <div class="mb-5 rounded-2xl border border-[#B7D2BF] bg-[#EDF7F0] px-4 py-3 text-sm text-[#2E5A3D] font-body">
                                 {{ session('status') }}
@@ -87,11 +87,11 @@
                             <form action="{{ $formAction }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                                 @csrf
 
-                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-5">
+                                <div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
                                     @for ($score = 1; $score <= 5; $score++)
                                         <label class="group cursor-pointer">
                                             <input type="radio" name="overall_rating" value="{{ $score }}" class="peer sr-only" {{ (int) $currentScore === $score ? 'checked' : '' }}>
-                                            <span class="flex h-full min-h-[88px] flex-col items-center justify-center rounded-2xl border border-[#D7C9B1] bg-[#FAF6EE] px-3 py-4 text-center transition-all duration-150 peer-checked:border-[#2E5A3D] peer-checked:bg-[#EAF2EC] peer-checked:shadow-[0_10px_24px_rgba(46,90,61,0.14)] group-hover:border-[#B69574]">
+                                            <span class="flex h-full min-h-[80px] flex-col items-center justify-center rounded-2xl border border-[#D7C9B1] bg-[#FAF6EE] px-2.5 py-3 text-center transition-all duration-150 peer-checked:border-[#2E5A3D] peer-checked:bg-[#EAF2EC] peer-checked:shadow-[0_10px_24px_rgba(46,90,61,0.14)] group-hover:border-[#B69574] sm:min-h-[88px] sm:px-3 sm:py-4">
                                                 <span class="text-2xl font-semibold text-[#3A2E22] font-poppins">{{ $score }}</span>
                                                 <span class="mt-1 text-xs uppercase tracking-[0.14em] text-[#946042] font-body">
                                                     {{ $score === 1 ? 'Poor' : ($score === 2 ? 'Fair' : ($score === 3 ? 'Good' : ($score === 4 ? 'Great' : 'Excellent'))) }}
@@ -113,7 +113,7 @@
                                     <a href="{{ $receiptUrl }}" class="inline-flex items-center justify-center rounded-lg border border-[#C8B69A] px-4 py-2.5 text-sm font-medium text-[#3A2E22] transition-colors duration-200 hover:bg-[#F3E9D7]">
                                         Back to Receipt
                                     </a>
-                                    <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-[#2E5A3D] px-5 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A]">
+                                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-[#2E5A3D] px-5 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A] sm:w-auto">
                                         Submit Product Rating
                                     </button>
                                 </div>
@@ -121,7 +121,7 @@
                         @endif
                     </div>
 
-                    <div class="border-t border-[#EEE3D3] bg-[#FBF7F0] px-5 py-6 sm:px-7 sm:py-8 lg:border-l lg:border-t-0">
+                    <div class="border-t border-[#EEE3D3] bg-[#FBF7F0] px-4 py-5 sm:px-7 sm:py-8 lg:border-l lg:border-t-0">
                         <div class="overflow-hidden rounded-[24px] border border-[#E6DDCF] bg-white shadow-[0_14px_30px_rgba(58,46,34,0.08)]">
                             <div class="aspect-[4/3] bg-[#F0E2CC]">
                                 @if ($productImage)

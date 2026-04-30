@@ -215,6 +215,12 @@ class LandingReservationController extends Controller
 
         abort_if((int) ($order->product?->id ?? 0) <= 0, Response::HTTP_NOT_FOUND);
 
+        if (strtolower((string) ($order->status ?? 'pending')) !== 'completed' && ! $order->productRating) {
+            return redirect()
+                ->route('reservations.orders.receipt', $this->buildReceiptRouteParams($order, $receiptMeta))
+                ->with('status', 'Product ratings open once the order is marked completed.');
+        }
+
         return view('reservations.product-rating', [
             'order' => $order,
             'receiptMeta' => $receiptMeta,
@@ -236,10 +242,10 @@ class LandingReservationController extends Controller
 
         abort_if((int) ($order->product?->id ?? 0) <= 0, Response::HTTP_NOT_FOUND);
 
-        if (in_array(strtolower((string) ($order->status ?? 'pending')), ['cancelled', 'canceled'], true)) {
+        if (strtolower((string) ($order->status ?? 'pending')) !== 'completed') {
             return redirect()
                 ->route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta))
-                ->withErrors(['overall_rating' => 'Cancelled orders cannot be rated.']);
+            ->withErrors(['overall_rating' => 'Only completed orders can be rated.']);
         }
 
         if ($order->productRating) {

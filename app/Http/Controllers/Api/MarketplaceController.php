@@ -242,7 +242,7 @@ class MarketplaceController extends Controller
             'receipt_url' => $receiptUrl,
             'rating_url' => $ratingUrl,
             'can_rate_product' => (int) ($order->product?->id ?? 0) > 0
-                && !in_array(strtolower((string) ($order->status ?? 'pending')), ['cancelled', 'canceled'], true),
+                && strtolower((string) ($order->status ?? 'pending')) === 'completed',
             'product_rating_submitted_at' => $productRatingSubmittedAt,
             'customer_name' => $customerName,
             'customer_address' => $customerAddress,

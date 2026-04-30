@@ -86,9 +86,11 @@
                                 }
                                 $ratingUrl = route('reservations.orders.rating.form', $ratingParams);
                                 $isCancelledOrder = in_array(strtolower((string) $order->status), ['cancelled', 'canceled'], true);
+                                $isCompletedOrder = strtolower((string) $order->status) === 'completed';
+                                $isLandingEmailOrder = strtolower((string) ($receiptMeta['source'] ?? '')) === 'landing-web';
                             @endphp
 
-                            @if (! $order->productRating && ! $isCancelledOrder)
+                            @if (! $order->productRating && ! $isCancelledOrder && $isCompletedOrder && $isLandingEmailOrder)
                                 <p style="margin:12px 0 0 0;">
                                     <a href="{{ $ratingUrl }}" style="display:inline-block;background:#8B5E34;color:#ffffff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:13px;">Rate This Product</a>
                                 </p>

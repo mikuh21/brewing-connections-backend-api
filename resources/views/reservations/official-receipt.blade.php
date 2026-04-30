@@ -106,7 +106,7 @@
                     @endif
                 </div>
 
-                @if (! $order->productRating && ! in_array(strtolower((string) $order->status), ['cancelled', 'canceled'], true))
+                @if (! $order->productRating && strtolower((string) $order->status) === 'completed')
                     <a href="{{ $productRatingUrl }}" class="inline-flex w-full sm:w-auto items-center justify-center rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A]">
                         Open Rating Form
                     </a>
@@ -116,7 +116,7 @@
                     </a>
                 @else
                     <p class="text-xs sm:text-sm text-[#8A5A3A] font-body">
-                        Product ratings are unavailable for cancelled reservations.
+                        Product ratings become available once the reservation is completed.
                     </p>
                 @endif
             </div>

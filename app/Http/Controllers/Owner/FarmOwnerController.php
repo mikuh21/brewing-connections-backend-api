@@ -10,6 +10,7 @@ use App\Models\Conversation;
 use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Rating;
 use App\Models\User;
 use App\Services\OrderReceiptNotifier;
 use App\Services\OrderStockManager;
@@ -617,6 +618,7 @@ class FarmOwnerController extends Controller
             ->withQueryString();
 
         $orders = collect();
+        $productRatings = collect();
         if ($establishment && (int) $establishment->owner_id === (int) $user->id) {
             $orders = Order::with(['user:id,name', 'product:id,name,establishment_id'])
                 ->whereHas('product', function ($query) use ($establishment) {
@@ -624,9 +626,21 @@ class FarmOwnerController extends Controller
                 })
                 ->latest()
                 ->get();
+
+            $productRatings = Rating::with([
+                'user:id,name',
+                'product:id,name,image_url,establishment_id',
+                'order:id,status,quantity,total_price,created_at',
+            ])
+                ->whereNotNull('product_id')
+                ->whereHas('product', function ($query) use ($establishment) {
+                    $query->where('establishment_id', $establishment->id);
+                })
+                ->latest()
+                ->get();
         }
 
-        return view('farm-owner.marketplace', compact('products', 'marketplaceProducts', 'orders'));
+        return view('farm-owner.marketplace', compact('products', 'marketplaceProducts', 'orders', 'productRatings'));
     }
 
     public function updateMarketplaceOrder(Request $request, Order $order)

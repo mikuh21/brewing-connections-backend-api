@@ -96,20 +96,20 @@
                             <form action="{{ $formAction }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                                 @csrf
 
-                                <div class="-mx-1 overflow-x-auto pb-1">
-                                    <div class="flex min-w-max gap-3 px-1">
+                                <div class="space-y-3">
                                     @for ($score = 1; $score <= 5; $score++)
-                                        <label class="group block w-[92px] shrink-0 cursor-pointer sm:w-[96px]">
+                                        <label class="group block cursor-pointer">
                                             <input type="radio" name="overall_rating" value="{{ $score }}" class="peer sr-only" {{ (int) $currentScore === $score ? 'checked' : '' }}>
-                                            <span class="flex h-full min-h-[88px] flex-col items-center justify-center rounded-2xl border border-[#D7C9B1] bg-[#FAF6EE] px-3 py-4 text-center transition-all duration-150 peer-checked:border-[#2E5A3D] peer-checked:bg-[#EAF2EC] peer-checked:shadow-[0_10px_24px_rgba(46,90,61,0.14)] group-hover:border-[#B69574]">
-                                                <span class="text-2xl font-semibold text-[#3A2E22] font-poppins">{{ $score }}</span>
-                                                <span class="mt-1 text-xs uppercase tracking-[0.14em] text-[#946042] font-body">
+                                            <span class="flex min-h-[78px] w-full items-center justify-between gap-4 rounded-2xl border border-[#D7C9B1] bg-[#FAF6EE] px-4 py-4 text-left transition-all duration-150 peer-checked:border-[#2E5A3D] peer-checked:bg-[#EAF2EC] peer-checked:shadow-[0_10px_24px_rgba(46,90,61,0.14)] group-hover:border-[#B69574] sm:min-h-[84px] sm:px-5">
+                                                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#D7C9B1] bg-white text-xl font-semibold text-[#3A2E22] font-poppins peer-checked:border-[#2E5A3D] peer-checked:bg-[#F5FBF6]">
+                                                    {{ $score }}
+                                                </span>
+                                                <span class="flex-1 text-right text-xs uppercase tracking-[0.14em] text-[#946042] font-body sm:text-sm">
                                                     {{ $score === 1 ? 'Poor' : ($score === 2 ? 'Fair' : ($score === 3 ? 'Good' : ($score === 4 ? 'Great' : 'Excellent'))) }}
                                                 </span>
                                             </span>
                                         </label>
                                     @endfor
-                                    </div>
                                 </div>
 
                                 <div class="rounded-2xl border border-dashed border-[#D7C9B1] bg-[#FCF9F4] px-4 py-4 sm:px-5">
@@ -121,7 +121,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <a href="{{ $receiptUrl }}" class="inline-flex items-center justify-center rounded-lg border border-[#C8B69A] px-4 py-2.5 text-sm font-medium text-[#3A2E22] transition-colors duration-200 hover:bg-[#F3E9D7]">
+                                    <a href="{{ $receiptUrl }}" class="inline-flex w-full items-center justify-center rounded-lg border border-[#C8B69A] px-4 py-2.5 text-sm font-medium text-[#3A2E22] transition-colors duration-200 hover:bg-[#F3E9D7] sm:w-auto">
                                         Back to Receipt
                                     </a>
                                     <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-[#2E5A3D] px-5 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-[#1E3A2A] sm:w-auto">

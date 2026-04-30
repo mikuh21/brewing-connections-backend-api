@@ -967,6 +967,7 @@
 
     const applyInsightsPeriod = (periodKey) => {
         const normalizedPeriod = ['all', 'month', 'week'].includes(periodKey) ? periodKey : 'week';
+        const isAllPeriod = normalizedPeriod === 'all';
         const periodData = insightsFilterPayload?.[normalizedPeriod] || insightsFilterPayload?.week || null;
         const periodMeta = insightsPeriodMeta[normalizedPeriod] || insightsPeriodMeta.week;
 
@@ -977,12 +978,9 @@
         const hasRatings = Boolean(periodData.has_ratings);
         const dateLabel = String(periodData.date_label || '-');
         const journeyInsights = Array.isArray(periodData.journey_insights) ? periodData.journey_insights : [];
-        const count = normalizedPeriod === 'all'
-            ? journeyInsights.length
-            : Number(periodData.count || 0);
-        const hasVisibleInsights = normalizedPeriod === 'all'
-            ? journeyInsights.length > 0
-            : hasRatings;
+        const insightCount = journeyInsights.length;
+        const count = isAllPeriod ? insightCount : Number(periodData.count || 0);
+        const hasVisibleInsights = isAllPeriod ? insightCount > 0 : hasRatings;
 
         if (insightsOverviewTitle) {
             insightsOverviewTitle.textContent = periodMeta.title;

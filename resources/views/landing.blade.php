@@ -784,11 +784,6 @@
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                         <div class="min-w-0 pr-2">
                                             <h4 class="line-clamp-2 text-[15px] font-semibold leading-snug text-white font-poppins sm:text-base">{{ $rating->product?->name ?? 'Farm product' }}</h4>
-                                            <div class="mt-1.5 flex flex-wrap gap-1" aria-label="{{ $ratingScore }} out of 5 stars">
-                                                @for ($star = 1; $star <= 5; $star++)
-                                                    <span class="text-base sm:text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
-                                                @endfor
-                                            </div>
                                             <p class="mt-2 text-xs text-white font-body sm:text-sm">
                                                 {{ $rating->product?->establishment?->name ?? 'Verified Farm Seller' }}
                                             </p>
@@ -802,6 +797,12 @@
                                         <span class="truncate max-w-full">By {{ $rating->user?->name ?? 'Anonymous' }}</span>
                                         <span class="text-white/50">•</span>
                                         <span>{{ optional($rating->created_at)->format('M d, Y') }}</span>
+                                    </div>
+
+                                    <div class="mt-2 flex flex-wrap gap-1" aria-label="{{ $ratingScore }} out of 5 stars">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            <span class="text-base sm:text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
+                                        @endfor
                                     </div>
                                 </div>
                             </div>

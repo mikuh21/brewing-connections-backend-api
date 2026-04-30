@@ -474,21 +474,30 @@
                     ? (str_starts_with($farmCardOne->image, 'http')
                         ? $farmCardOne->image
                         : asset(ltrim($farmCardOne->image, '/')))
-                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image';
+                    : null;
                 $farmImageTwo = $farmCardTwo?->image
                     ? (str_starts_with($farmCardTwo->image, 'http')
                         ? $farmCardTwo->image
                         : asset(ltrim($farmCardTwo->image, '/')))
-                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image';
+                    : null;
                 $farmImageThree = $farmCardThree?->image
                     ? (str_starts_with($farmCardThree->image, 'http')
                         ? $farmCardThree->image
                         : asset(ltrim($farmCardThree->image, '/')))
-                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image';
+                    : null;
             @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-1">
-                    <img src="{{ $farmImageOne }}" alt="{{ $farmCardOne?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image'">
+                    @if($farmImageOne)
+                        <img src="{{ $farmImageOne }}" alt="{{ $farmCardOne?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                        </div>
+                    @else
+                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                        </div>
+                    @endif
                     <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardOne?->name ?? 'Farm One' }}</h3>
                     <p class="text-[#946042]">{{ $farmCardOne?->address ?? 'Lipa, Batangas' }}</p>
                     @if(filled($farmCardOne?->description))
@@ -496,7 +505,16 @@
                     @endif
                 </div>
                 <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-2">
-                    <img src="{{ $farmImageTwo }}" alt="{{ $farmCardTwo?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image'">
+                    @if($farmImageTwo)
+                        <img src="{{ $farmImageTwo }}" alt="{{ $farmCardTwo?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                        </div>
+                    @else
+                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                        </div>
+                    @endif
                     <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardTwo?->name ?? 'Farm Two' }}</h3>
                     <p class="text-[#946042]">{{ $farmCardTwo?->address ?? 'Lipa, Batangas' }}</p>
                     @if(filled($farmCardTwo?->description))
@@ -504,7 +522,16 @@
                     @endif
                 </div>
                 <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-3">
-                    <img src="{{ $farmImageThree }}" alt="{{ $farmCardThree?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Farm+Image'">
+                    @if($farmImageThree)
+                        <img src="{{ $farmImageThree }}" alt="{{ $farmCardThree?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                        </div>
+                    @else
+                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                        </div>
+                    @endif
                     <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardThree?->name ?? 'Farm Three' }}</h3>
                     <p class="text-[#946042]">{{ $farmCardThree?->address ?? 'Lipa, Batangas' }}</p>
                     @if(filled($farmCardThree?->description))

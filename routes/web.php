@@ -25,6 +25,7 @@ use App\Http\Controllers\Reseller\ResellerDashboardController;
 use App\Http\Controllers\Web\LandingReservationController;
 use App\Models\Establishment;
 use App\Models\Product;
+use App\Models\Rating;
 
 Route::get('/', function () {
     $farmProducts = Product::query()
@@ -32,6 +33,22 @@ Route::get('/', function () {
         ->where('seller_type', 'farm_owner')
         ->latest()
         ->take(8)
+        ->get();
+
+    $recentProductRatings = Rating::query()
+        ->whereNull('establishment_id')
+        ->whereNotNull('product_id')
+        ->whereNotNull('overall_rating')
+        ->whereHas('product', function ($query) {
+            $query->where('seller_type', 'farm_owner');
+        })
+        ->with([
+            'user:id,name',
+            'product:id,name,image_url,establishment_id',
+            'product.establishment:id,name',
+        ])
+        ->latest('created_at')
+        ->take(4)
         ->get();
 
     $featuredFarms = Establishment::query()
@@ -52,7 +69,7 @@ Route::get('/', function () {
         ->take(3)
         ->get();
 
-    return view('landing', compact('farmProducts', 'featuredFarms', 'featuredCoffeeShops'));
+    return view('landing', compact('farmProducts', 'recentProductRatings', 'featuredFarms', 'featuredCoffeeShops'));
 });
 
 Route::post('/reservations/orders', [LandingReservationController::class, 'store'])

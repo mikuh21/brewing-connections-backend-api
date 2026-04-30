@@ -744,6 +744,78 @@
                     </div>
                 @endforelse
             </div>
+
+            <div class="mt-10 border-t border-[#F3E9D7]/14 pt-8 sm:mt-12 sm:pt-10">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-[0.2em] text-[#F3E9D7]/55 font-body">Recent Feedback</p>
+                        <h3 class="mt-2 text-2xl font-semibold text-white font-display">Product Ratings</h3>
+                    </div>
+                    <p class="max-w-xl text-sm leading-6 text-[#F3E9D7]/72 font-body">
+                        Verified product feedback from completed customer reservations.
+                    </p>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    @forelse(($recentProductRatings ?? collect()) as $rating)
+                        @php
+                            $ratingScore = (int) round((float) ($rating->overall_rating ?? 0));
+                            $productImage = $rating->product?->image_url;
+                            $ratingImage = $rating->image_url;
+                        @endphp
+                        <div class="rounded-2xl border border-white/10 bg-white/6 p-4 backdrop-blur-[2px] sm:p-5">
+                            <div class="flex items-start gap-3 sm:gap-4">
+                                <div class="flex shrink-0 gap-2">
+                                    <div class="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:h-20 sm:w-20">
+                                        @if($productImage)
+                                            <img src="{{ $productImage }}" alt="{{ $rating->product?->name ?? 'Product' }}" class="h-full w-full object-cover">
+                                        @else
+                                            <div class="flex h-full w-full items-center justify-center px-2 text-center text-[10px] text-[#F3E9D7]/60">No product image</div>
+                                        @endif
+                                    </div>
+                                    @if($ratingImage)
+                                        <div class="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:h-20 sm:w-20">
+                                            <img src="{{ $ratingImage }}" alt="Rating photo for {{ $rating->product?->name ?? 'product' }}" class="h-full w-full object-cover">
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                        <div class="min-w-0">
+                                            <h4 class="truncate text-base font-semibold text-white font-poppins sm:text-lg">{{ $rating->product?->name ?? 'Farm product' }}</h4>
+                                            <p class="mt-1 text-sm text-[#F3E9D7]/74 font-body">
+                                                {{ $rating->product?->establishment?->name ?? 'Verified Farm Seller' }}
+                                            </p>
+                                        </div>
+                                        <span class="inline-flex items-center self-start rounded-full bg-[#F3E9D7]/10 px-3 py-1 text-xs font-semibold text-[#F3E9D7]">
+                                            {{ number_format((float) ($rating->overall_rating ?? 0), 2) }}/5
+                                        </span>
+                                    </div>
+
+                                    <div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#F3E9D7]/78 font-body">
+                                        <span>By {{ $rating->user?->name ?? 'Anonymous' }}</span>
+                                        <span class="hidden text-[#F3E9D7]/35 sm:inline">|</span>
+                                        <span>{{ optional($rating->created_at)->format('M d, Y') }}</span>
+                                    </div>
+
+                                    <div class="mt-3 flex flex-wrap gap-1.5" aria-label="{{ $ratingScore }} out of 5 stars">
+                                        @for ($star = 1; $star <= 5; $star++)
+                                            <span class="text-lg {{ $star <= $ratingScore ? 'text-[#D9A441]' : 'text-white/20' }}">&#9733;</span>
+                                        @endfor
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="rounded-2xl border border-dashed border-white/14 bg-white/4 px-5 py-6 text-center sm:px-6">
+                            <p class="text-sm text-[#F3E9D7]/72 font-body">
+                                Customer product ratings will appear here after completed reservations are reviewed.
+                            </p>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
         </div>
     </section>
 

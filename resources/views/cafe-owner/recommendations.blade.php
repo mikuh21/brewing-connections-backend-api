@@ -220,7 +220,7 @@
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h2 class="text-xl font-display font-bold text-[#3A2E22]">Monthly Recommendation Sets</h2>
-                <p class="text-[11px] text-[#9E8C78] mt-1">Each point counts stored recommendation generations, not category rows.</p>
+                <p class="text-[11px] text-[#9E8C78] mt-1">Each point counts stored recommendation generations.</p>
             </div>
             <p class="text-xs text-[#9E8C78]">Last 6 months</p>
         </div>

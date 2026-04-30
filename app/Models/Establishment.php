@@ -48,6 +48,11 @@ class Establishment extends Model
         return $this->hasMany(\App\Models\CouponPromo::class, 'establishment_id');
     }
 
+    public function products()
+    {
+        return $this->hasMany(\App\Models\Product::class, 'establishment_id');
+    }
+
     protected $fillable = [
         'owner_id',
         'name',

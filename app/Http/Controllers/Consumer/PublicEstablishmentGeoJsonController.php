@@ -36,6 +36,17 @@ class PublicEstablishmentGeoJsonController extends Controller
                 $q->with('user:id,name')
                     ->latest('created_at');
             }])
+            ->with(['products' => function ($q) {
+                $q->select(['id', 'establishment_id', 'name', 'is_active'])
+                    ->withAvg(['ratings' => function ($ratingQuery) {
+                        $ratingQuery->whereNotNull('overall_rating');
+                    }], 'overall_rating')
+                    ->withCount(['ratings' => function ($ratingQuery) {
+                        $ratingQuery->whereNotNull('overall_rating');
+                    }])
+                    ->orderByRaw('CASE WHEN is_active IS TRUE THEN 0 ELSE 1 END ASC')
+                    ->orderBy('name');
+            }])
             ->withAvg('reviews', 'overall_rating')
             ->withAvg('reviews', 'taste_rating')
             ->withAvg('reviews', 'environment_rating')
@@ -82,6 +93,23 @@ class PublicEstablishmentGeoJsonController extends Controller
                     'environment_avg' => is_numeric($est->reviews_avg_environment_rating) ? round($est->reviews_avg_environment_rating, 1) : null,
                     'cleanliness_avg' => is_numeric($est->reviews_avg_cleanliness_rating) ? round($est->reviews_avg_cleanliness_rating, 1) : null,
                     'service_avg' => is_numeric($est->reviews_avg_service_rating) ? round($est->reviews_avg_service_rating, 1) : null,
+                    'product_ratings' => $est->products
+                        ->filter(function ($product) {
+                            return filled($product->name);
+                        })
+                        ->map(function ($product) {
+                            $average = $product->ratings_avg_overall_rating;
+
+                            return [
+                                'id' => (int) $product->id,
+                                'name' => (string) $product->name,
+                                'average_rating' => is_numeric($average) ? round((float) $average, 1) : null,
+                                'rating_count' => (int) ($product->ratings_count ?? 0),
+                                'is_active' => (bool) ($product->is_active ?? false),
+                            ];
+                        })
+                        ->values()
+                        ->all(),
                     'recent_reviews' => $est->reviews->take(3)->map(function ($review) {
                         return [
                             'id' => (int) $review->id,
@@ -139,6 +167,7 @@ class PublicEstablishmentGeoJsonController extends Controller
                         'environment_avg' => null,
                         'cleanliness_avg' => null,
                         'service_avg' => null,
+                        'product_ratings' => [],
                         'recent_reviews' => [],
                         'is_reseller_user' => true,
                         'reseller_user_id' => $reseller->id,

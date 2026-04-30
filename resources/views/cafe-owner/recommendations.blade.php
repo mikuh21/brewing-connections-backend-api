@@ -504,7 +504,7 @@
     <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
             <h2 class="text-xl font-display font-bold text-[#3A2E22]">Recommendation History</h2>
-            <p class="text-xs text-[#9E8C78] mt-1">Each set below is a stored recommendation generation, so repeated runs no longer collapse into one latest row per category.</p>
+            <p class="text-xs text-[#9E8C78] mt-1">Each set below is a stored recommendation generation.</p>
             <p id="historyCoverageLabel" class="text-[11px] text-[#9E8C78] mt-1">Coverage: {{ $insightsDateLabel }}</p>
         </div>
         <div class="rounded-xl border border-[#E5DDD0] bg-[#FCFAF7] px-4 py-3 min-w-[160px]">

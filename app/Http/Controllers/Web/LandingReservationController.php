@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -256,12 +257,12 @@ class LandingReservationController extends Controller
 
         $validated = $request->validate([
             'overall_rating' => ['required', 'integer', 'min:1', 'max:5'],
-            'photo' => ['nullable', 'image', 'max:5120'],
+            'photo' => ['nullable', 'image', 'max:12288'],
         ]);
 
         $imagePath = null;
         if ($request->hasFile('photo')) {
-            $imagePath = $request->file('photo')->store('ratings', 'public');
+            $imagePath = $this->storeProductRatingPhoto($request);
         }
 
         $score = (int) $validated['overall_rating'];
@@ -281,6 +282,33 @@ class LandingReservationController extends Controller
         return redirect()
             ->route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta))
             ->with('status', 'Product rating submitted successfully.');
+    }
+
+    private function storeProductRatingPhoto(Request $request): string
+    {
+        $photo = $request->file('photo');
+
+        if (! $photo) {
+            return '';
+        }
+
+        if ($this->hasSupabaseStorageConfig()) {
+            $path = $photo->store('ratings', 'supabase');
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+
+            return $supabaseDisk->url($path);
+        }
+
+        return $photo->store('ratings', 'public');
+    }
+
+    private function hasSupabaseStorageConfig(): bool
+    {
+        return filled(config('filesystems.disks.supabase.key'))
+            && filled(config('filesystems.disks.supabase.secret'))
+            && filled(config('filesystems.disks.supabase.bucket'))
+            && filled(config('filesystems.disks.supabase.endpoint'));
     }
 
     private function isReceiptViewAllowedForAuthenticatedUser(Order $order, int $authenticatedUserId): bool

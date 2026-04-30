@@ -8,7 +8,11 @@
     $currentScore = old('overall_rating', $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : null);
     $productImage = $order->product?->image_url ?? null;
     $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
-    $existingRatingImageUrl = $existingRating?->image ? \Illuminate\Support\Facades\Storage::url($existingRating->image) : null;
+    $existingRatingImageUrl = $existingRating?->image
+        ? (\Illuminate\Support\Str::startsWith($existingRating->image, ['http://', 'https://'])
+            ? $existingRating->image
+            : \Illuminate\Support\Facades\Storage::url($existingRating->image))
+        : null;
 @endphp
 <div class="min-h-screen bg-[#F3E9D7] px-4 py-6 sm:px-6 sm:py-10">
     <div class="mx-auto flex max-w-5xl flex-col gap-5 lg:flex-row lg:items-start lg:gap-6">

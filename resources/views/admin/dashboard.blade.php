@@ -230,7 +230,7 @@
                     init() {
                         this.loadSeen();
                         this.fetchNotifications();
-                        this.poller = setInterval(() => this.fetchNotifications(), 10000);
+                        this.poller = setInterval(() => this.fetchNotifications(), 60000);
                     }
                 }"
                 x-init="init()"

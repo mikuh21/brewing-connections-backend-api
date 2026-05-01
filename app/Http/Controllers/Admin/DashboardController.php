@@ -69,11 +69,20 @@ class DashboardController extends Controller
             $trailData = is_array($trail->trail_data) ? $trail->trail_data : [];
 
             foreach ($trailData as $point) {
-                if (!is_array($point) || !isset($point['id'])) {
+                if (!is_array($point)) {
                     continue;
                 }
 
-                $establishmentId = (int) $point['id'];
+                $rawEstablishmentId = $point['id'] ?? $point['establishment_id'] ?? null;
+                if (!$rawEstablishmentId) {
+                    continue;
+                }
+
+                $establishmentId = (int) $rawEstablishmentId;
+                if ($establishmentId <= 0) {
+                    continue;
+                }
+
                 $destinationVisits->put(
                     $establishmentId,
                     ($destinationVisits->get($establishmentId, 0) + 1)
@@ -99,18 +108,13 @@ class DashboardController extends Controller
 
         $markerPoints = $markerViews->map(fn ($count) => (int) $count);
 
-        $establishmentIds = $destinationPoints
+        $activityIds = $destinationPoints
             ->keys()
             ->merge($markerPoints->keys())
             ->unique()
             ->values();
 
-        if ($establishmentIds->isEmpty()) {
-            return [];
-        }
-
         $establishmentDisplayData = Establishment::query()
-            ->whereIn('id', $establishmentIds->all())
             ->select(['id', 'name', 'barangay', 'address', 'image'])
             ->get()
             ->mapWithKeys(function (Establishment $establishment) {
@@ -124,7 +128,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        $missingIds = $establishmentIds->diff($establishmentDisplayData->keys())->values();
+        $missingIds = $activityIds->diff($establishmentDisplayData->keys())->values();
 
         $resellerDisplayData = collect();
         if ($missingIds->isNotEmpty()) {
@@ -158,38 +162,48 @@ class DashboardController extends Controller
 
         $displayData = $establishmentDisplayData->union($resellerDisplayData);
 
-        $scoreByEstablishment = $establishmentIds
-            ->mapWithKeys(function ($id) use ($destinationPoints, $markerPoints) {
+        $establishmentIds = $displayData
+            ->keys()
+            ->merge($activityIds)
+            ->unique()
+            ->values();
+
+        if ($establishmentIds->isEmpty()) {
+            return [];
+        }
+
+        $rows = $establishmentIds
+            ->map(function ($id) use ($destinationPoints, $markerPoints, $destinationVisits, $markerViews, $displayData) {
                 $establishmentId = (int) $id;
                 $score = (int) $destinationPoints->get($establishmentId, 0)
                     + (int) $markerPoints->get($establishmentId, 0);
-
-                return [$establishmentId => $score];
-            })
-            ->sortDesc()
-            ->take(5);
-
-        return $scoreByEstablishment
-            ->map(function ($popularityScore, $establishmentId) use ($displayData, $destinationVisits, $markerViews) {
-                $establishment = $displayData->get((int) $establishmentId, []);
-                $trailDestinations = (int) $destinationVisits->get((int) $establishmentId, 0);
-                $markerViewCount = (int) $markerViews->get((int) $establishmentId, 0);
+                $trailDestinations = (int) $destinationVisits->get($establishmentId, 0);
+                $markerViewCount = (int) $markerViews->get($establishmentId, 0);
+                $establishment = $displayData->get($establishmentId, []);
 
                 return [
-                    'id' => (int) $establishmentId,
+                    'id' => $establishmentId,
                     'name' => $establishment['name'] ?? 'Unknown Establishment',
                     'city' => $establishment['barangay']
                         ?? $establishment['address']
                         ?? 'Unknown Location',
-                    'visits' => (int) $popularityScore,
-                    'popularity_score' => (int) $popularityScore,
+                    'visits' => $score,
+                    'popularity_score' => $score,
                     'trail_destinations' => $trailDestinations,
                     'marker_views' => $markerViewCount,
                     'image_url' => $establishment['image'] ?? null,
                 ];
             })
+            ->sortBy([
+                ['popularity_score', 'desc'],
+                ['trail_destinations', 'desc'],
+                ['marker_views', 'desc'],
+                ['name', 'asc'],
+            ])
             ->values()
             ->all();
+
+        return $rows;
     }
 
     protected function resolvePopularityWindow($rawWindow): string

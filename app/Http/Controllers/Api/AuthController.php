@@ -70,7 +70,7 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            $user = auth('api')->user();
+            $user = JWTAuth::setToken($token)->toUser();
 
             return response()->json([
                 'token' => $token,

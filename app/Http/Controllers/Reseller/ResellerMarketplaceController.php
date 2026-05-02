@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reseller;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Rating;
 use App\Models\ResellerProduct;
 use App\Services\OrderReceiptNotifier;
 use App\Services\OrderStockManager;
@@ -173,6 +174,7 @@ class ResellerMarketplaceController extends Controller
             ->withQueryString();
 
         $orders = collect();
+        $productRatings = collect();
         if (Schema::hasTable('orders') && Schema::hasTable('products') && Schema::hasColumn('products', 'seller_id')) {
             $orders = Order::query()
                 ->with(['user:id,name', 'product:id,name,seller_id,seller_type'])
@@ -185,9 +187,25 @@ class ResellerMarketplaceController extends Controller
                 })
                 ->latest()
                 ->get();
+
+            $productRatings = Rating::with([
+                'user:id,name',
+                'product:id,name,image_url,seller_id,seller_type',
+                'order:id,status,quantity,total_price,created_at',
+            ])
+                ->whereNotNull('product_id')
+                ->whereHas('product', function ($builder) use ($userId) {
+                    $builder->where('seller_id', $userId);
+
+                    if (Schema::hasColumn('products', 'seller_type')) {
+                        $builder->where('seller_type', 'reseller');
+                    }
+                })
+                ->latest()
+                ->get();
         }
 
-        return view('reseller.marketplace', compact('products', 'marketplaceProducts', 'orders'));
+        return view('reseller.marketplace', compact('products', 'marketplaceProducts', 'orders', 'productRatings'));
     }
 
     public function store(Request $request)

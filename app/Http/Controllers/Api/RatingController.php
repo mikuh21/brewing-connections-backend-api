@@ -5,25 +5,67 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Rating;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class RatingController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = max(1, min((int) $request->query("per_page", 20), 50));
+        $perPage = max(1, min((int) $request->query('per_page', 20), 50));
 
-        $ratings = Rating::query()
+        $cafeRatings = Rating::query()
             ->whereNotNull('establishment_id')
-            ->with("user", "establishment")
+            ->with('user', 'establishment')
             ->latest()
-            ->paginate($perPage);
+            ->limit($perPage)
+            ->get()
+            ->map(function (Rating $rating) {
+                $payload = $rating->toArray();
+                $payload['feed_type'] = 'cafe';
+                $payload['photo_url'] = $this->resolvePhotoUrl($rating->image);
 
-        $ratings->getCollection()->transform(function (Rating $rating) {
-            $payload = $rating->toArray();
-            $payload["photo_url"] = $this->resolvePhotoUrl($rating->image);
-            return $payload;
-        });
+                return $payload;
+            });
+
+        $farmProductRatingsQuery = Rating::query()
+            ->whereNotNull('product_id')
+            ->whereHas('product', function ($query) {
+                if (Schema::hasColumn('products', 'seller_type')) {
+                    $query->where('seller_type', 'farm_owner');
+                }
+            })
+            ->with(['user', 'product.establishment', 'product.seller'])
+            ->when(Schema::hasColumn('products', 'seller_type'), function ($query) {
+                $query->whereHas('product', function ($productQuery) {
+                    $productQuery->where('seller_type', 'farm_owner');
+                });
+            })
+            ->latest()
+            ->limit($perPage)
+            ->get();
+
+        $farmProductRatings = $farmProductRatingsQuery
+            ->map(function (Rating $rating) {
+                $payload = $rating->toArray();
+                $payload['feed_type'] = 'farm_product';
+                $payload['photo_url'] = $this->resolvePhotoUrl($rating->image);
+                $payload['product_name'] = $rating->product?->name;
+                $payload['product_image_url'] = $rating->product?->image_url;
+                $payload['farm_name'] = $rating->product?->establishment?->name
+                    ?? $rating->product?->seller?->name;
+                $payload['farm_barangay'] = $rating->product?->establishment?->barangay;
+                $payload['farm_address'] = $rating->product?->establishment?->address;
+
+                return $payload;
+            });
+
+        $ratings = $cafeRatings
+            ->concat($farmProductRatings)
+            ->sortByDesc(function (array $rating) {
+                return strtotime((string) ($rating['created_at'] ?? '')) ?: 0;
+            })
+            ->values();
 
         return response()->json($ratings);
     }

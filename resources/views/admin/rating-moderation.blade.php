@@ -160,7 +160,7 @@
                 <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
                     Rating Moderation
                 </h1>
-                <p class="text-[#9E8C78] text-sm font-medium">View and moderate café customer ratings</p>
+                <p class="text-[#9E8C78] text-sm font-medium">View and moderate cafe and farm product ratings</p>
             </div>
         </div>
 
@@ -197,13 +197,18 @@
                 </div>
             </div>
 
-            <!-- Least Overall Rating Card -->
+            <!-- Recent Farm Product Rating Card -->
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-[#800000] p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[#9E8C78] text-sm font-medium">Least Positive Rating</p>
-                        <p class="text-lg font-bold text-[#3A2E22] mt-1">{{ $leastPositive?->establishment?->name ?? 'N/A' }}</p>
-                        <p class="text-sm text-[#9E8C78] mt-1">Avg {{ $leastPositive ? number_format($leastPositive->avg_rating, 1) : '' }} ★</p>
+                        <p class="text-[#9E8C78] text-sm font-medium">Recent Farm Product Rating</p>
+                        <p class="text-lg font-bold text-[#3A2E22] mt-1">{{ $recentFarmProductRating?->product?->name ?? 'N/A' }}</p>
+                        <p class="text-sm text-[#9E8C78] mt-1">
+                            {{ $recentFarmProductRating?->product?->establishment?->name ?? $recentFarmProductRating?->product?->seller?->name ?? 'Unknown Farm' }}
+                            @if($recentFarmProductRating)
+                                · {{ number_format((float) $recentFarmProductRating->overall_rating, 1) }} ★
+                            @endif
+                        </p>
                     </div>
                     <div class="w-12 h-12 bg-[#800000]/15 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,94 +224,186 @@
             <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
             </svg>
-            <p class="text-xs font-medium">Ratings are automatically analyzed and fed into the Recommendations system to generate actionable insights for café owners.</p>
+            <p class="text-xs font-medium">Cafe experience ratings and farm product ratings are moderated separately so every review points to the right cafe, product, and farm record.</p>
         </div>
 
         <!-- Filter Tabs -->
         <div class="mb-6 border-b border-gray-200 pb-4">
             <div class="flex gap-2">
-                <button class="filter-tab {{ $filter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'all']) }}'" style="color: {{ $filter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'all' ? '#3B2F2F' : 'transparent' }};">
+                <button class="filter-tab {{ $filter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'all', 'tab' => $activeTab]) }}'" style="color: {{ $filter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'all' ? '#3B2F2F' : 'transparent' }};">
                     All
                 </button>
-                <button class="filter-tab {{ $filter === 'this_week' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'this_week']) }}'" style="color: {{ $filter === 'this_week' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_week' ? '#3B2F2F' : 'transparent' }};">
+                <button class="filter-tab {{ $filter === 'this_week' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'this_week', 'tab' => $activeTab]) }}'" style="color: {{ $filter === 'this_week' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_week' ? '#3B2F2F' : 'transparent' }};">
                     This Week
                 </button>
-                <button class="filter-tab {{ $filter === 'this_month' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'this_month']) }}'" style="color: {{ $filter === 'this_month' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_month' ? '#3B2F2F' : 'transparent' }};">
+                <button class="filter-tab {{ $filter === 'this_month' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'this_month', 'tab' => $activeTab]) }}'" style="color: {{ $filter === 'this_month' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_month' ? '#3B2F2F' : 'transparent' }};">
                     This Month
                 </button>
             </div>
         </div>
 
-        <!-- Ratings Cards List -->
-        <div class="filter-content bg-white rounded-xl shadow-sm p-4">
-            <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
-                All <span class="italic text-[#4A6741]">Ratings</span>
-            </h2>
-            <p class="text-[#9E8C78] text-sm mb-4">Complete list of submitted café ratings</p>
+        <div x-data="{ activeTab: '{{ $activeTab }}' }" class="space-y-4">
+            <div class="border-b border-gray-200 pb-4">
+                <div class="flex gap-2">
+                    <button
+                        type="button"
+                        @click="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => $filter, 'tab' => 'cafe']) }}'"
+                        class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
+                        :style="activeTab === 'cafe' ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F;' : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
+                    >
+                        Cafe Ratings
+                    </button>
+                    <button
+                        type="button"
+                        @click="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => $filter, 'tab' => 'farm-products']) }}'"
+                        class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
+                        :style="activeTab === 'farm-products' ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F;' : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
+                    >
+                        Farm Products
+                    </button>
+                </div>
+            </div>
 
-            @forelse($ratings as $rating)
-                <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
-                    <!-- Top Row -->
-                    <div class="rating-card-header flex items-center justify-between mb-4">
-                        <div class="rating-card-user flex items-center gap-3">
-                            <div class="w-10 h-10 bg-[#4A6741] rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                {{ substr($rating->user->name ?? 'U', 0, 1) }}
+            <div x-show="activeTab === 'cafe'" x-cloak class="filter-content bg-white rounded-xl shadow-sm p-4">
+                <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
+                    Cafe <span class="italic text-[#4A6741]">Ratings</span>
+                </h2>
+                <p class="text-[#9E8C78] text-sm mb-4">Complete list of submitted cafe ratings</p>
+
+                @forelse($cafeRatings as $rating)
+                    <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
+                        <div class="rating-card-header flex items-center justify-between mb-4">
+                            <div class="rating-card-user flex items-center gap-3">
+                                <div class="w-10 h-10 bg-[#4A6741] rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                    {{ substr($rating->user->name ?? 'U', 0, 1) }}
+                                </div>
+                                <div class="rating-card-title">
+                                    <span class="font-bold text-[#3A2E22]">{{ $rating->user->name ?? 'Unknown User' }}</span>
+                                    <span class="text-[#9E8C78]"> rated </span>
+                                    <span class="font-bold italic text-[#3A2E22]">{{ $rating->establishment->name ?? 'Unknown Cafe' }}</span>
+                                </div>
                             </div>
-                            <div class="rating-card-title">
-                                <span class="font-bold text-[#3A2E22]">{{ $rating->user->name ?? 'Unknown User' }}</span>
-                                <span class="text-[#9E8C78]"> rated </span>
-                                <span class="font-bold italic text-[#3A2E22]">{{ $rating->establishment->name ?? 'Unknown Establishment' }}</span>
+                            <div class="rating-card-date text-[#9E8C78] text-sm">
+                                {{ $rating->created_at->format('M d, Y') }}
                             </div>
                         </div>
-                        <div class="rating-card-date text-[#9E8C78] text-sm">
-                            {{ $rating->created_at->format('M d, Y') }}
+
+                        <div class="rating-breakdown border border-gray-200 rounded-xl p-4 mb-4 bg-[#F9F6F1]">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Taste:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->taste_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->taste_rating }}/5)</span>
+                                </div>
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Environment:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->environment_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->environment_rating }}/5)</span>
+                                </div>
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Cleanliness:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->cleanliness_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->cleanliness_rating }}/5)</span>
+                                </div>
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Service:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->service_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->service_rating }}/5)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @php
+                            $overallValue = round((float) $rating->overall_rating, 1);
+                            $overallBg = match(true) {
+                                $overallValue < 3.0 => 'bg-red-50 border-red-200',
+                                $overallValue < 4.0 => 'bg-yellow-50 border-yellow-200',
+                                default => 'bg-green-50 border-green-200',
+                            };
+                            $overallStarColor = match(true) {
+                                $overallValue < 3.0 => 'text-red-500',
+                                $overallValue < 4.0 => 'text-yellow-500',
+                                default => 'text-[#4A6741]',
+                            };
+                        @endphp
+                        <div class="rating-overall border rounded-xl p-4 mb-4 {{ $overallBg }}">
+                            <span class="text-sm font-semibold text-[#3A2E22]">Overall</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <span class="text-2xl {{ $i <= $rating->overall_rating ? $overallStarColor : 'text-gray-300' }}">★</span>
+                                    @endfor
+                                </div>
+                                <span class="text-lg font-bold text-[#3A2E22]">({{ number_format($rating->overall_rating, 2) }}/5)</span>
+                            </div>
+                        </div>
+
+                        @if($rating->image_url)
+                            <div class="mb-4">
+                                <p class="text-xs text-[#9E8C78] mb-2">Submitted Photo</p>
+                                <img src="{{ $rating->image_url }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover w-full max-w-[220px]">
+                            </div>
+                        @endif
+
+                        @if($rating->owner_response)
+                            <div class="bg-[#F5EFE6] border-l-4 border-l-[#4A6741] p-4 rounded-lg mb-4">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 text-[#4A6741]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold text-[#4A6741]">Owner's Response</span>
+                                </div>
+                                <p class="text-sm italic text-[#3A2E22]">{{ $rating->owner_response }}</p>
+                            </div>
+                        @endif
+
+                        <div class="rating-actions flex justify-end">
+                            <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                                x-on:click="openDeleteModal({{ $rating->id }}, '{{ addslashes($rating->user->name ?? 'Unknown User') }}', '{{ addslashes($rating->establishment->name ?? 'Unknown Cafe') }}')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete
+                            </button>
                         </div>
                     </div>
-
-                    <!-- Rating Categories -->
-                    <div class="rating-breakdown border border-gray-200 rounded-xl p-4 mb-4 bg-[#F9F6F1]">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="rating-breakdown-item flex items-center gap-2">
-                                <span class="text-sm font-medium text-[#3A2E22]">Taste:</span>
-                                <div class="flex">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="text-lg {{ $i <= $rating->taste_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
-                                    @endfor
-                                </div>
-                                <span class="text-sm text-[#9E8C78]">({{ $rating->taste_rating }}/5)</span>
-                            </div>
-                            <div class="rating-breakdown-item flex items-center gap-2">
-                                <span class="text-sm font-medium text-[#3A2E22]">Environment:</span>
-                                <div class="flex">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="text-lg {{ $i <= $rating->environment_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
-                                    @endfor
-                                </div>
-                                <span class="text-sm text-[#9E8C78]">({{ $rating->environment_rating }}/5)</span>
-                            </div>
-                            <div class="rating-breakdown-item flex items-center gap-2">
-                                <span class="text-sm font-medium text-[#3A2E22]">Cleanliness:</span>
-                                <div class="flex">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="text-lg {{ $i <= $rating->cleanliness_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
-                                    @endfor
-                                </div>
-                                <span class="text-sm text-[#9E8C78]">({{ $rating->cleanliness_rating }}/5)</span>
-                            </div>
-                            <div class="rating-breakdown-item flex items-center gap-2">
-                                <span class="text-sm font-medium text-[#3A2E22]">Service:</span>
-                                <div class="flex">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="text-lg {{ $i <= $rating->service_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
-                                    @endfor
-                                </div>
-                                <span class="text-sm text-[#9E8C78]">({{ $rating->service_rating }}/5)</span>
-                            </div>
-                        </div>
+                @empty
+                    <div class="text-center py-8">
+                        <p class="text-gray-400 text-lg">No cafe ratings found for the selected period.</p>
                     </div>
+                @endforelse
 
-                    <!-- Overall Rating -->
+                <div class="rating-pagination mt-6">
+                    {{ $cafeRatings->links() }}
+                </div>
+            </div>
+
+            <div x-show="activeTab === 'farm-products'" x-cloak class="filter-content bg-white rounded-xl shadow-sm p-4">
+                <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
+                    Farm Product <span class="italic text-[#4A6741]">Ratings</span>
+                </h2>
+                <p class="text-[#9E8C78] text-sm mb-4">Complete list of submitted farm product ratings</p>
+
+                @forelse($farmProductRatings as $rating)
                     @php
+                        $farmName = $rating->product?->establishment?->name ?? $rating->product?->seller?->name ?? 'Unknown Farm';
+                        $productName = $rating->product?->name ?? 'Unknown Product';
                         $overallValue = round((float) $rating->overall_rating, 1);
                         $overallBg = match(true) {
                             $overallValue < 3.0 => 'bg-red-50 border-red-200',
@@ -319,59 +416,103 @@
                             default => 'text-[#4A6741]',
                         };
                     @endphp
-                    <div class="rating-overall border rounded-xl p-4 mb-4 {{ $overallBg }}">
-                        <span class="text-sm font-semibold text-[#3A2E22]">Overall</span>
-                        <div class="flex items-center gap-2 mt-1">
-                            <div class="flex">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <span class="text-2xl {{ $i <= $rating->overall_rating ? $overallStarColor : 'text-gray-300' }}">★</span>
-                                @endfor
+                    <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
+                        <div class="rating-card-header flex items-center justify-between mb-4">
+                            <div class="rating-card-user flex items-center gap-3">
+                                <div class="w-10 h-10 bg-[#4A6741] rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                    {{ substr($rating->user->name ?? 'U', 0, 1) }}
+                                </div>
+                                <div class="rating-card-title">
+                                    <span class="font-bold text-[#3A2E22]">{{ $rating->user->name ?? 'Unknown User' }}</span>
+                                    <span class="text-[#9E8C78]"> rated </span>
+                                    <span class="font-bold italic text-[#3A2E22]">{{ $productName }}</span>
+                                    <div class="text-sm text-[#9E8C78] mt-1">Farm: {{ $farmName }}</div>
+                                </div>
                             </div>
-                            <span class="text-lg font-bold text-[#3A2E22]">({{ number_format($rating->overall_rating, 2) }}/5)</span>
+                            <div class="rating-card-date text-[#9E8C78] text-sm">
+                                {{ $rating->created_at->format('M d, Y') }}
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Photo -->
-                    @if($rating->image_url)
-                        <div class="mb-4">
-                            <p class="text-xs text-[#9E8C78] mb-2">Submitted Photo</p>
-                                                <img src="{{ $rating->image_url }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover w-full max-w-[220px]">
+                        <div class="rating-breakdown border border-gray-200 rounded-xl p-4 mb-4 bg-[#F9F6F1]">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Taste:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->taste_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->taste_rating }}/5)</span>
+                                </div>
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Environment:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->environment_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->environment_rating }}/5)</span>
+                                </div>
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Cleanliness:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->cleanliness_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->cleanliness_rating }}/5)</span>
+                                </div>
+                                <div class="rating-breakdown-item flex items-center gap-2">
+                                    <span class="text-sm font-medium text-[#3A2E22]">Service:</span>
+                                    <div class="flex">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-lg {{ $i <= $rating->service_rating ? 'text-[#4A6741]' : 'text-gray-300' }}">★</span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm text-[#9E8C78]">({{ $rating->service_rating }}/5)</span>
+                                </div>
+                            </div>
                         </div>
-                    @endif
 
-                    <!-- Owner Response -->
-                    @if($rating->owner_response)
-                        <div class="bg-[#F5EFE6] border-l-4 border-l-[#4A6741] p-4 rounded-lg mb-4">
-                            <div class="flex items-center gap-2 mb-2">
-                                <svg class="w-4 h-4 text-[#4A6741]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        <div class="rating-overall border rounded-xl p-4 mb-4 {{ $overallBg }}">
+                            <span class="text-sm font-semibold text-[#3A2E22]">Overall Product Rating</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <span class="text-2xl {{ $i <= $rating->overall_rating ? $overallStarColor : 'text-gray-300' }}">★</span>
+                                    @endfor
+                                </div>
+                                <span class="text-lg font-bold text-[#3A2E22]">({{ number_format($rating->overall_rating, 2) }}/5)</span>
+                            </div>
+                        </div>
+
+                        @if($rating->image_url)
+                            <div class="mb-4">
+                                <p class="text-xs text-[#9E8C78] mb-2">Submitted Photo</p>
+                                <img src="{{ $rating->image_url }}" alt="Rating photo" class="rounded-lg max-h-40 object-cover w-full max-w-[220px]">
+                            </div>
+                        @endif
+
+                        <div class="rating-actions flex justify-end">
+                            <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                                x-on:click="openDeleteModal({{ $rating->id }}, '{{ addslashes($rating->user->name ?? 'Unknown User') }}', '{{ addslashes($productName . ' from ' . $farmName) }}')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
-                                <span class="text-sm font-semibold text-[#4A6741]">Owner's Response</span>
-                            </div>
-                            <p class="text-sm italic text-[#3A2E22]">{{ $rating->owner_response }}</p>
+                                Delete
+                            </button>
                         </div>
-                    @endif
-
-                    <!-- Bottom Row -->
-                    <div class="rating-actions flex justify-end">
-                        <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
-                            x-on:click="openDeleteModal({{ $rating->id }}, '{{ addslashes($rating->user->name ?? 'Unknown User') }}', '{{ addslashes($rating->establishment->name ?? 'Unknown Establishment') }}')">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Delete
-                        </button>
                     </div>
-                </div>
-            @empty
-                <div class="text-center py-8">
-                    <p class="text-gray-400 text-lg">No ratings found for the selected period.</p>
-                </div>
-            @endforelse
+                @empty
+                    <div class="text-center py-8">
+                        <p class="text-gray-400 text-lg">No farm product ratings found for the selected period.</p>
+                    </div>
+                @endforelse
 
-            <!-- Pagination -->
-            <div class="rating-pagination mt-6">
-                {{ $ratings->links() }}
+                <div class="rating-pagination mt-6">
+                    {{ $farmProductRatings->links() }}
+                </div>
             </div>
         </div>
     </main>

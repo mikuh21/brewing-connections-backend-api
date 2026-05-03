@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Establishment;
+use App\Models\Rating;
 use App\Models\Recommendation;
 use App\Models\RecommendationSnapshot;
 use Illuminate\Support\Facades\DB;
@@ -12,9 +13,16 @@ class RecommendationAnalyticsService
     private const ATTENTION_THRESHOLD = 3.0;
     private const MEDIUM_PRIORITY_THRESHOLD = 4.0;
 
-    public function getOverallAnalytics()
+    private function baseCafeRatingsQuery(?int $establishmentId = null)
     {
-        $stats = DB::table('rating')
+        return Rating::query()
+            ->whereNotNull('establishment_id')
+            ->when($establishmentId, fn ($query) => $query->where('establishment_id', $establishmentId));
+    }
+
+    private function aggregateCafeRatingStats(?int $establishmentId = null): object
+    {
+        return $this->baseCafeRatingsQuery($establishmentId)
             ->selectRaw('
                 AVG(taste_rating) as taste_avg,
                 AVG(environment_rating) as environment_avg,
@@ -24,6 +32,11 @@ class RecommendationAnalyticsService
                 COUNT(*) as total_reviews
             ')
             ->first();
+    }
+
+    public function getOverallAnalytics()
+    {
+        $stats = $this->aggregateCafeRatingStats();
 
         if ($stats->total_reviews == 0) {
             return [
@@ -57,17 +70,7 @@ class RecommendationAnalyticsService
 
     public function getAnalyticsByEstablishment($establishmentId)
     {
-        $stats = DB::table('rating')
-            ->where('establishment_id', $establishmentId)
-            ->selectRaw('
-                AVG(taste_rating) as taste_avg,
-                AVG(environment_rating) as environment_avg,
-                AVG(cleanliness_rating) as cleanliness_avg,
-                AVG(service_rating) as service_avg,
-                AVG(overall_rating) as overall_avg,
-                COUNT(*) as total_reviews
-            ')
-            ->first();
+        $stats = $this->aggregateCafeRatingStats((int) $establishmentId);
 
         if ($stats->total_reviews == 0) {
             return [
@@ -104,8 +107,7 @@ class RecommendationAnalyticsService
         $establishments = Establishment::all();
 
         foreach ($establishments as $establishment) {
-            $stats = DB::table('rating')
-                ->where('establishment_id', $establishment->id)
+            $stats = $this->baseCafeRatingsQuery((int) $establishment->id)
                 ->selectRaw('
                     AVG(taste_rating) as taste_avg,
                     AVG(environment_rating) as environment_avg,
@@ -187,7 +189,7 @@ class RecommendationAnalyticsService
 
     public function rebuildHistoricalSnapshots(?int $establishmentId = null): int
     {
-        $establishmentIds = DB::table('rating')
+        $establishmentIds = $this->baseCafeRatingsQuery()
             ->select('establishment_id')
             ->when($establishmentId, fn ($query) => $query->where('establishment_id', $establishmentId))
             ->groupBy('establishment_id')
@@ -205,8 +207,7 @@ class RecommendationAnalyticsService
                     ->where('establishment_id', $currentEstablishmentId)
                     ->delete();
 
-                $ratings = DB::table('rating')
-                    ->where('establishment_id', $currentEstablishmentId)
+                $ratings = $this->baseCafeRatingsQuery((int) $currentEstablishmentId)
                     ->orderBy('created_at')
                     ->get([
                         'taste_rating',
@@ -357,8 +358,7 @@ class RecommendationAnalyticsService
             return;
         }
 
-        $stats = DB::table('rating')
-            ->where('establishment_id', $establishment->id)
+        $stats = $this->baseCafeRatingsQuery((int) $establishment->id)
             ->selectRaw('
                 AVG(taste_rating) as taste_avg,
                 AVG(environment_rating) as environment_avg,
@@ -378,7 +378,7 @@ class RecommendationAnalyticsService
 
     public function getRecentReviews(string $range = 'all')
     {
-        $query = DB::table('rating')
+        $query = $this->baseCafeRatingsQuery()
             ->join('users', 'rating.user_id', '=', 'users.id')
             ->join('establishments', 'rating.establishment_id', '=', 'establishments.id')
             ->select(

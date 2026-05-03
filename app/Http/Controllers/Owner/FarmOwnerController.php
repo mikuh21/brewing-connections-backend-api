@@ -595,6 +595,11 @@ class FarmOwnerController extends Controller
             }
         }
 
+        $sellerTypeFilter = request('seller_type_filter');
+        if (Schema::hasColumn('products', 'seller_type') && in_array($sellerTypeFilter, ['farm_owner', 'cafe_owner', 'reseller'], true)) {
+            $marketplaceQuery->where('products.seller_type', $sellerTypeFilter);
+        }
+
         $marketplaceProducts = $marketplaceQuery
             ->select([
                 'products.id',

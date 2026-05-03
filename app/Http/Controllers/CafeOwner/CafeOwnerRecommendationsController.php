@@ -8,6 +8,7 @@ use App\Models\Rating;
 use App\Models\Recommendation;
 use App\Models\RecommendationSnapshot;
 use App\Models\RecommendationSnapshotItem;
+use App\Services\RecommendationAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,10 @@ use Illuminate\Support\Facades\Schema;
 
 class CafeOwnerRecommendationsController extends Controller
 {
+    public function __construct(protected RecommendationAnalyticsService $analyticsService)
+    {
+    }
+
     public function updateOwnerResponse(Request $request, Rating $rating)
     {
         $ownerUserId = Auth::id();
@@ -134,6 +139,8 @@ class CafeOwnerRecommendationsController extends Controller
                 'establishment' => null,
             ]);
         }
+
+        $this->analyticsService->rebuildHistoricalSnapshots((int) $establishment->id);
 
         $ratingColumn = Schema::hasColumn('rating', 'score') ? 'score' : 'overall_rating';
 

@@ -189,23 +189,23 @@ class RecommendationAnalyticsService
 
     public function rebuildHistoricalSnapshots(?int $establishmentId = null): int
     {
-        $establishmentIds = $this->baseCafeRatingsQuery()
-            ->select('establishment_id')
-            ->when($establishmentId, fn ($query) => $query->where('establishment_id', $establishmentId))
-            ->groupBy('establishment_id')
-            ->pluck('establishment_id');
+        $establishmentIds = $establishmentId
+            ? collect([$establishmentId])
+            : $this->baseCafeRatingsQuery()
+                ->select('establishment_id')
+                ->groupBy('establishment_id')
+                ->pluck('establishment_id')
+                ->merge(RecommendationSnapshot::query()->pluck('establishment_id'))
+                ->merge(Recommendation::query()->pluck('establishment_id'))
+                ->filter()
+                ->unique()
+                ->values();
 
         $rebuiltCount = 0;
 
         foreach ($establishmentIds as $currentEstablishmentId) {
             DB::transaction(function () use ($currentEstablishmentId, &$rebuiltCount) {
-                RecommendationSnapshot::query()
-                    ->where('establishment_id', $currentEstablishmentId)
-                    ->delete();
-
-                Recommendation::query()
-                    ->where('establishment_id', $currentEstablishmentId)
-                    ->delete();
+                $this->clearInsightsForEstablishment((int) $currentEstablishmentId);
 
                 $ratings = $this->baseCafeRatingsQuery((int) $currentEstablishmentId)
                     ->orderBy('created_at')

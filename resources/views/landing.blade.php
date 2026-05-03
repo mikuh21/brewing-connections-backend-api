@@ -836,10 +836,10 @@
                         </div>
                     @empty
                         <div class="col-span-full rounded-2xl border border-dashed border-white/14 bg-white/4 px-5 py-6 text-center sm:px-6 sm:py-7">
-                            <p class="text-base font-semibold text-white font-poppins">
+                            <p class="text-base font-semibold text-[#F3E9D7]/80 font-poppins">
                                 No product ratings yet
                             </p>
-                            <p class="mt-2 text-sm text-[#F3E9D7]/72 font-body">
+                            <p class="mt-2 text-sm text-[#F3E9D7]/80 font-body">
                                 Product feedback will appear here after completed reservations are reviewed.
                             </p>
                         </div>

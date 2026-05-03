@@ -437,7 +437,17 @@ class CafeOwnerMarketplaceController extends Controller
     {
         $userId = (int) Auth::id();
 
-        $order->loadMissing('product:id,establishment_id,seller_id,seller_type,user_id');
+        $productColumns = ['id'];
+
+        foreach (['establishment_id', 'seller_id', 'seller_type', 'user_id'] as $column) {
+            if (Schema::hasColumn('products', $column)) {
+                $productColumns[] = $column;
+            }
+        }
+
+        $order->loadMissing([
+            'product:' . implode(',', $productColumns),
+        ]);
 
         if (!$order->product || !$this->productBelongsToUser($order->product, $userId)) {
             abort(403);

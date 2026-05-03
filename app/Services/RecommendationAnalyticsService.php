@@ -116,6 +116,7 @@ class RecommendationAnalyticsService
                 ->first();
 
             if ($stats->review_count == 0) {
+                $this->clearInsightsForEstablishment((int) $establishment->id);
                 continue;
             }
 
@@ -171,6 +172,17 @@ class RecommendationAnalyticsService
             $categories,
             (int) ($stats->review_count ?? 0)
         );
+    }
+
+    private function clearInsightsForEstablishment(int $establishmentId): void
+    {
+        RecommendationSnapshot::query()
+            ->where('establishment_id', $establishmentId)
+            ->delete();
+
+        Recommendation::query()
+            ->where('establishment_id', $establishmentId)
+            ->delete();
     }
 
     public function rebuildHistoricalSnapshots(?int $establishmentId = null): int
@@ -357,15 +369,16 @@ class RecommendationAnalyticsService
             ->first();
 
         if ($stats->review_count == 0) {
+            $this->clearInsightsForEstablishment((int) $establishment->id);
             return;
         }
 
         $this->syncRecommendationsForEstablishment($establishment->id, $stats);
     }
 
-    public function getRecentReviews()
+    public function getRecentReviews(string $range = 'all')
     {
-        return DB::table('rating')
+        $query = DB::table('rating')
             ->join('users', 'rating.user_id', '=', 'users.id')
             ->join('establishments', 'rating.establishment_id', '=', 'establishments.id')
             ->select(
@@ -379,9 +392,16 @@ class RecommendationAnalyticsService
                 'rating.cleanliness_rating',
                 'rating.service_rating',
                 'rating.owner_response'
-            )
+            );
+
+        if ($range === 'this_week') {
+            $query->whereBetween('rating.created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+        } elseif ($range === 'this_month') {
+            $query->whereBetween('rating.created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+        }
+
+        return $query
             ->orderBy('rating.created_at', 'desc')
-            ->limit(5)
             ->get();
     }
 }

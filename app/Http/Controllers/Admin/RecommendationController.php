@@ -20,9 +20,15 @@ class RecommendationController extends Controller
     public function index(Request $request)
     {
         $priority = $request->query('priority', 'all');
+        $recentReviewsRange = $request->query('recent_reviews_range', 'all');
+
+        if (!in_array($recentReviewsRange, ['all', 'this_week', 'this_month'], true)) {
+            $recentReviewsRange = 'all';
+        }
+
         $this->analyticsService->generateInsights();
         $overallAnalytics = $this->analyticsService->getOverallAnalytics();
-        $recentReviews = $this->analyticsService->getRecentReviews();
+        $recentReviews = $this->analyticsService->getRecentReviews($recentReviewsRange);
         $recommendations = Recommendation::with('establishment')->get()->groupBy('priority');
         $establishments = Establishment::all()->map(function ($est) {
             return [
@@ -31,7 +37,7 @@ class RecommendationController extends Controller
             ];
         });
 
-        return view('admin.recommendations', compact('overallAnalytics', 'recentReviews', 'recommendations', 'establishments', 'priority'));
+        return view('admin.recommendations', compact('overallAnalytics', 'recentReviews', 'recommendations', 'establishments', 'priority', 'recentReviewsRange'));
     }
 
     public function refresh(Request $request)

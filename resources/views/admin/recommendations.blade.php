@@ -267,9 +267,21 @@
         <!-- Recent Consumer Reviews -->
         <div class="mb-8">
             <div class="recent-ratings-header flex items-center justify-between mb-4 gap-3">
-                <h2 class="text-xl font-semibold text-[#3A2E22] flex items-center gap-2">
-                    <span class="italic text-[#4A6741]">Recent</span> Consumer Ratings
-                </h2>
+                <div>
+                    <h2 class="text-xl font-semibold text-[#3A2E22] flex items-center gap-2">
+                        <span class="italic text-[#4A6741]">Recent</span> Consumer Ratings
+                    </h2>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        @foreach(['all' => 'All', 'this_week' => 'This Week', 'this_month' => 'This Month'] as $rangeKey => $rangeLabel)
+                            <a
+                                href="{{ route('admin.recommendations', array_merge(request()->except('page'), ['recent_reviews_range' => $rangeKey])) }}"
+                                class="filter-tab px-4 py-2 text-sm font-medium transition-colors rounded-lg {{ ($recentReviewsRange ?? 'all') === $rangeKey ? 'text-[#3B2F2F] border border-[#3B2F2F] bg-[#F5F0E8]' : 'text-[#9E8C78] border border-[#E7DCCF] bg-white hover:bg-[#F8F4EE]' }}"
+                            >
+                                {{ $rangeLabel }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
                 <div class="recent-ratings-controls flex items-center gap-2">
                     <button id="recent-ratings-prev" type="button" class="w-8 h-8 rounded-full border border-[#DCCFBD] text-[#6B5B4A] hover:bg-[#F8F4EE] disabled:opacity-40 disabled:cursor-not-allowed" aria-label="Previous rating">
                         <svg class="w-4 h-4 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -376,7 +388,7 @@
                 </div>
                 @empty
                 <div class="bg-white rounded-xl shadow-sm p-6 text-sm text-[#9E8C78]">
-                    No ratings yet.
+                    No cafe ratings found for this filter.
                 </div>
                 @endforelse
             </div>

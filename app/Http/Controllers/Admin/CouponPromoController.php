@@ -14,6 +14,7 @@ class CouponPromoController extends Controller
         $query = CouponPromo::with(['establishment' => function ($q) {
             $q->where('type', 'cafe');
         }]);
+        $today = Carbon::today();
 
         $currentFilter = $request->get('filter', 'all');
 
@@ -24,7 +25,19 @@ class CouponPromoController extends Controller
         }
         // For 'all', no additional filter needed as SoftDeletes excludes soft-deleted
 
-        $coupons = $query->get();
+        $coupons = $query
+            ->orderByRaw(
+                "CASE
+                    WHEN status = 'expired'
+                        OR valid_until < ?
+                        OR used_count >= max_usage
+                    THEN 1
+                    ELSE 0
+                END ASC",
+                [$today->toDateString()]
+            )
+            ->orderByDesc('created_at')
+            ->get();
 
         $totalCoupons = CouponPromo::count();
         $activeCoupons = CouponPromo::active()->count();

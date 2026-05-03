@@ -201,6 +201,8 @@ class MarketplaceController extends Controller
 
         $order = $this->orderStockManager->applyStatusTransition($order, 'cancelled');
 
+        $this->orderReceiptNotifier->sendStatusUpdated($order);
+
         $order->load([
             'product:id,name,category,price_per_unit,unit,image_url,seller_type,seller_id,establishment_id',
             'product.seller:id,name',

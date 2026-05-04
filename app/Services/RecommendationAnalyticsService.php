@@ -276,8 +276,8 @@ class RecommendationAnalyticsService
 
         foreach ($categories as $category => $average) {
             $priority = $this->calculatePriority($average);
-            $insight = $this->getInsightText($category);
-            $suggestedAction = $this->getSuggestedAction($category);
+            $insight = $this->getInsightText($category, $priority);
+            $suggestedAction = $this->getSuggestedAction($category, $priority);
             $impactScore = round((5 - $average) * 0.15, 2);
 
             $snapshot->items()->create([
@@ -326,28 +326,60 @@ class RecommendationAnalyticsService
         return array_keys($roundedCategories, $lowestAverage)[0] ?? null;
     }
 
-    private function getInsightText($category)
+    private function getInsightText($category, $priority)
     {
-        $insights = [
-            'taste' => 'Customers are dissatisfied with the taste of your coffee.',
-            'environment' => 'The environment ratings are low.',
-            'cleanliness' => 'Cleanliness is a concern for customers.',
-            'service' => 'Service quality needs improvement.',
+        $rules = [
+            'taste' => [
+                'high' => 'Customer journey feedback shows flavor inconsistency and weak cup quality are hurting repeat intent.',
+                'medium' => 'Flavor quality is acceptable but not memorable; guests are likely neutral rather than delighted.',
+                'low' => 'Taste performance is strong and consistently supports a positive cafe experience.',
+            ],
+            'environment' => [
+                'high' => 'Ambiance signals indicate discomfort in seating, lighting, or noise control.',
+                'medium' => 'Environment is functional but lacks distinctive comfort cues that extend dwell time.',
+                'low' => 'Environment quality is helping guests stay longer and supports positive perception of the cafe.',
+            ],
+            'cleanliness' => [
+                'high' => 'Hygiene touchpoints are creating visible trust gaps for customers.',
+                'medium' => 'Cleanliness is generally acceptable but some inconsistencies remain.',
+                'low' => 'Cleanliness standards are consistently supporting customer confidence and comfort.',
+            ],
+            'service' => [
+                'high' => 'Service delivery issues are weakening satisfaction and order flow.',
+                'medium' => 'Service is stable but could be more proactive and personalized.',
+                'low' => 'Service quality is strong and contributes positively to the guest experience.',
+            ],
         ];
 
-        return $insights[$category] ?? 'General improvement needed.';
+        return data_get($rules, $category.'.'.$priority, 'General improvement needed.');
     }
 
-    private function getSuggestedAction($category)
+    private function getSuggestedAction($category, $priority)
     {
-        $actions = [
-            'taste' => 'Consider upgrading your coffee beans or training baristas on brewing techniques.',
-            'environment' => 'Improve the ambiance by updating decor or lighting.',
-            'cleanliness' => 'Enhance cleaning protocols and maintain higher hygiene standards.',
-            'service' => 'Train staff on customer service and response times.',
+        $rules = [
+            'taste' => [
+                'high' => 'Run a weekly espresso and filter calibration checklist before opening.',
+                'medium' => 'Refine best-selling drinks with micro-adjustments and collect quick taste feedback cards.',
+                'low' => 'Maintain calibration logs and keep quarterly sensory training for baristas.',
+            ],
+            'environment' => [
+                'high' => 'Redesign seating flow to reduce congestion and improve movement comfort.',
+                'medium' => 'Introduce small comfort upgrades such as better seat spacing and table stability checks.',
+                'low' => 'Preserve current ambiance standards and run monthly environment walk-through audits.',
+            ],
+            'cleanliness' => [
+                'high' => 'Implement hourly sanitation checkpoints for tables, counters, and high-touch surfaces.',
+                'medium' => 'Tighten mid-shift deep-clean micro-routines for bar and dining zones.',
+                'low' => 'Sustain hygiene standards with periodic verification and retraining refreshers.',
+            ],
+            'service' => [
+                'high' => 'Set service-time targets per order type and monitor queue response in each shift.',
+                'medium' => 'Add proactive check-ins at pickup and dine-in midpoint touchpoints.',
+                'low' => 'Maintain strong service through peer shadowing and monthly role-play drills.',
+            ],
         ];
 
-        return $actions[$category] ?? 'Focus on improving this area.';
+        return data_get($rules, $category.'.'.$priority, 'Focus on improving this area.');
     }
 
     public function generateInsightsForEstablishment($establishmentId)

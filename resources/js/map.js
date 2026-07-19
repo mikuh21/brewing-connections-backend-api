@@ -2416,20 +2416,20 @@ async function handleBarangaySearch() {
     }
 
     if (matchingMarkers.length === 0) {
-        // Fallback to geocoding so barangays without registered markers can still be searched.
+        // Fallback to geocoding so locations without registered markers can still be searched.
         try {
-            let geocodeResult = await geocodeBarangayInLipa(rawQuery.trim());
-
-            if (!geocodeResult) {
-                geocodeResult = await geocodeBarangayInLipaNominatim(rawQuery.trim());
-            }
-
-            if (!geocodeResult) {
-                geocodeResult = await geocodePhilippines(rawQuery.trim());
-            }
+            let geocodeResult = await geocodePhilippines(rawQuery.trim());
 
             if (!geocodeResult) {
                 geocodeResult = await geocodePhilippinesNominatim(rawQuery.trim());
+            }
+
+            if (!geocodeResult) {
+                geocodeResult = await geocodeBarangayInLipa(rawQuery.trim());
+            }
+
+            if (!geocodeResult) {
+                geocodeResult = await geocodeBarangayInLipaNominatim(rawQuery.trim());
             }
 
             if (geocodeResult && Number.isFinite(geocodeResult.lat) && Number.isFinite(geocodeResult.lng)) {

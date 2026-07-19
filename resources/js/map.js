@@ -2106,10 +2106,8 @@ async function fetchLipaBarangaySuggestions(rawQuery, signal) {
     const trimmed = String(rawQuery || '').trim();
     if (!window.MAPBOX_TOKEN || trimmed.length < 2) return [];
 
-    const query = encodeURIComponent(`${trimmed}, Lipa City, Batangas, Philippines`);
-    const bbox = '121.073,13.860,121.235,14.050';
-    const proximity = '121.1631,13.9411';
-    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${window.MAPBOX_TOKEN}&bbox=${bbox}&proximity=${proximity}&autocomplete=true&limit=8&language=en`;
+    const query = encodeURIComponent(`${trimmed}, Philippines`);
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${window.MAPBOX_TOKEN}&country=ph&autocomplete=true&limit=8&language=en`;
 
     const response = await fetch(url, { method: 'GET', signal });
     if (!response.ok) return [];
@@ -2118,14 +2116,7 @@ async function fetchLipaBarangaySuggestions(rawQuery, signal) {
     const features = Array.isArray(payload?.features) ? payload.features : [];
 
     return features
-        .filter((item) => {
-            const placeName = String(item?.place_name || '').toLowerCase();
-            const contextText = (item?.context || [])
-                .map((ctx) => String(ctx?.text || '').toLowerCase())
-                .join(' ');
-            return placeName.includes('lipa') || contextText.includes('lipa');
-        })
-        .map(extractBarangayFromMapboxFeature)
+        .map((item) => extractBarangayFromMapboxFeature(item))
         .filter(Boolean);
 }
 
@@ -2133,9 +2124,8 @@ async function fetchLipaBarangaySuggestionsNominatim(rawQuery, signal) {
     const trimmed = String(rawQuery || '').trim();
     if (trimmed.length < 2) return [];
 
-    const query = encodeURIComponent(`Barangay ${trimmed}, Lipa City, Batangas, Philippines`);
-    const viewbox = '121.073,14.050,121.235,13.860';
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&bounded=1&viewbox=${viewbox}&q=${query}`;
+    const query = encodeURIComponent(`${trimmed}, Philippines`);
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=10&countrycodes=ph&q=${query}`;
 
     const response = await fetch(url, {
         method: 'GET',
@@ -2150,14 +2140,8 @@ async function fetchLipaBarangaySuggestionsNominatim(rawQuery, signal) {
     if (!Array.isArray(items)) return [];
 
     return items
-        .filter((item) => {
-            const display = String(item?.display_name || '').toLowerCase();
-            const city = String(item?.address?.city || item?.address?.town || '').toLowerCase();
-            return display.includes('lipa') || city.includes('lipa');
-        })
         .map((item) => {
-            const address = item?.address || {};
-            const raw = address.suburb || address.village || address.neighbourhood || address.quarter || '';
+            const raw = String(item?.display_name || '').split(',')[0] || '';
             return toBarangayDisplayName(raw);
         })
         .filter(Boolean);

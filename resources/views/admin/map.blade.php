@@ -147,7 +147,7 @@
                             id="map-barangay-search"
                             type="text"
                             list="map-barangay-suggestions"
-                            placeholder="Search barangay..."
+                            placeholder="Search location..."
                             class="pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent w-64"
                         />
                     </div>

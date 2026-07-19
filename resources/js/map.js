@@ -176,7 +176,7 @@ function initializeMap() {
         zoom: 13,
         minZoom: 10,
         maxZoom: 18,
-        maxBounds: [[13.5, 120.7], [14.4, 121.8]],
+        maxBounds: [[4.5, 116.0], [21.5, 127.0]],
         scrollWheelZoom: false
     });
     window.adminMapInstance = map;
@@ -2304,6 +2304,79 @@ async function geocodeBarangayInLipaNominatim(rawQuery) {
     };
 }
 
+async function geocodePhilippines(rawQuery) {
+    if (!window.MAPBOX_TOKEN) return null;
+
+    const query = encodeURIComponent(`${rawQuery}, Philippines`);
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${window.MAPBOX_TOKEN}&country=ph&autocomplete=true&limit=5&language=en`;
+    const response = await fetch(url, { method: 'GET' });
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    const features = Array.isArray(payload?.features) ? payload.features : [];
+    if (features.length === 0) return null;
+
+    const best = features[0];
+    const center = best?.center;
+    if (!Array.isArray(center) || center.length < 2) return null;
+
+    const bounds = Array.isArray(best?.bbox) && best.bbox.length === 4
+        ? {
+            west: Number(best.bbox[0]),
+            south: Number(best.bbox[1]),
+            east: Number(best.bbox[2]),
+            north: Number(best.bbox[3])
+        }
+        : null;
+
+    return {
+        lat: Number(center[1]),
+        lng: Number(center[0]),
+        bounds,
+        placeName: best.place_name || ''
+    };
+}
+
+async function geocodePhilippinesNominatim(rawQuery) {
+    const cleaned = String(rawQuery || '').trim();
+    if (!cleaned) return null;
+
+    const query = encodeURIComponent(`${cleaned}, Philippines`);
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=ph&q=${query}`;
+
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Accept: 'application/json'
+        }
+    });
+    if (!response.ok) return null;
+
+    const items = await response.json();
+    if (!Array.isArray(items) || items.length === 0) return null;
+
+    const best = items[0];
+    const lat = Number(best?.lat);
+    const lng = Number(best?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    const bounds = Array.isArray(best?.boundingbox) && best.boundingbox.length === 4
+        ? {
+            south: Number(best.boundingbox[0]),
+            north: Number(best.boundingbox[1]),
+            west: Number(best.boundingbox[2]),
+            east: Number(best.boundingbox[3])
+        }
+        : null;
+
+    return {
+        lat,
+        lng,
+        bounds,
+        placeName: best?.display_name || ''
+    };
+}
+
 async function handleBarangaySearch() {
     const searchInput = document.getElementById('map-barangay-search');
     const rawQuery = searchInput?.value || '';
@@ -2351,6 +2424,14 @@ async function handleBarangaySearch() {
                 geocodeResult = await geocodeBarangayInLipaNominatim(rawQuery.trim());
             }
 
+            if (!geocodeResult) {
+                geocodeResult = await geocodePhilippines(rawQuery.trim());
+            }
+
+            if (!geocodeResult) {
+                geocodeResult = await geocodePhilippinesNominatim(rawQuery.trim());
+            }
+
             if (geocodeResult && Number.isFinite(geocodeResult.lat) && Number.isFinite(geocodeResult.lng)) {
                 closeDetailsPanel();
 
@@ -2378,14 +2459,14 @@ async function handleBarangaySearch() {
                     });
                 }
 
-                showMapToast('success', 'Barangay found', `Centered map near ${geocodeResult.placeName || rawQuery.trim()}.`);
+                showMapToast('success', 'Location found', `Centered map near ${geocodeResult.placeName || rawQuery.trim()}.`);
                 return;
             }
         } catch (error) {
             console.error('Barangay geocode fallback failed:', error);
         }
 
-        showMapToast('info', 'No matching barangay', `No results found in Lipa City for "${rawQuery.trim()}".`);
+        showMapToast('info', 'No matching location', `No results found in the Philippines for "${rawQuery.trim()}".`);
         return;
     }
 

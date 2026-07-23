@@ -16,14 +16,23 @@ class GoogleAuthController extends Controller
             'id_token' => ['required', 'string'],
         ]);
 
-        $primaryClientId = env('GOOGLE_CLIENT_ID');
-        $androidClientId = env('GOOGLE_ANDROID_CLIENT_ID');
+        $client = new \Google\Client();
+        $client->setClientId(env('GOOGLE_CLIENT_ID'));
 
-        $client = new GoogleClient([
-            'client_id' => $primaryClientId,
-        ]);
+        // Try verifying with web client ID first
+        $payload = $client->verifyIdToken($validated['id_token']);
 
-        $payload = $client->verifyIdToken($validated['id_token'], [$primaryClientId, $androidClientId]);
+        if (! $payload) {
+            // Try with iOS client ID as fallback
+            $client->setClientId(env('GOOGLE_IOS_CLIENT_ID'));
+            $payload = $client->verifyIdToken($validated['id_token']);
+        }
+
+        if (! $payload) {
+            // Try with Android client ID as fallback
+            $client->setClientId(env('GOOGLE_ANDROID_CLIENT_ID'));
+            $payload = $client->verifyIdToken($validated['id_token']);
+        }
 
         if (! $payload) {
             return response()->json([

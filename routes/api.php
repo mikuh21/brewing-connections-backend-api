@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\EstablishmentGeoJsonController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\EmailVerificationController;
+use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\RatingController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Web\LandingReservationController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/auth/google', [GoogleAuthController::class, 'handleToken']);
 Route::post('/password/forgot', [PasswordResetController::class, 'sendOtp']);
 Route::post('/password/reset', [PasswordResetController::class, 'resetWithOtp']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendOtp']);

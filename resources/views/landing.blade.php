@@ -1007,7 +1007,7 @@
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Phone Number
                             </label>
-                            <input id="reservationPhoneInput" type="tel" placeholder="e.g. 09XXXXXXXXX" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required>
+                            <input id="reservationPhoneInput" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" placeholder="e.g. 09XXXXXXXXX" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" maxlength="11" required>
                             <p id="reservationPhoneError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
@@ -2140,6 +2140,41 @@
             link.click();
         }
 
+        function sanitizeReservationPhoneValue(value) {
+            const digitsOnly = String(value || '').replace(/\D/g, '');
+            return digitsOnly.slice(0, 11);
+        }
+
+        if (reservationPhoneInput) {
+            reservationPhoneInput.addEventListener('input', () => {
+                const sanitizedValue = sanitizeReservationPhoneValue(reservationPhoneInput.value);
+                if (reservationPhoneInput.value !== sanitizedValue) {
+                    reservationPhoneInput.value = sanitizedValue;
+                }
+            });
+
+            reservationPhoneInput.addEventListener('paste', (event) => {
+                event.preventDefault();
+                const clipboardText = String(event.clipboardData?.getData('text') || '');
+                const sanitizedValue = sanitizeReservationPhoneValue(clipboardText);
+                reservationPhoneInput.value = sanitizedValue;
+                reservationPhoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+
+            reservationPhoneInput.addEventListener('keydown', (event) => {
+                const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+                if (allowedKeys.includes(event.key) || /^\d$/.test(event.key)) {
+                    return;
+                }
+
+                if (event.ctrlKey || event.metaKey || event.altKey) {
+                    return;
+                }
+
+                event.preventDefault();
+            });
+        }
+
         if (reservationForm) {
             reservationForm.addEventListener('submit', event => {
                 event.preventDefault();
@@ -2157,7 +2192,7 @@
                 const fullNameValue = String(reservationFullNameInput?.value || '').trim();
                 const emailValue = String(reservationEmailInput?.value || '').trim();
                 const addressValue = String(reservationAddressInput?.value || '').trim();
-                const phoneValue = String(reservationPhoneInput?.value || '').replace(/\s+/g, '');
+                const phoneValue = sanitizeReservationPhoneValue(reservationPhoneInput?.value || '');
 
                 let hasError = false;
 
@@ -2225,11 +2260,11 @@
                     setFieldError(reservationAddressInput, 'reservationAddressError', '');
                 }
 
-                if (!/^09\d{9}$/.test(phoneValue)) {
+                if (!/^\d{11}$/.test(phoneValue)) {
                     setFieldError(
                         reservationPhoneInput,
                         'reservationPhoneError',
-                        'Use a valid PH mobile number format (09XXXXXXXXX).'
+                        'Phone number must contain exactly 11 digits.'
                     );
                     hasError = true;
                 } else {

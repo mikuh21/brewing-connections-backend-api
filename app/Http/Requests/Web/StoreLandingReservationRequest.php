@@ -30,7 +30,7 @@ class StoreLandingReservationRequest extends FormRequest
             'full_name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email:rfc,dns', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'regex:/^09\d{9}$/'],
+            'phone' => ['required', 'string', 'regex:/^\d{11}$/'],
         ];
     }
 
@@ -41,6 +41,7 @@ class StoreLandingReservationRequest extends FormRequest
     {
         return [
             'pickup_date.after_or_equal' => 'Pickup date cannot be in the past.',
+            'phone.regex' => 'Phone number must contain exactly 11 digits.',
         ];
     }
 }

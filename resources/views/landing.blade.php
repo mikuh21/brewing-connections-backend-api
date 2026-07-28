@@ -1060,7 +1060,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-base font-semibold text-[#3A2E22] mb-2 font-display leading-tight">AI-Enabled Coffee Trail</h3>
+                    <h3 class="text-base font-semibold text-[#3A2E22] mb-2 font-display leading-tight">Coffee Trail</h3>
                     <p class="text-[#3A2E22] text-sm font-body leading-relaxed">Generate personalized coffee routes based on your location and preferences</p>
                 </div>
                 <div id="coupon-promo" class="bg-[#F3E9D7] border-l-4 border-[#2E5A3D] p-4 rounded-lg text-center min-h-[250px] card-hover reveal stagger-3">

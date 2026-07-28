@@ -1556,6 +1556,14 @@
             return true;
         }
 
+        function getTodayDateString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function applyReservationPrefillData(prefillData) {
             if (!prefillData || typeof prefillData !== 'object') {
                 return;
@@ -1591,6 +1599,53 @@
             if (reservationPickupTimeInput && !String(reservationPickupTimeInput.value || '').trim() && pickupTimeValue) {
                 reservationPickupTimeInput.value = pickupTimeValue;
             }
+        }
+
+        function initializeReservationPickupDateRestrictions() {
+            if (!reservationPickupDateInput) {
+                return;
+            }
+
+            const minDate = getTodayDateString();
+            reservationPickupDateInput.min = minDate;
+
+            reservationPickupDateInput.addEventListener('change', () => {
+                const selectedDate = String(reservationPickupDateInput.value || '').trim();
+                if (!selectedDate) {
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+                    return;
+                }
+
+                if (selectedDate < minDate) {
+                    reservationPickupDateInput.value = '';
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Pickup date cannot be in the past.');
+                    return;
+                }
+
+                setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+            });
+
+            reservationPickupDateInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Backspace' || event.key === 'Delete') {
+                    return;
+                }
+
+                if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                    event.preventDefault();
+                }
+            });
+
+            reservationPickupDateInput.addEventListener('input', () => {
+                const selectedDate = String(reservationPickupDateInput.value || '').trim();
+                if (!selectedDate) {
+                    return;
+                }
+
+                if (selectedDate < minDate) {
+                    reservationPickupDateInput.value = '';
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Pickup date cannot be in the past.');
+                }
+            });
         }
 
         async function hydrateReservationFromUrl() {
@@ -2181,11 +2236,20 @@
                     setFieldError(reservationPhoneInput, 'reservationPhoneError', '');
                 }
 
-                if (pickupDateValue && !/^\d{4}-\d{2}-\d{2}$/.test(pickupDateValue)) {
+                if (!pickupDateValue) {
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+                } else if (!/^\d{4}-\d{2}-\d{2}$/.test(pickupDateValue)) {
                     setFieldError(
                         reservationPickupDateInput,
                         'reservationPickupDateError',
                         'Use date format YYYY-MM-DD.'
+                    );
+                    hasError = true;
+                } else if (pickupDateValue < getTodayDateString()) {
+                    setFieldError(
+                        reservationPickupDateInput,
+                        'reservationPickupDateError',
+                        'Pickup date cannot be in the past.'
                     );
                     hasError = true;
                 } else {
@@ -2251,6 +2315,8 @@
                 reservationMoqHint.textContent = `Minimum quantity: ${minimumQuantity} • Available stock: ${availableStock}`;
             }
         }
+
+        initializeReservationPickupDateRestrictions();
 
         if (reservationProductSelect) {
             reservationProductSelect.addEventListener('change', () => {

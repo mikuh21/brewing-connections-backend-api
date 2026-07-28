@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Web\StoreLandingReservationRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Rating;
@@ -28,19 +29,9 @@ class LandingReservationController extends Controller
     ) {
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreLandingReservationRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
-            'prefill_token' => ['nullable', 'string'],
-            'pickup_date' => ['nullable', 'date_format:Y-m-d'],
-            'pickup_time' => ['nullable', 'date_format:H:i'],
-            'full_name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email:rfc,dns', 'max:255'],
-            'address' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'regex:/^09\d{9}$/'],
-        ]);
+        $validated = $request->validated();
 
         $order = DB::transaction(function () use ($validated, $request) {
             $orderingUser = $this->resolveOrderingUser($request, $validated);

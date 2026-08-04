@@ -1911,7 +1911,12 @@
             }
 
             if (confirmPaymentMode) {
-                confirmPaymentMode.textContent = payload.paymentMode || '-';
+                const paymentModeKey = String(payload.paymentMode || '').trim().toLowerCase();
+                confirmPaymentMode.textContent = paymentModeKey === 'cod'
+                    ? 'Cash on Delivery'
+                    : paymentModeKey === 'pickup'
+                        ? 'Pickup'
+                        : payload.paymentMode || '-';
             }
 
             if (reservationConfirmError) {

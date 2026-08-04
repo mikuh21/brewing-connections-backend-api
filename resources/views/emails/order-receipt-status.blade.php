@@ -64,10 +64,6 @@
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;border-bottom:1px solid #E2D5C1;">Quantity</td>
                                     <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #E2D5C1;">{{ (int) $order->quantity }}</td>
                                 </tr>
-                                <tr>
-                                    <td style="padding:10px 12px;font-size:13px;color:#946042;">Total</td>
-                                    <td style="padding:10px 12px;font-size:13px;">PHP {{ number_format((float) $order->total_price, 2) }}</td>
-                                </tr>
                                 @if ($paymentModeRaw === 'pickup')
                                     <tr>
                                         <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Pickup Date</td>

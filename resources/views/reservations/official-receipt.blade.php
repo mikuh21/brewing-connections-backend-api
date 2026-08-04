@@ -60,10 +60,6 @@
                     <p class="text-sm text-[#3A2E22] font-body">{{ (int) $order->quantity }}</p>
                 </div>
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
-                    <p class="text-sm text-[#946042] font-body">Total</p>
-                    <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) $order->total_price, 2) }}</p>
-                </div>
-                <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
                     <p class="text-sm text-[#946042] font-body">Customer</p>
                     <p class="text-sm text-[#3A2E22] font-body">{{ $receiptMeta['full_name'] ?? ($order->user?->name ?? 'N/A') }}</p>
                 </div>

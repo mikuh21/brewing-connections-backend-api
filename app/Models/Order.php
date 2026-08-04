@@ -16,11 +16,16 @@ class Order extends Model
         'notes',
         'pickup_date',
         'pickup_time',
+        'payment_mode',
+        'delivery_fee',
+        'total_amount',
     ];
 
     protected $casts = [
         'pickup_date' => 'date',
         'stock_reserved' => 'boolean',
+        'delivery_fee' => 'decimal:2',
+        'total_amount' => 'decimal:2',
     ];
 
     public function user()

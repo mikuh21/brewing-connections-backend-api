@@ -73,6 +73,24 @@
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Estimated Pickup Time</td>
                                     <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupTimeDisplay }}</td>
                                 </tr>
+                                <tr>
+                                    <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Mode of Payment</td>
+                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ ucfirst(str_replace('_', ' ', (string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? '')))) ?: 'N/A' }}</td>
+                                </tr>
+                                @if (strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? ''))) === 'cod')
+                                    <tr>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Product Total</td>
+                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">PHP {{ number_format((float) ($order->total_price ?? 0), 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Estimated Delivery Fee</td>
+                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">PHP {{ number_format((float) ($order->delivery_fee ?? ($receiptMeta['delivery_fee'] ?? 0)), 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Total Amount</td>
+                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">PHP {{ number_format((float) ($order->total_amount ?? ($receiptMeta['total_amount'] ?? ($order->total_price ?? 0))), 2) }}</td>
+                                    </tr>
+                                @endif
                             </table>
 
                             <p style="margin:16px 0 0 0;">

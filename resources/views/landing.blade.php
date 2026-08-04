@@ -931,6 +931,9 @@
                                         data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}"
                                         data-seller="{{ $product->establishment?->name ?? 'Verified Farm Seller' }}"
                                         data-stock="{{ $availableStock }}"
+                                        data-price-per-unit="{{ $product->price_per_unit ?? 0 }}"
+                                        data-unit="{{ $product->unit ?? '' }}"
+                                        data-weight="{{ $product->weight_grams ?? '' }}"
                                         @disabled($isOutOfStock)
                                     >
                                         {{ $product->name }}{{ $isOutOfStock ? ' - Out of Stock' : '' }}
@@ -965,18 +968,45 @@
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
-                                Pickup Date
+                                Mode of Payment
                             </label>
-                            <input id="reservationPickupDateInput" type="date" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
-                            <p id="reservationPickupDateError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                            <select id="reservationPaymentModeSelect" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                                <option value="" selected disabled>Select Mode of Payment</option>
+                                <option value="pickup">Pickup</option>
+                                <option value="cod">Cash on Delivery</option>
+                            </select>
+                            <p id="reservationPaymentModeError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
-                        <div>
-                            <label class="block text-sm text-[#3A2E22] font-body mb-1">
-                                Estimated Pickup Time
-                            </label>
-                            <input id="reservationPickupTimeInput" type="time" step="300" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
-                            <p id="reservationPickupTimeError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                        <div id="reservationPickupFields" class="space-y-4 hidden">
+                            <div>
+                                <label class="block text-sm text-[#3A2E22] font-body mb-1">
+                                    Pickup Date
+                                </label>
+                                <input id="reservationPickupDateInput" type="date" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                                <p id="reservationPickupDateError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm text-[#3A2E22] font-body mb-1">
+                                    Estimated Pickup Time
+                                </label>
+                                <input id="reservationPickupTimeInput" type="time" step="300" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                                <p id="reservationPickupTimeError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                            </div>
+                        </div>
+
+                        <div id="reservationCodSummary" class="rounded-lg border border-[#E2D5C1] bg-[#FAF6EE] p-3 hidden">
+                            <p class="text-sm font-semibold text-[#3A2E22] font-poppins">Order Summary</p>
+                            <div class="text-sm text-[#3A2E22] font-body mt-2 space-y-1">
+                                <div class="flex items-center justify-between"><span>Product Total:</span> <span id="codProductTotal">₱0.00</span></div>
+                                <div class="flex items-center justify-between"><span>Estimated Delivery Fee:</span> <span id="codDeliveryFee">₱0.00</span></div>
+                                <div class="pt-2 border-t border-[#E8DCC9]">
+                                    <div class="text-xs text-[#946042]">TOTAL TO PAY:</div>
+                                    <div id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</div>
+                                </div>
+                                <p class="text-xs text-[#6B5B4A] mt-2">*Delivery fee is estimated and may vary depending on the shipping destination and final parcel weight.</p>
+                            </div>
                         </div>
 
                         <div>
@@ -1508,6 +1538,12 @@
         const reservationQuantityIncrease = document.getElementById('reservationQuantityIncrease');
         const reservationPickupDateInput = document.getElementById('reservationPickupDateInput');
         const reservationPickupTimeInput = document.getElementById('reservationPickupTimeInput');
+        const reservationPaymentModeSelect = document.getElementById('reservationPaymentModeSelect');
+        const reservationPickupFields = document.getElementById('reservationPickupFields');
+        const reservationCodSummary = document.getElementById('reservationCodSummary');
+        const codProductTotal = document.getElementById('codProductTotal');
+        const codDeliveryFee = document.getElementById('codDeliveryFee');
+        const codTotalAmount = document.getElementById('codTotalAmount');
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
@@ -1986,6 +2022,9 @@
                     prefill_token: prefillToken || null,
                     pickup_date: payload.pickupDate || null,
                     pickup_time: payload.pickupTime || null,
+                    payment_mode: payload.paymentMode || null,
+                    delivery_fee: typeof payload.deliveryFee !== 'undefined' ? Number(payload.deliveryFee) : null,
+                    total_amount: typeof payload.totalAmount !== 'undefined' ? Number(payload.totalAmount) : null,
                     full_name: payload.fullName,
                     email: payload.email,
                     address: payload.address,
@@ -2094,6 +2133,12 @@
             const receiptPhoneElement = document.getElementById('receiptPhone');
             const receiptPickupDateElement = document.getElementById('receiptPickupDate');
             const receiptPickupTimeElement = document.getElementById('receiptPickupTime');
+            const receiptPaymentModeRow = document.getElementById('receiptPaymentModeRow');
+            const receiptPaymentModeElement = document.getElementById('receiptPaymentMode');
+            const receiptProductTotalElement = document.getElementById('receiptProductTotal');
+            const receiptDeliveryFeeElement = document.getElementById('receiptDeliveryFee');
+            const receiptTotalAmountElement = document.getElementById('receiptTotalAmount');
+            const receiptCodDetails = document.getElementById('receiptCodDetails');
             const receiptSellerElement = document.getElementById('receiptSeller');
             const receiptSellerHeadlineElement = document.getElementById('receiptSellerHeadline');
 
@@ -2133,6 +2178,28 @@
 
             if (receiptPickupTimeElement) {
                 receiptPickupTimeElement.textContent = formatPickupTime(data.pickupTime || data.pickup_time || '');
+            }
+
+            // Payment mode and COD details
+            const paymentMode = String(data.paymentMode || data.payment_mode || '').toLowerCase();
+            if (receiptPaymentModeRow && receiptPaymentModeElement) {
+                if (paymentMode) {
+                    receiptPaymentModeElement.textContent = paymentMode === 'cod' ? 'Cash on Delivery' : 'Pickup';
+                    receiptPaymentModeRow.classList.remove('hidden');
+                } else {
+                    receiptPaymentModeRow.classList.add('hidden');
+                }
+            }
+
+            if (receiptCodDetails) {
+                if (paymentMode === 'cod') {
+                    if (receiptProductTotalElement) receiptProductTotalElement.textContent = `₱${(Number(data.productTotal || data.product_total || 0)).toFixed(2)}`;
+                    if (receiptDeliveryFeeElement) receiptDeliveryFeeElement.textContent = `₱${(Number(data.deliveryFee || data.delivery_fee || 0)).toFixed(2)}`;
+                    if (receiptTotalAmountElement) receiptTotalAmountElement.textContent = `₱${(Number(data.totalAmount || data.total_amount || 0)).toFixed(2)}`;
+                    receiptCodDetails.classList.remove('hidden');
+                } else {
+                    receiptCodDetails.classList.add('hidden');
+                }
             }
 
             if (receiptSellerElement) {
@@ -2246,6 +2313,7 @@
                 const selectedStock = Number(selectedProductOption?.dataset?.stock || 0);
                 const maximumQuantity = Number(reservationQuantityInput?.max || selectedStock || 0);
                 const sellerValue = String(selectedProductOption?.dataset?.seller || 'Verified Farm Seller').trim();
+                const paymentModeValue = String(reservationPaymentModeSelect?.value || '').trim();
                 const pickupDateValue = String(reservationPickupDateInput?.value || '').trim();
                 const pickupTimeValue = String(reservationPickupTimeInput?.value || '').trim();
                 const fullNameValue = String(reservationFullNameInput?.value || '').trim();
@@ -2319,6 +2387,13 @@
                     setFieldError(reservationAddressInput, 'reservationAddressError', '');
                 }
 
+                if (!paymentModeValue) {
+                    setFieldError(reservationPaymentModeSelect, 'reservationPaymentModeError', 'Please select a mode of payment.');
+                    hasError = true;
+                } else {
+                    setFieldError(reservationPaymentModeSelect, 'reservationPaymentModeError', '');
+                }
+
                 if (!/^\d{11}$/.test(phoneValue)) {
                     setFieldError(
                         reservationPhoneInput,
@@ -2360,9 +2435,36 @@
                 } else {
                     setFieldError(reservationPickupTimeInput, 'reservationPickupTimeError', '');
                 }
+                // Conditional validation based on payment mode
+                if (paymentModeValue === 'pickup') {
+                    if (!pickupDateValue) {
+                        setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Please select a pickup date.');
+                        hasError = true;
+                    }
+
+                    if (!pickupTimeValue) {
+                        setFieldError(reservationPickupTimeInput, 'reservationPickupTimeError', 'Please select a pickup time.');
+                        hasError = true;
+                    }
+                }
 
                 if (hasError) {
                     return;
+                }
+
+                // compute product totals and delivery fee if COD
+                const selectedOptionForCalc = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+                const pricePerUnit = Number(selectedOptionForCalc?.dataset?.pricePerUnit || 0) || 0;
+                const productTotal = Math.round((pricePerUnit * quantityValue + Number.EPSILON) * 100) / 100;
+                let deliveryFeeValue = 0;
+                let totalAmountValue = productTotal;
+                if (paymentModeValue === 'cod') {
+                    const explicitWeight = Number(selectedOptionForCalc?.dataset?.weight || 0) || null;
+                    const unit = String(selectedOptionForCalc?.dataset?.unit || '').trim();
+                    const perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
+                    const totalGramsCalc = perUnitGrams * quantityValue;
+                    deliveryFeeValue = computeDeliveryFeeByWeight(totalGramsCalc);
+                    totalAmountValue = Math.round(((productTotal + deliveryFeeValue) + Number.EPSILON) * 100) / 100;
                 }
 
                 const receiptPayload = {
@@ -2373,6 +2475,10 @@
                     seller: sellerValue,
                     pickupDate: pickupDateValue,
                     pickupTime: pickupTimeValue,
+                    paymentMode: paymentModeValue,
+                    deliveryFee: deliveryFeeValue,
+                    productTotal: productTotal,
+                    totalAmount: totalAmountValue,
                     fullName: fullNameValue,
                     email: emailValue,
                     address: addressValue,
@@ -2410,6 +2516,92 @@
             }
         }
 
+        function parseUnitToGrams(unit) {
+            if (!unit) return null;
+            const raw = String(unit || '').toLowerCase().trim();
+            // e.g. '250g', '250 g'
+            const gMatch = raw.match(/^(\d+(?:\.\d+)?)\s*g(?:rams?)?$/);
+            if (gMatch) {
+                return Math.round(Number(gMatch[1]));
+            }
+            // e.g. '0.5kg', '1 kg'
+            const kgMatch = raw.match(/^(\d+(?:\.\d+)?)\s*kg$/);
+            if (kgMatch) {
+                return Math.round(Number(kgMatch[1]) * 1000);
+            }
+            // e.g. '250ml' or others — not supported
+            return null;
+        }
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function computeDeliveryFeeByWeight(totalGrams) {
+            if (!Number.isFinite(totalGrams) || totalGrams <= 0) {
+                return 0;
+            }
+
+            if (totalGrams <= 500) {
+                return randomInt(85, 95);
+            }
+
+            if (totalGrams <= 1000) {
+                return randomInt(155, 165);
+            }
+
+            // For >1kg, scale by number of kilograms (ceil) using the 155-165 band per kg
+            const kg = Math.ceil(totalGrams / 1000);
+            const base = randomInt(155, 165);
+            return base * kg;
+        }
+
+        function getSelectedOption() {
+            return reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+        }
+
+        function updateCodSummary() {
+            if (!reservationCodSummary) return;
+
+            const selectedOption = getSelectedOption();
+            const quantity = Math.max(1, Number(reservationQuantityInput?.value || 1));
+            const price = Number(selectedOption?.dataset?.pricePerUnit || 0) || 0;
+            const unit = String(selectedOption?.dataset?.unit || '').trim();
+            const explicitWeight = Number(selectedOption?.dataset?.weight || 0) || null;
+
+            const productTotal = Math.round((price * quantity + Number.EPSILON) * 100) / 100;
+            let perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
+            const totalGrams = perUnitGrams * quantity;
+            const deliveryFee = computeDeliveryFeeByWeight(totalGrams);
+            const totalAmount = Math.round(((productTotal + deliveryFee) + Number.EPSILON) * 100) / 100;
+
+            if (codProductTotal) codProductTotal.textContent = `₱${productTotal.toFixed(2)}`;
+            if (codDeliveryFee) codDeliveryFee.textContent = `₱${deliveryFee.toFixed(2)}`;
+            if (codTotalAmount) codTotalAmount.textContent = `₱${totalAmount.toFixed(2)}`;
+        }
+
+        function togglePaymentModeUI(mode) {
+            const isPickup = String(mode || '').toLowerCase() === 'pickup';
+            const isCod = String(mode || '').toLowerCase() === 'cod';
+
+            if (reservationPickupFields) {
+                reservationPickupFields.classList.toggle('hidden', !isPickup);
+            }
+
+            if (reservationCodSummary) {
+                reservationCodSummary.classList.toggle('hidden', !isCod);
+            }
+
+            // Set required attributes appropriately
+            if (reservationPickupDateInput) reservationPickupDateInput.required = isPickup;
+            if (reservationPickupTimeInput) reservationPickupTimeInput.required = isPickup;
+
+            // When COD, update the summary
+            if (isCod) {
+                updateCodSummary();
+            }
+        }
+
         initializeReservationPickupDateRestrictions();
 
         if (reservationProductSelect) {
@@ -2417,12 +2609,27 @@
                 const selectedOption = reservationProductSelect.options[reservationProductSelect.selectedIndex];
                 applyReservationLimits(selectedOption?.dataset?.moq || 1, selectedOption?.dataset?.stock || 0);
             });
+            // update COD summary when product changes
+            reservationProductSelect.addEventListener('change', () => {
+                if (String(reservationPaymentModeSelect?.value || '').toLowerCase() === 'cod') {
+                    updateCodSummary();
+                }
+            });
         }
 
         if (reservationQuantityInput) {
             reservationQuantityInput.addEventListener('change', () => {
                 const selectedOption = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
                 applyReservationLimits(selectedOption?.dataset?.moq || reservationQuantityInput.min || 1, selectedOption?.dataset?.stock || reservationQuantityInput.max || 0);
+                if (String(reservationPaymentModeSelect?.value || '').toLowerCase() === 'cod') {
+                    updateCodSummary();
+                }
+            });
+        }
+
+        if (reservationPaymentModeSelect) {
+            reservationPaymentModeSelect.addEventListener('change', (evt) => {
+                togglePaymentModeUI(String(evt.target.value || '').toLowerCase());
             });
         }
 
@@ -2651,6 +2858,27 @@
                         <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                             <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
                             <p id="receiptPickupTime" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div id="receiptPaymentModeRow" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4 hidden">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Mode of Payment</p>
+                            <p id="receiptPaymentMode" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        </div>
+                        <div id="receiptCodDetails" class="hidden">
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Product Total</p>
+                                <p id="receiptProductTotal" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                            </div>
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Delivery Fee</p>
+                                <p id="receiptDeliveryFee" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                            </div>
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total Amount</p>
+                                <p id="receiptTotalAmount" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                            </div>
+                            <div class="px-3 py-2 sm:px-4">
+                                <p class="text-xs text-[#6B5B4A]">*Delivery fee is an estimate based on the current shipping rate and may change depending on the final parcel weight and delivery destination.</p>
+                            </div>
                         </div>
                     </div>
 

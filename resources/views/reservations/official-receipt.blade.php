@@ -76,13 +76,37 @@
                     <p class="text-sm text-[#3A2E22] font-body">{{ $receiptMeta['phone'] ?? 'N/A' }}</p>
                 </div>
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
-                    <p class="text-sm text-[#946042] font-body">Pickup Date</p>
-                    <p class="text-sm text-[#3A2E22] font-body">{{ $pickupDateDisplay }}</p>
+                    @php $mode = strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? 'pickup'))); @endphp
+                    @if ($mode === 'pickup')
+                        <p class="text-sm text-[#946042] font-body">Pickup Date</p>
+                        <p class="text-sm text-[#3A2E22] font-body">{{ $pickupDateDisplay }}</p>
+                    @else
+                        <p class="text-sm text-[#946042] font-body">Mode of Payment</p>
+                        <p class="text-sm text-[#3A2E22] font-body">{{ ucfirst($mode === 'cod' ? 'Cash on Delivery' : $mode) }}</p>
+                    @endif
                 </div>
-                <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
-                    <p class="text-sm text-[#946042] font-body">Estimated Pickup Time</p>
-                    <p class="text-sm text-[#3A2E22] font-body">{{ $pickupTimeDisplay }}</p>
-                </div>
+                @if ($mode === 'pickup')
+                    <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                        <p class="text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                        <p class="text-sm text-[#3A2E22] font-body">{{ $pickupTimeDisplay }}</p>
+                    </div>
+                @else
+                    <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                        <p class="text-sm text-[#946042] font-body">Product Total</p>
+                        <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) ($order->total_price ?? 0), 2) }}</p>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                        <p class="text-sm text-[#946042] font-body">Estimated Delivery Fee</p>
+                        <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) ($order->delivery_fee ?? ($receiptMeta['delivery_fee'] ?? 0)), 2) }}</p>
+                    </div>
+                    <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                        <p class="text-sm text-[#946042] font-body">Total Amount</p>
+                        <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) ($order->total_amount ?? ($receiptMeta['total_amount'] ?? ($order->total_price ?? 0))), 2) }}</p>
+                    </div>
+                    <div class="px-4 py-2.5">
+                        <p class="text-xs text-[#6B5B4A]">Delivery fee is an estimate based on the current shipping rate and may change depending on the final parcel weight and delivery destination.</p>
+                    </div>
+                @endif
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
                     <p class="text-sm text-[#946042] font-body">Created</p>
                     <p class="text-sm text-[#3A2E22] font-body">{{ optional($order->created_at)->format('M d, Y h:i A') }}</p>

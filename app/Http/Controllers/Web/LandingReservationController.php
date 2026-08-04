@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use App\Services\DeliveryFeeEstimator;
 
 class LandingReservationController extends Controller
 {
@@ -62,6 +63,14 @@ class LandingReservationController extends Controller
             }
 
             $totalPrice = round(((float) ($product->price_per_unit ?? 0)) * $requestedQty, 2);
+            $paymentMode = (string) ($validated['payment_mode'] ?? 'pickup');
+            $deliveryFee = 0.0;
+            $totalAmount = $totalPrice;
+
+            if (strtolower($paymentMode) === 'cod') {
+                $deliveryFee = (float) DeliveryFeeEstimator::estimateForProduct($product, $requestedQty);
+                $totalAmount = round($totalPrice + $deliveryFee, 2);
+            }
             $receiptToken = Str::random(40);
             $metadata = [
                 'source' => 'landing-web',
@@ -72,6 +81,9 @@ class LandingReservationController extends Controller
                 'phone' => $validated['phone'],
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,
+                'payment_mode' => $validated['payment_mode'] ?? null,
+                'delivery_fee' => $deliveryFee,
+                'total_amount' => $totalAmount,
                 'receipt_token' => $receiptToken,
             ];
 
@@ -80,6 +92,9 @@ class LandingReservationController extends Controller
                 'product_id' => (int) $product->id,
                 'quantity' => $requestedQty,
                 'total_price' => $totalPrice,
+                'payment_mode' => $validated['payment_mode'] ?? null,
+                'delivery_fee' => $deliveryFee,
+                'total_amount' => $totalAmount,
                 'status' => 'pending',
                 'stock_reserved' => false,
                 'notes' => json_encode($metadata, JSON_UNESCAPED_UNICODE),

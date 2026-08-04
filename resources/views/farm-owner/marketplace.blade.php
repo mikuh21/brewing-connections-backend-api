@@ -887,25 +887,31 @@
                             <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Customer</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Product</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Qty</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Total</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Total Amount</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Status</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-[#6B5B4A] uppercase tracking-wide">Manage</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($orders as $order)
+                            @php
+                                $orderStatusFilterValue = in_array(strtolower((string) $order->status), ['canceled', 'cancelled'], true)
+                                    ? 'canceled'
+                                    : strtolower((string) $order->status);
+                            @endphp
                             <tr
                                 class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors"
-                                x-show="(statusFilter === 'all' || statusFilter === '{{ strtolower($order->status) }}') && (orderSearch === '' || '{{ strtolower($order->user->name ?? '') }}'.includes(orderSearch.toLowerCase()) || '{{ strtolower($order->product->name ?? '') }}'.includes(orderSearch.toLowerCase()))"
+                                x-show="statusFilter === 'all' || statusFilter === '{{ $orderStatusFilterValue }}' && (orderSearch === '' || @js(strtolower($order->user->name ?? '')).includes(orderSearch.toLowerCase()) || @js(strtolower($order->product->name ?? '')).includes(orderSearch.toLowerCase()))"
                             >
                                 <td class="px-4 py-3 text-sm font-medium text-[#3A2E22]">#{{ $order->id }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->user->name ?? 'N/A' }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]" style="font-family: 'Poppins', sans-serif;">{{ $order->product->name ?? 'N/A' }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->quantity }}</td>
-                                <td class="px-4 py-3 text-sm text-[#6B5B4A]">PHP {{ number_format((float) $order->total_price, 2) }}</td>
+                                <td class="px-4 py-3 text-sm text-[#6B5B4A]">PHP {{ number_format((float) ($order->total_amount ?? $order->total_price), 2) }}</td>
                                 <td class="px-4 py-3">
                                     @php
                                         $status = strtolower((string) $order->status);
+                                        $orderStatusFilterValue = in_array($status, ['canceled', 'cancelled'], true) ? 'canceled' : $status;
                                         $isCanceled = in_array($status, ['canceled', 'cancelled'], true);
                                         $receiptMeta = json_decode((string) ($order->notes ?? ''), true);
                                         $receiptMeta = is_array($receiptMeta) ? $receiptMeta : [];

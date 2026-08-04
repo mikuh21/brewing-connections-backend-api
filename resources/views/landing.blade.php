@@ -1896,6 +1896,7 @@
             const confirmProduct = document.getElementById('confirmReservationProduct');
             const confirmQuantity = document.getElementById('confirmReservationQuantity');
             const confirmSeller = document.getElementById('confirmReservationSeller');
+            const confirmPaymentMode = document.getElementById('confirmReservationPaymentMode');
 
             if (confirmProduct) {
                 confirmProduct.textContent = payload.product;
@@ -1907,6 +1908,10 @@
 
             if (confirmSeller) {
                 confirmSeller.textContent = payload.seller;
+            }
+
+            if (confirmPaymentMode) {
+                confirmPaymentMode.textContent = payload.paymentMode || '-';
             }
 
             if (reservationConfirmError) {
@@ -2135,13 +2140,13 @@
             const receiptPickupTimeElement = document.getElementById('receiptPickupTime');
             const receiptPaymentModeRow = document.getElementById('receiptPaymentModeRow');
             const receiptPaymentModeElement = document.getElementById('receiptPaymentMode');
+            const receiptPickupDetailsRow = document.getElementById('receiptPickupDetailsRow');
             const receiptProductTotalElement = document.getElementById('receiptProductTotal');
             const receiptDeliveryFeeElement = document.getElementById('receiptDeliveryFee');
             const receiptTotalAmountElement = document.getElementById('receiptTotalAmount');
             const receiptCodDetails = document.getElementById('receiptCodDetails');
             const receiptSellerElement = document.getElementById('receiptSeller');
             const receiptSellerHeadlineElement = document.getElementById('receiptSellerHeadline');
-
             const now = new Date();
 
             if (receiptDateElement) {
@@ -2189,6 +2194,10 @@
                 } else {
                     receiptPaymentModeRow.classList.add('hidden');
                 }
+            }
+
+            if (receiptPickupDetailsRow) {
+                receiptPickupDetailsRow.classList.toggle('hidden', paymentMode !== 'pickup');
             }
 
             if (receiptCodDetails) {
@@ -2784,6 +2793,7 @@
                     <p><span class="text-[#946042]">Product:</span> <span id="confirmReservationProduct">-</span></p>
                     <p><span class="text-[#946042]">Quantity:</span> <span id="confirmReservationQuantity">-</span></p>
                     <p><span class="text-[#946042]">Seller:</span> <span id="confirmReservationSeller">-</span></p>
+                    <p><span class="text-[#946042]">Mode of Payment:</span> <span id="confirmReservationPaymentMode">-</span></p>
                 </div>
 
                 <p id="reservationConfirmError" class="hidden text-sm text-[#B43F3F] font-body mb-4"></p>
@@ -2802,7 +2812,7 @@
 
     <!-- Receipt Modal -->
     <div id="receiptModal" class="fixed inset-0 z-[70] bg-[#3A2E22]/60 backdrop-blur-sm hidden flex items-center justify-center p-2 sm:p-4 opacity-0 transition-opacity duration-300 ease-out">
-        <div id="receiptModalPanel" class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden opacity-0 scale-95 translate-y-3 transition-all duration-300 ease-out">
+        <div id="receiptModalPanel" class="w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-y-auto max-h-[90vh] opacity-0 scale-95 translate-y-3 transition-all duration-300 ease-out">
             <div id="receiptContent" class="bg-white">
                 <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 text-white">
                     <div class="flex items-start justify-between gap-3">
@@ -2851,13 +2861,15 @@
                             <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
                             <p id="receiptPhone" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
                         </div>
-                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
-                            <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
-                            <p id="receiptPickupDate" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
-                        </div>
-                        <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
-                            <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
-                            <p id="receiptPickupTime" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                        <div id="receiptPickupDetailsRow" class="space-y-0">
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
+                                <p id="receiptPickupDate" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                            </div>
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                                <p id="receiptPickupTime" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                            </div>
                         </div>
                         <div id="receiptPaymentModeRow" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4 hidden">
                             <p class="text-xs sm:text-sm text-[#946042] font-body">Mode of Payment</p>
@@ -2875,9 +2887,6 @@
                             <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                                 <p class="text-xs sm:text-sm text-[#946042] font-body">Total Amount</p>
                                 <p id="receiptTotalAmount" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
-                            </div>
-                            <div class="px-3 py-2 sm:px-4">
-                                <p class="text-xs text-[#6B5B4A]">*Delivery fee is an estimate based on the current shipping rate and may change depending on the final parcel weight and delivery destination.</p>
                             </div>
                         </div>
                     </div>

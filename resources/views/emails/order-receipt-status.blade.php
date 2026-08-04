@@ -27,6 +27,9 @@
                 $pickupTimeDisplay = $pickupTimeRaw;
             }
         }
+
+        $paymentModeRaw = strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? '')));
+        $paymentModeLabel = $paymentModeRaw === 'cod' ? 'Cash on Delivery' : ($paymentModeRaw === 'pickup' ? 'Pickup' : 'N/A');
     @endphp
     <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#F3E9D7;padding:24px 12px;">
         <tr>
@@ -65,17 +68,19 @@
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;">Total</td>
                                     <td style="padding:10px 12px;font-size:13px;">PHP {{ number_format((float) $order->total_price, 2) }}</td>
                                 </tr>
-                                <tr>
-                                    <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Pickup Date</td>
-                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupDateDisplay }}</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Estimated Pickup Time</td>
-                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupTimeDisplay }}</td>
-                                </tr>
+                                @if ($paymentModeRaw === 'pickup')
+                                    <tr>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Pickup Date</td>
+                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupDateDisplay }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Estimated Pickup Time</td>
+                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $pickupTimeDisplay }}</td>
+                                    </tr>
+                                @endif
                                 <tr>
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Mode of Payment</td>
-                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ ucfirst(str_replace('_', ' ', (string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? '')))) ?: 'N/A' }}</td>
+                                    <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ $paymentModeLabel }}</td>
                                 </tr>
                                 @if (strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? ''))) === 'cod')
                                     <tr>
@@ -122,8 +127,10 @@
                                 Customer: {{ $receiptMeta['full_name'] ?? ($order->user?->name ?? 'N/A') }}<br>
                                 Address: {{ $receiptMeta['address'] ?? 'N/A' }}<br>
                                 Phone: {{ $receiptMeta['phone'] ?? 'N/A' }}<br>
-                                Pickup Date: {{ $pickupDateDisplay }}<br>
-                                Estimated Pickup Time: {{ $pickupTimeDisplay }}
+                                @if ($paymentModeRaw === 'pickup')
+                                    Pickup Date: {{ $pickupDateDisplay }}<br>
+                                    Estimated Pickup Time: {{ $pickupTimeDisplay }}
+                                @endif
                             </p>
                         </td>
                     </tr>

@@ -55,6 +55,10 @@
             address: '-',
             phone: '-',
             status: '-',
+            paymentMode: '-',
+            productTotal: '0.00',
+            deliveryFee: '0.00',
+            totalAmount: '0.00',
             total: '0.00'
         },
         ratingImagePreview: {
@@ -179,6 +183,10 @@
                 address: payload?.address || '-',
                 phone: payload?.phone || '-',
                 status: payload?.status || '-',
+                paymentMode: payload?.paymentMode || payload?.payment_mode || '-',
+                productTotal: payload?.productTotal || payload?.product_total || payload?.total || '0.00',
+                deliveryFee: payload?.deliveryFee || payload?.delivery_fee || '0.00',
+                totalAmount: payload?.totalAmount || payload?.total_amount || payload?.total || '0.00',
                 total: payload?.total || '0.00',
             };
             this.showReceiptModal = true;
@@ -217,13 +225,30 @@
                 product: esc(this.receiptData?.product),
                 status: esc(this.receiptData?.status),
                 quantity: esc(this.receiptData?.quantity),
+                paymentMode: esc(String(this.receiptData?.paymentMode || '').toLowerCase()),
                 pickupDate: esc(this.formatPickupDate(this.receiptData?.pickupDate)),
                 pickupTime: esc(this.formatPickupTime(this.receiptData?.pickupTime)),
+                productTotal: esc(this.receiptData?.productTotal),
+                deliveryFee: esc(this.receiptData?.deliveryFee),
+                totalAmount: esc(this.receiptData?.totalAmount),
                 total: esc(this.receiptData?.total),
                 customer: esc(this.receiptData?.customer),
                 address: esc(this.receiptData?.address),
                 phone: esc(this.receiptData?.phone),
             };
+
+            const modeLabel = receipt.paymentMode === 'cod'
+                ? 'Cash on Delivery'
+                : (receipt.paymentMode === 'pickup' ? 'Pickup' : receipt.paymentMode || '-');
+
+            const pickupDetails = receipt.paymentMode === 'pickup'
+                ? '<div class=\'row\'><div class=\'k\'>Pickup Date</div><div class=\'v\'>' + receipt.pickupDate + '</div></div>' +
+                  '<div class=\'row\'><div class=\'k\'>Estimated Pickup Time</div><div class=\'v\'>' + receipt.pickupTime + '</div></div>'
+                : '';
+
+            const deliveryRow = receipt.paymentMode === 'cod'
+                ? '<div class=\'row\'><div class=\'k\'>Estimated Delivery Fee</div><div class=\'v\'>PHP ' + receipt.deliveryFee + '</div></div>'
+                : '';
 
             const printWindow = window.open('', '_blank', 'width=900,height=700');
             if (!printWindow) {
@@ -272,9 +297,11 @@
                 '<div class=\'table\'>' +
                 '<div class=\'row\'><div class=\'k\'>Status</div><div class=\'v\'>' + receipt.status + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Quantity</div><div class=\'v\'>' + receipt.quantity + '</div></div>' +
-                '<div class=\'row\'><div class=\'k\'>Pickup Date</div><div class=\'v\'>' + receipt.pickupDate + '</div></div>' +
-                '<div class=\'row\'><div class=\'k\'>Estimated Pickup Time</div><div class=\'v\'>' + receipt.pickupTime + '</div></div>' +
-                '<div class=\'row\'><div class=\'k\'>Total</div><div class=\'v\'>PHP ' + receipt.total + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Mode of Payment</div><div class=\'v\'>' + modeLabel + '</div></div>' +
+                pickupDetails +
+                '<div class=\'row\'><div class=\'k\'>Product Total</div><div class=\'v\'>PHP ' + receipt.productTotal + '</div></div>' +
+                deliveryRow +
+                '<div class=\'row\'><div class=\'k\'>Total Amount</div><div class=\'v\'>PHP ' + receipt.totalAmount + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Customer</div><div class=\'v\'>' + receipt.customer + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Address</div><div class=\'v\'>' + receipt.address + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Phone</div><div class=\'v\'>' + receipt.phone + '</div></div>' +
@@ -1115,6 +1142,34 @@
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.quantity"></p>
                     </div>
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Mode of Payment</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.paymentMode === 'cod' ? 'Cash on Delivery' : (receiptData.paymentMode === 'pickup' ? 'Pickup' : receiptData.paymentMode)"></p>
+                    </div>
+                    <div x-show="receiptData.paymentMode === 'pickup'" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupDate(receiptData.pickupDate)"></p>
+                    </div>
+                    <div x-show="receiptData.paymentMode === 'pickup'" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupTime(receiptData.pickupTime)"></p>
+                    </div>
+                    <template x-if="receiptData.paymentMode === 'cod'">
+                        <div>
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Product Total</p>
+                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.productTotal"></span></p>
+                            </div>
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Delivery Fee</p>
+                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.deliveryFee"></span></p>
+                            </div>
+                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total Amount</p>
+                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.totalAmount"></span></p>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="receiptData.paymentMode !== 'cod'" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Total</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.total"></span></p>
                     </div>

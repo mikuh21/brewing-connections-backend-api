@@ -997,7 +997,7 @@
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
-                                Address
+                                Address (House No., Street, Barangay, City, Province)
                             </label>
                             <textarea id="reservationAddressInput" rows="2" placeholder="Enter complete address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required></textarea>
                             <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
@@ -1609,20 +1609,72 @@
             const minDate = getTodayDateString();
             reservationPickupDateInput.min = minDate;
 
-            reservationPickupDateInput.addEventListener('change', () => {
-                const selectedDate = String(reservationPickupDateInput.value || '').trim();
-                if (!selectedDate) {
-                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+            // Helper that attempts to parse a date value coming from the input.
+            // Handles ISO (YYYY-MM-DD) and common slash-separated formats used by some iOS locales.
+            function parseDateFromValue(value) {
+                if (!value) return null;
+                // ISO format (preferred)
+                if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                    const parts = value.split('-').map(Number);
+                    return new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+
+                // Try native parse first (handles MM/DD/YYYY in many engines)
+                const native = new Date(value);
+                if (!Number.isNaN(native.getTime())) {
+                    // normalize to local midnight
+                    return new Date(native.getFullYear(), native.getMonth(), native.getDate());
+                }
+
+                // Try common slash-separated formats: MM/DD/YYYY or DD/MM/YYYY
+                const slashMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+                if (slashMatch) {
+                    const a = Number(slashMatch[1]);
+                    const b = Number(slashMatch[2]);
+                    const y = Number(slashMatch[3]);
+                    // If first part > 12, assume day/month/year
+                    if (a > 12) {
+                        return new Date(y, b - 1, a);
+                    }
+                    // otherwise assume month/day/year
+                    return new Date(y, a - 1, b);
+                }
+
+                return null;
+            }
+
+            const todayObj = (function() { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); })();
+
+            function validateAndClearIfPast(rawValue) {
+                const parsed = parseDateFromValue(String(rawValue || '').trim());
+                if (!parsed) {
+                    // couldn't parse — be conservative and clear the field
+                    reservationPickupDateInput.value = '';
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Invalid pickup date.');
                     return;
                 }
 
-                if (selectedDate < minDate) {
+                if (parsed.getTime() < todayObj.getTime()) {
                     reservationPickupDateInput.value = '';
                     setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Pickup date cannot be in the past.');
                     return;
                 }
 
                 setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+            }
+
+            reservationPickupDateInput.addEventListener('change', () => {
+                validateAndClearIfPast(reservationPickupDateInput.value);
+            });
+
+            reservationPickupDateInput.addEventListener('input', () => {
+                // live-validate while typing / when some browsers provide non-ISO values
+                const val = String(reservationPickupDateInput.value || '').trim();
+                if (!val) {
+                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', '');
+                    return;
+                }
+                validateAndClearIfPast(val);
             });
 
             reservationPickupDateInput.addEventListener('keydown', (event) => {
@@ -1635,17 +1687,24 @@
                 }
             });
 
-            reservationPickupDateInput.addEventListener('input', () => {
-                const selectedDate = String(reservationPickupDateInput.value || '').trim();
-                if (!selectedDate) {
-                    return;
-                }
+            // Final guard: validate on form submit to block any past date slips (covers iOS picker quirks)
+            if (reservationForm) {
+                reservationForm.addEventListener('submit', (evt) => {
+                    const raw = String(reservationPickupDateInput.value || '').trim();
+                    if (!raw) {
+                        // allow empty — server side will handle required/nullable rules
+                        return;
+                    }
 
-                if (selectedDate < minDate) {
-                    reservationPickupDateInput.value = '';
-                    setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Pickup date cannot be in the past.');
-                }
-            });
+                    const parsed = parseDateFromValue(raw);
+                    if (!parsed || parsed.getTime() < todayObj.getTime()) {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        setFieldError(reservationPickupDateInput, 'reservationPickupDateError', 'Pickup date cannot be in the past.');
+                        reservationPickupDateInput.focus();
+                    }
+                });
+            }
         }
 
         async function hydrateReservationFromUrl() {

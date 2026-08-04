@@ -27,7 +27,12 @@ class PasswordResetController extends Controller
 
         $message = 'If an account exists for this email, a reset code has been sent.';
         if (! $user) {
-            return response()->json(['message' => $message]);
+            // Return a clear JSON response for unregistered emails so the client
+            // can display a friendly message. Use 404 to indicate resource not found.
+            return response()->json([
+                'success' => false,
+                'message' => 'Email is not registered.',
+            ], 404);
         }
 
         $otp = $this->generateOtp();
@@ -40,7 +45,16 @@ class PasswordResetController extends Controller
             ]
         );
 
-        Mail::to($user->email)->send(new PasswordResetOtpMail($user, $otp, 15));
+        try {
+            Mail::to($user->email)->send(new PasswordResetOtpMail($user, $otp, 15));
+        } catch (\Throwable $e) {
+            // Ensure we always return JSON so the client doesn't receive plain text/html
+            // (some mail transport errors may bubble up as non-JSON responses).
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong. Please try again.',
+            ], 500);
+        }
 
         return response()->json(['message' => $message]);
     }

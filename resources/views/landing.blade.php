@@ -2547,27 +2547,21 @@
             return null;
         }
 
-        function randomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
         function computeDeliveryFeeByWeight(totalGrams) {
             if (!Number.isFinite(totalGrams) || totalGrams <= 0) {
                 return 0;
             }
 
             if (totalGrams <= 500) {
-                return randomInt(85, 95);
+                return 90;
             }
 
             if (totalGrams <= 1000) {
-                return randomInt(155, 165);
+                return 160;
             }
 
-            // For >1kg, scale by number of kilograms (ceil) using the 155-165 band per kg
             const kg = Math.ceil(totalGrams / 1000);
-            const base = randomInt(155, 165);
-            return base * kg;
+            return 160 * kg;
         }
 
         function getSelectedOption() {

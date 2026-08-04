@@ -64,15 +64,14 @@ class DeliveryFeeEstimator
         }
 
         if ($totalGrams <= 500) {
-            return (float) random_int(85, 95);
+            return 90.0;
         }
 
         if ($totalGrams <= 1000) {
-            return (float) random_int(155, 165);
+            return 160.0;
         }
 
         $kg = (int) ceil($totalGrams / 1000);
-        $base = random_int(155, 165);
-        return (float) ($base * $kg);
+        return 160.0 * $kg;
     }
 }

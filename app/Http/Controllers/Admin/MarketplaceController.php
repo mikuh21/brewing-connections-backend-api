@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\ResellerProduct;
 use App\Models\Order;
 use App\Models\BulkOrder;
-use Illuminate\Http\Request;
 
 class MarketplaceController extends Controller
 {
@@ -15,8 +14,8 @@ class MarketplaceController extends Controller
     {
         $products = Product::with(['seller', 'establishment'])->paginate(12);
         $resellerProducts = ResellerProduct::with(['product', 'reseller'])->paginate(12);
-        $orders = Order::with(['user', 'product'])->paginate(15);
-        $bulkOrders = BulkOrder::with(['reseller', 'product'])->paginate(15);
+        $orders = Order::with(['user', 'product'])->orderBy('created_at', 'desc')->paginate(15);
+        $bulkOrders = BulkOrder::with(['reseller', 'product'])->orderBy('created_at', 'desc')->paginate(15);
 
         $stats = [
             'total_products' => Product::count(),

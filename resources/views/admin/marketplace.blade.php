@@ -214,7 +214,7 @@
 
         <!-- Tabs -->
         <div x-data="{ 
-          tab: 'products', 
+          tab: @json(request()->query('tab', 'products')), 
           statusFilter: 'all', 
           orderSearch: '', 
           bulkOrderSearch: '', 
@@ -879,24 +879,29 @@ max-h-[90vh]">
                                     <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Customer</th>
                                     <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Product</th>
                                     <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Qty</th>
-                                    <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Total</th>
+                                    <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Total Amount</th>
                                     <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Status</th>
                                     <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Date</th>
                                 </tr>
                             </thead>
                             <tbody id="orders-tbody">
                                 @foreach($orders as $index => $order)
+                                @php
+                                    $normalizedOrderStatus = in_array(strtolower($order->status), ['canceled', 'cancelled'], true)
+                                        ? 'cancelled'
+                                        : strtolower($order->status);
+                                @endphp
                                 <tr class="order-row border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors"
-                                    data-status="{{ strtolower($order->status) }}"
+                                    data-status="{{ $normalizedOrderStatus }}"
                                     data-customer="{{ strtolower($order->user->name) }}"
                                     data-product="{{ strtolower($order->product->name) }}"
-                                    x-show="(statusFilter === 'all' || statusFilter === '{{ $order->status }}') && (orderSearch === '' || '{{ strtolower($order->user->name) }}'.includes(orderSearch.toLowerCase()) || '{{ strtolower($order->product->name) }}'.includes(orderSearch.toLowerCase()))"
+                                    x-show="(statusFilter === 'all' || statusFilter === '{{ $normalizedOrderStatus }}') && (orderSearch === '' || '{{ strtolower($order->user->name) }}'.includes(orderSearch.toLowerCase()) || '{{ strtolower($order->product->name) }}'.includes(orderSearch.toLowerCase()))"
                                     style="background-color: {{ $index % 2 === 1 ? '#FAF7F2' : '#FFFFFF' }};">
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $order->id }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $order->user->name }}</td>
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $order->product->name }}</td>
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $order->quantity }}</td>
-                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">₱{{ number_format($order->total_price, 2) }}</td>
+                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">₱{{ number_format((float) ($order->total_amount ?? $order->total_price), 2) }}</td>
                                     <td class="px-6 py-4 text-sm">
                                         @if($order->status === 'pending')
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
@@ -915,7 +920,7 @@ max-h-[90vh]">
                         </table>
                     </div>
                     <div class="mt-6">
-                        {{ $orders->links() }}
+                        {{ $orders->appends(['tab' => 'orders'])->links() }}
                     </div>
                 @else
                     <div class="py-12 text-center">

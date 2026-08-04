@@ -215,7 +215,7 @@
         <!-- Tabs -->
         <div x-data="{ 
           tab: '{{ request()->query('tab', 'products') }}', 
-          statusFilter: 'all', 
+          statusFilter: '{{ request()->query('status', 'all') }}', 
           orderSearch: '', 
           bulkOrderSearch: '', 
           showProductModal: false, 
@@ -850,9 +850,9 @@ max-h-[90vh]">
             <div x-show="tab === 'orders'" class="mt-6">
                 @if($orders->count() > 0)
                     <!-- Filter Row -->
-                    <div class="flex items-center justify-between mb-4">
-                        <!-- Status Dropdown -->
-                        <select x-model="statusFilter" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
+                    <form method="GET" action="{{ url()->current() }}" class="flex items-center justify-between mb-4">
+                        <input type="hidden" name="tab" value="orders" />
+                        <select name="status" x-model="statusFilter" @change="$event.target.form.submit()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
@@ -920,7 +920,7 @@ max-h-[90vh]">
                         </table>
                     </div>
                     <div class="mt-6">
-                        {{ $orders->appends(['tab' => 'orders'])->links() }}
+                        {{ $orders->appends(['tab' => 'orders', 'status' => request()->query('status', 'all')])->links() }}
                     </div>
                 @else
                     <div class="py-12 text-center">

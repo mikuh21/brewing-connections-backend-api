@@ -214,7 +214,7 @@
 
         <!-- Tabs -->
         <div x-data="{ 
-          tab: @json(request()->query('tab', 'products')), 
+          tab: '{{ request()->query('tab', 'products') }}', 
           statusFilter: 'all', 
           orderSearch: '', 
           bulkOrderSearch: '', 

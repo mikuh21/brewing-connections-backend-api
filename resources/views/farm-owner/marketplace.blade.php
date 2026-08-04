@@ -183,7 +183,7 @@
                 address: payload?.address || '-',
                 phone: payload?.phone || '-',
                 status: payload?.status || '-',
-                paymentMode: payload?.paymentMode || payload?.payment_mode || '-',
+                paymentMode: String(payload?.paymentMode || payload?.payment_mode || '-').toLowerCase(),
                 productTotal: payload?.productTotal || payload?.product_total || payload?.total || '0.00',
                 deliveryFee: payload?.deliveryFee || payload?.delivery_fee || '0.00',
                 totalAmount: payload?.totalAmount || payload?.total_amount || payload?.total || '0.00',
@@ -923,6 +923,10 @@
                                             'address' => $receiptMeta['address'] ?? 'N/A',
                                             'phone' => $receiptMeta['phone'] ?? 'N/A',
                                             'status' => ucfirst((string) $order->status),
+                                            'paymentMode' => strtolower((string) ($order->payment_mode ?? $receiptMeta['payment_mode'] ?? 'pickup')),
+                                            'productTotal' => $receiptMeta['product_total'] ?? number_format((float) ($order->product_total ?? $order->total_price), 2),
+                                            'deliveryFee' => $receiptMeta['delivery_fee'] ?? number_format((float) ($order->delivery_fee ?? 0), 2),
+                                            'totalAmount' => $receiptMeta['total_amount'] ?? number_format((float) ($order->total_amount ?? $order->total_price), 2),
                                             'total' => number_format((float) $order->total_price, 2),
                                         ];
                                     @endphp
@@ -1106,10 +1110,10 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4"
 >
-    <div @click.away="closeReceiptViewer()" class="w-full max-w-lg md:max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden">
-        <div x-ref="receiptPrintContent">
+    <div @click.away="closeReceiptViewer()" class="w-full max-w-lg md:max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[calc(100vh-3rem)]">
+        <div x-ref="receiptPrintContent" class="max-h-[calc(100vh-6rem)] overflow-y-auto">
             <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 md:px-4 md:py-3 text-white">
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -1184,14 +1188,6 @@
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.phone"></p>
-                    </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
-                        <p class="text-xs sm:text-sm text-[#946042] font-body">Pickup Date</p>
-                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupDate(receiptData.pickupDate)"></p>
-                    </div>
-                    <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
-                        <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Pickup Time</p>
-                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="formatPickupTime(receiptData.pickupTime)"></p>
                     </div>
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Created</p>

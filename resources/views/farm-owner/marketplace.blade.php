@@ -1282,13 +1282,13 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3">
+    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Edit Product</h2>
             <button type="button" @click="showEditModal = false" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
         </div>
 
-        <form method="POST" :action="formAction()" enctype="multipart/form-data" class="grid grid-cols-2 md:grid-cols-3 gap-1.5">
+        <form method="POST" :action="formAction()" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
             @csrf
             @method('PATCH')
             @if($activeFarmId > 0)
@@ -1362,13 +1362,13 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3">
+    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
             <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('farm-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-2 md:grid-cols-3 gap-1.5">
+        <form method="POST" action="{{ route('farm-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
             @csrf
             @if($activeFarmId > 0)
                 <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
@@ -1432,7 +1432,7 @@
                 <textarea x-model="createForm.description" name="description" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
             </div>
 
-            <div class="col-span-2 md:col-span-3 flex justify-end gap-2 pt-2">
+            <div class="md:col-span-3 flex justify-end gap-2 pt-2">
                 <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
                 <button type="submit" :disabled="isCreatingProduct" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-80">
                     <svg x-show="isCreatingProduct" x-cloak class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">

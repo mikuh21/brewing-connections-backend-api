@@ -669,7 +669,7 @@
                         </svg>
                         for iOS
                     </a>
-                    <a href="#" class="inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md border border-[#2E5A3D] text-[#2E5A3D] font-body font-medium hover:bg-[#2E5A3D] hover:text-white transition-colors duration-200">
+                    <a href="https://drive.google.com/file/d/1hADOVn6fL5cvFkI5eGzQShrvAY5eaMqm/view?usp=drive_link" class="inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md border border-[#2E5A3D] text-[#2E5A3D] font-body font-medium hover:bg-[#2E5A3D] hover:text-white transition-colors duration-200">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M8 9h8a2 2 0 012 2v5a2 2 0 01-2 2H8a2 2 0 01-2-2v-5a2 2 0 012-2z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.5 9l-1-2m6 2l1-2"></path>

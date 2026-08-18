@@ -54,7 +54,7 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken('mobile-google')->plainTextToken;
+        $token = \Tymon\JWTAuth\Facades\JWTAuth::fromUser($user);
 
         return response()->json([
             'token' => $token,

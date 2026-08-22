@@ -282,7 +282,7 @@
                     <circle cx="9" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
                     <circle cx="17" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
                 </svg>
-                Marketplace
+                Store
             </span>
             <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
@@ -340,7 +340,7 @@
                     <circle cx="9" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
                     <circle cx="17" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
                 </svg>
-                Marketplace
+                Store
             </span>
             <span class="text-[#F3E9D7] inline-flex items-center justify-center" aria-hidden="true">
                 <svg class="w-2.5 h-2.5" viewBox="0 0 12 12" fill="none">
@@ -1120,7 +1120,7 @@
                             <circle cx="17" cy="19" r="1.5" fill="currentColor" stroke="none"></circle>
                         </svg>
                     </div>
-                    <h3 class="text-base font-semibold text-[#3A2E22] mb-2 font-display leading-tight">Marketplace</h3>
+                    <h3 class="text-base font-semibold text-[#3A2E22] mb-2 font-display leading-tight">Store</h3>
                     <p class="text-[#3A2E22] text-sm font-body leading-relaxed">Order premium Coffee directly from local farms</p>
                 </div>
             </div>

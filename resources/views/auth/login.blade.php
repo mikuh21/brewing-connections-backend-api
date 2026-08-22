@@ -74,7 +74,7 @@
                 </div>
                 <div class="slide">
                     <div class="text-6xl mb-4">🛒</div>
-                    <h3 class="text-2xl font-bold text-white font-display mb-2">Marketplace</h3>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">Store</h3>
                     <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Order premium coffee directly from local farms to your doorstep</p>
                 </div>
 
@@ -287,10 +287,10 @@
             <p class="mb-4">You must be a legitimate business entity or individual engaged in the reselling of coffee products. You agree to provide accurate and truthful information during registration and throughout your use of the platform.</p>
 
             <p class="mb-2"><strong>3. Product Listings</strong></p>
-            <p class="mb-4">Resellers may only list coffee-related products (Coffee Beans and Ground Coffee). All product listings must comply with BrewHub's marketplace standards. Misleading or fraudulent listings will result in immediate account suspension.</p>
+            <p class="mb-4">Resellers may only list coffee-related products (Coffee Beans and Ground Coffee). All product listings must comply with BrewHub's store standards. Misleading or fraudulent listings will result in immediate account suspension.</p>
 
             <p class="mb-2"><strong>4. Orders &amp; Transactions</strong></p>
-            <p class="mb-4">Resellers are responsible for fulfilling orders placed through the BrewHub marketplace in a timely manner. Failure to fulfill orders repeatedly may result in account suspension or permanent removal.</p>
+            <p class="mb-4">Resellers are responsible for fulfilling orders placed through the BrewHub store in a timely manner. Failure to fulfill orders repeatedly may result in account suspension or permanent removal.</p>
 
             <p class="mb-2"><strong>5. Data Privacy</strong></p>
             <p class="mb-4">Your personal and business information will be collected, stored, and used in accordance with BrewHub's Privacy Policy. We do not sell your data to third parties.</p>

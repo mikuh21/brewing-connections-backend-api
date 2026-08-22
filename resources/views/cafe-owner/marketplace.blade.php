@@ -1,7 +1,7 @@
 @extends('cafe-owner.layouts.app')
 
 @php
-    $title = 'Marketplace';
+    $title = 'Store';
 @endphp
 
 @section('title', 'My Products - BrewHub')

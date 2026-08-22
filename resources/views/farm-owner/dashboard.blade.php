@@ -274,7 +274,7 @@
             <div>
                 <p class="text-[#9E8C78] text-sm font-medium">Orders This Week</p>
                 <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $ordersThisWeek }}</p>
-                <p class="text-blue-600 text-sm font-medium mt-1">Marketplace order volume</p>
+                <p class="text-blue-600 text-sm font-medium mt-1">Store order volume</p>
             </div>
             <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,7 +373,7 @@
                     </svg>
                 </div>
                 <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">View Orders</h3>
-                <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Marketplace orders</p>
+                <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Store orders</p>
             </a>
 
             <a href="{{ route('farm-owner.messages', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">

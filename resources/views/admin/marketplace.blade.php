@@ -121,7 +121,7 @@
     <!-- Main Content -->
     <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto" 
       x-data="marketplaceState()" 
-      @open-delete="openDelete($event.detail.id, $event.detail.title, $event.detail.type)">
+      @open-delete.window="openDelete($event.detail.id, $event.detail.title, $event.detail.type)">
         <!-- Flash Message Alert -->
         @if(session('success'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">
@@ -410,7 +410,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
     <button 
       @click.stop="$dispatch('open-delete', { 
         id: {{ $product->id }}, 
-        title: '{{ addslashes($product->name) }}', 
+        title: @js($product->name),
         type: 'product' 
       })"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 
@@ -693,7 +693,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
     <button 
       @click.stop="$dispatch('open-delete', { 
         id: {{ $resellerProduct->id }}, 
-        title: '{{ addslashes($resellerProduct->product->name) }}', 
+        title: @js($resellerProduct->product->name),
         type: 'reseller_product' 
       })"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 

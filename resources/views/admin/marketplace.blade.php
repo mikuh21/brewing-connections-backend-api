@@ -120,8 +120,8 @@
 
     <!-- Main Content -->
     <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto" 
-      x-data="{ deleteModal: marketplaceDeleteModalState() }"
-      @open-delete.window="deleteModal.openModal($event.detail.id, $event.detail.title, $event.detail.type)">
+      x-data="marketplaceState()" 
+      @open-delete.window="openDelete($event.detail.id, $event.detail.title, $event.detail.type)">
         <!-- Flash Message Alert -->
         @if(session('success'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">
@@ -410,10 +410,9 @@ x-transition:enter-end="opacity-100 translate-y-0">
     <button 
       @click.stop="$dispatch('open-delete', { 
         id: {{ $product->id }}, 
-        title: $el.dataset.deleteTitle,
+        title: @js($product->name),
         type: 'product' 
       })"
-      data-delete-title="{{ $product->name }}"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 
       hover:text-red-600 transition py-1 border border-red-100 
       hover:border-red-300 rounded-lg mt-2">
@@ -694,10 +693,9 @@ x-transition:enter-end="opacity-100 translate-y-0">
     <button 
       @click.stop="$dispatch('open-delete', { 
         id: {{ $resellerProduct->id }}, 
-        title: $el.dataset.deleteTitle,
+        title: @js($resellerProduct->product->name),
         type: 'reseller_product' 
       })"
-      data-delete-title="{{ $resellerProduct->product->name }}"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 
       hover:text-red-600 transition py-1 border border-red-100 
       hover:border-red-300 rounded-lg mt-2">
@@ -1020,19 +1018,19 @@ max-h-[90vh]">
 
 <!-- Delete Confirmation Modal -->
 <div class="fixed inset-0 z-50 flex items-center justify-center px-4" 
-  x-show="deleteModal.isOpen"
-  @keydown.escape.window="deleteModal.closeModal()"
+  x-show="deleteIsOpen" 
+  @keydown.escape.window="closeDelete()"
   x-transition:enter="transition ease-out duration-200"
   x-transition:enter-start="opacity-0 scale-95"
   x-transition:enter-end="opacity-100 scale-100"
   x-transition:leave="transition ease-in duration-150"
   x-transition:leave-start="opacity-100 scale-100"
   x-transition:leave-end="opacity-0 scale-95"
-  @click="deleteModal.closeModal()"
+  @click="closeDelete()"
   style="display: none;">
 
   <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
-    @click.stop="deleteModal.closeModal()"></div>
+    @click.stop="closeDelete()"></div>
 
   <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full"
     @click.stop>
@@ -1042,16 +1040,16 @@ max-h-[90vh]">
       </h2>
       <p class="text-[#3A2E22] mb-6">
         Are you sure you want to delete 
-        <span class="font-semibold" x-text="deleteModal.itemTitle"></span>?
+        <span class="font-semibold" x-text="deleteItemTitle"></span>? 
         This action cannot be undone.
       </p>
       <div class="flex gap-3">
-        <button @click="deleteModal.closeModal()"
+        <button @click="closeDelete()"
           class="flex-1 px-4 py-2 rounded-lg border border-gray-300 
           text-gray-700 font-medium hover:bg-gray-50 transition-colors">
           Cancel
         </button>
-        <button @click="deleteModal.confirmDelete()"
+        <button @click="confirmDelete()"
           class="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white 
           font-medium hover:bg-red-700 transition-colors">
           Delete
@@ -1162,37 +1160,42 @@ max-h-[90vh]">
 @endpush
 
 <script>
-function marketplaceDeleteModalState() {
+function marketplaceState() {
   return {
-    isOpen: false,
-    itemId: null,
-    itemTitle: '',
-    itemType: '',
+    tab: 'products',
+    statusFilter: 'all',
+    categoryFilter: 'all',
+    showProductModal: false,
+    selectedProduct: null,
+    showRPModal: false,
+    selectedRP: null,
+    deleteIsOpen: false,
+    deleteItemId: null,
+    deleteItemTitle: '',
+    deleteItemType: '',
 
-    openModal(id, title, type) {
-      this.itemId = id;
-      this.itemTitle = title;
-      this.itemType = type;
-      this.isOpen = true;
+    openDelete(id, title, type) {
+      this.deleteItemId = id;
+      this.deleteItemTitle = title;
+      this.deleteItemType = type;
+      this.deleteIsOpen = true;
     },
 
-    closeModal() {
-      this.isOpen = false;
-      this.itemId = null;
-      this.itemTitle = '';
-      this.itemType = '';
+    closeDelete() {
+      this.deleteIsOpen = false;
+      this.deleteItemId = null;
+      this.deleteItemTitle = '';
+      this.deleteItemType = '';
     },
 
     confirmDelete() {
-      if (!this.itemId) return;
+      if (!this.deleteItemId) return;
       const routes = {
         'product': '/admin/marketplace/products/',
         'reseller_product': '/admin/marketplace/reseller-products/'
       };
       const form = document.getElementById('marketplace-delete-form');
-      const route = routes[this.itemType];
-      if (!form || !route) return;
-      form.action = route + this.itemId;
+      form.action = routes[this.deleteItemType] + this.deleteItemId;
       form.submit();
     }
   }

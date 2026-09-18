@@ -120,8 +120,7 @@
 
     <!-- Main Content -->
     <main class="ml-0 md:ml-64 flex-1 p-8 overflow-y-auto" 
-      x-data="marketplaceState()" 
-      @open-delete.window="openDelete($event.detail.id, $event.detail.title, $event.detail.type)">
+      x-data="marketplaceState()">
         <!-- Flash Message Alert -->
         @if(session('success'))
             <div id="success-alert" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3 animate-fade-in-up">
@@ -409,11 +408,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
     {{-- Delete button --}}
     <button 
       data-delete-title="{{ $product->name }}"
-      @click.stop="$dispatch('open-delete', { 
-        id: {{ $product->id }}, 
-        title: $el.dataset.deleteTitle,
-        type: 'product' 
-      })"
+      @click.stop="deleteItemId = {{ $product->id }}; deleteItemTitle = $el.dataset.deleteTitle; deleteItemType = 'product'; deleteIsOpen = true"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 
       hover:text-red-600 transition py-1 border border-red-100 
       hover:border-red-300 rounded-lg mt-2">
@@ -693,11 +688,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
     {{-- Delete button --}}
     <button 
       data-delete-title="{{ $resellerProduct->product->name }}"
-      @click.stop="$dispatch('open-delete', { 
-        id: {{ $resellerProduct->id }}, 
-        title: $el.dataset.deleteTitle,
-        type: 'reseller_product' 
-      })"
+      @click.stop="deleteItemId = {{ $resellerProduct->id }}; deleteItemTitle = $el.dataset.deleteTitle; deleteItemType = 'reseller_product'; deleteIsOpen = true"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 
       hover:text-red-600 transition py-1 border border-red-100 
       hover:border-red-300 rounded-lg mt-2">
@@ -1175,13 +1166,6 @@ function marketplaceState() {
     deleteItemId: null,
     deleteItemTitle: '',
     deleteItemType: '',
-
-    openDelete(id, title, type) {
-      this.deleteItemId = id;
-      this.deleteItemTitle = title;
-      this.deleteItemType = type;
-      this.deleteIsOpen = true;
-    },
 
     closeDelete() {
       this.deleteIsOpen = false;

@@ -408,9 +408,10 @@ x-transition:enter-end="opacity-100 translate-y-0">
 
     {{-- Delete button --}}
     <button 
+      data-delete-title="{{ $product->name }}"
       @click.stop="$dispatch('open-delete', { 
         id: {{ $product->id }}, 
-        title: @js($product->name),
+        title: $el.dataset.deleteTitle,
         type: 'product' 
       })"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 
@@ -691,9 +692,10 @@ x-transition:enter-end="opacity-100 translate-y-0">
 
     {{-- Delete button --}}
     <button 
+      data-delete-title="{{ $resellerProduct->product->name }}"
       @click.stop="$dispatch('open-delete', { 
         id: {{ $resellerProduct->id }}, 
-        title: @js($resellerProduct->product->name),
+        title: $el.dataset.deleteTitle,
         type: 'reseller_product' 
       })"
       class="w-full flex items-center justify-center gap-1 text-xs text-red-400 

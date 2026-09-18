@@ -162,11 +162,7 @@ class DashboardController extends Controller
 
         $displayData = $establishmentDisplayData->union($resellerDisplayData);
 
-        $establishmentIds = $displayData
-            ->keys()
-            ->merge($activityIds)
-            ->unique()
-            ->values();
+        $establishmentIds = $displayData->keys()->values();
 
         if ($establishmentIds->isEmpty()) {
             return [];
@@ -183,10 +179,8 @@ class DashboardController extends Controller
 
                 return [
                     'id' => $establishmentId,
-                    'name' => $establishment['name'] ?? 'Unknown Establishment',
-                    'city' => $establishment['barangay']
-                        ?? $establishment['address']
-                        ?? 'Unknown Location',
+                    'name' => $establishment['name'],
+                    'city' => $establishment['barangay'] ?? $establishment['address'],
                     'visits' => $score,
                     'popularity_score' => $score,
                     'trail_destinations' => $trailDestinations,

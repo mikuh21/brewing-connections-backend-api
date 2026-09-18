@@ -3205,10 +3205,13 @@ function setupStaticEventListeners() {
                 return;
             }
 
-            const formattedValue = /^https?:\/\//i.test(nextValue) ? nextValue : `https://${nextValue}`;
-            field.value = formattedValue;
-            clearFieldError('website');
-            showMapToast('success', 'Website pasted', 'The website field has been updated.');
+            field.value = nextValue;
+            const isValid = validateClientField('website', (value) => (value && !/^https?:\/\//i.test(value) ? 'Use a valid website URL, including http:// or https://.' : ''));
+            showMapToast(
+                isValid ? 'success' : 'warning',
+                isValid ? 'Website pasted' : 'Invalid website',
+                isValid ? 'The website field has been updated.' : 'The pasted value is not a valid website URL.'
+            );
         } catch (error) {
             showMapToast('warning', 'Paste website', 'Clipboard access is unavailable in this browser.');
         }
@@ -3222,8 +3225,16 @@ function setupStaticEventListeners() {
 
             const isPassword = targetField.type === 'password';
             targetField.type = isPassword ? 'text' : 'password';
-            button.textContent = isPassword ? 'Hide' : 'Show';
-            button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+            const isVisible = isPassword;
+            const icon = button.querySelector('.password-visibility-icon');
+            if (icon) {
+                icon.dataset.iconState = isVisible ? 'visible' : 'hidden';
+                icon.innerHTML = isVisible
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.584 10.587a2 2 0 0 0 2.829 2.829M9.88 5.09A9.953 9.953 0 0 1 12 5c4.478 0 8.268 2.943 9.542 7a9.965 9.965 0 0 1-4.043 5.185M6.228 6.228A9.956 9.956 0 0 0 2.458 12c1.274 4.057 5.065 7 9.542 7a9.96 9.96 0 0 0 4.13-.89" />'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />';
+            }
+            button.setAttribute('aria-label', isVisible ? 'Hide password' : 'Show password');
+            button.setAttribute('title', isVisible ? 'Hide password' : 'Show password');
         });
     });
 

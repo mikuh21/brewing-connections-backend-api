@@ -263,18 +263,33 @@
                                     <input name="contact_number" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold">Email</label>
-                                    <input type="email" name="email" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                                    <p class="mt-1 text-xs text-[#6B3A2A]">For cafes and roasters, this email is also used to link the owner account.</p>
+                                    <label class="block text-sm font-semibold" for="establishment-email">
+                                        <span data-field-label="email">Email</span>
+                                        <span data-required-indicator="email" class="text-red-500 ml-1 hidden">*</span>
+                                    </label>
+                                    <input id="establishment-email" type="email" name="email" data-field="email" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <p data-field-hint="email" class="mt-1 text-xs text-[#6B3A2A]">For cafes and roasters, this email is also used to link the owner account.</p>
+                                    <p data-field-error="email" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold">Website</label>
-                                    <input type="url" name="website" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <label class="block text-sm font-semibold" for="establishment-website">Website</label>
+                                    <div class="mt-1 flex gap-2">
+                                        <input id="establishment-website" type="url" name="website" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                        <button type="button" id="paste-website-btn" class="shrink-0 rounded-lg border border-[#4A6741] bg-[#F5F0E8] px-2.5 py-2 text-[11px] font-semibold text-[#3A2E22] hover:bg-[#E8E0D2]">Paste</button>
+                                    </div>
+                                    <p data-field-error="website" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold">Owner Account Password</label>
-                                    <input type="password" name="owner_password" autocomplete="new-password" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                                    <p class="mt-1 text-xs text-[#6B3A2A]">Required only when this cafe or roaster owner account does not exist yet.</p>
+                                    <label class="block text-sm font-semibold" for="establishment-owner-password">
+                                        <span data-field-label="owner_password">Owner Account Password</span>
+                                        <span data-required-indicator="owner_password" class="text-red-500 ml-1 hidden">*</span>
+                                    </label>
+                                    <div class="mt-1 relative">
+                                        <input id="establishment-owner-password" type="password" name="owner_password" data-field="owner_password" autocomplete="new-password" class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                        <button type="button" class="toggle-password-btn absolute inset-y-0 right-0 flex items-center px-3 text-[#6B3A2A] hover:text-[#3A2E22]" data-target="owner_password" aria-label="Show password">Show</button>
+                                    </div>
+                                    <p data-field-hint="owner_password" class="mt-1 text-xs text-[#6B3A2A]">Required only when this cafe or roaster owner account does not exist yet.</p>
+                                    <p data-field-error="owner_password" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold">Visit Hours</label>

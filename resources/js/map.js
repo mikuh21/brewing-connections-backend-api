@@ -3040,8 +3040,194 @@ function setupStaticEventListeners() {
     const barangaySearchInput = document.getElementById('map-barangay-search');
     const barangaySearchBtn = document.getElementById('map-barangay-search-btn');
     const cancelPlacementBtn = document.getElementById('cancel-placement');
+    const pasteWebsiteBtn = document.getElementById('paste-website-btn');
 
     setupBarangayAutocomplete(barangaySearchInput);
+
+    const setOwnerAccountFieldState = () => {
+        if (!form) return;
+
+        const isFarm = form.type?.value === 'farm';
+        const emailField = form.querySelector('[name="email"]');
+        const passwordField = form.querySelector('[name="owner_password"]');
+        const emailLabel = document.querySelector('[data-field-label="email"]');
+        const emailRequiredIndicator = document.querySelector('[data-required-indicator="email"]');
+        const passwordLabel = document.querySelector('[data-field-label="owner_password"]');
+        const passwordRequiredIndicator = document.querySelector('[data-required-indicator="owner_password"]');
+
+        if (emailField) {
+            emailField.required = !isFarm;
+            emailField.setAttribute('aria-required', String(!isFarm));
+            emailField.closest('div')?.classList.toggle('opacity-60', isFarm);
+        }
+
+        if (emailLabel) {
+            emailLabel.textContent = isFarm ? 'Email' : 'Email';
+        }
+
+        if (emailRequiredIndicator) {
+            emailRequiredIndicator.classList.toggle('hidden', isFarm);
+        }
+
+        if (passwordField) {
+            passwordField.required = false;
+            passwordField.setAttribute('aria-required', 'false');
+            passwordField.closest('div')?.classList.toggle('opacity-60', isFarm);
+        }
+
+        if (passwordLabel) {
+            passwordLabel.textContent = isFarm ? 'Owner Account Password' : 'Owner Account Password';
+        }
+
+        if (passwordRequiredIndicator) {
+            passwordRequiredIndicator.classList.add('hidden');
+        }
+
+        const ownerFields = document.querySelectorAll('[data-field="email"], [data-field="owner_password"]');
+        ownerFields.forEach((field) => {
+            const container = field.closest('div') || field.parentElement;
+            if (!container) return;
+            const shouldHide = isFarm;
+            if (field.name === 'owner_password') {
+                container.parentElement?.classList.toggle('hidden', shouldHide);
+                return;
+            }
+            if (field.name === 'email') {
+                container.parentElement?.classList.toggle('hidden', shouldHide);
+                const hint = document.querySelector('[data-field-hint="email"]');
+                const error = document.querySelector('[data-field-error="email"]');
+                if (hint) hint.classList.toggle('hidden', shouldHide);
+                if (error) error.classList.add('hidden');
+            }
+        });
+
+        if (isFarm) {
+            const emailHint = document.querySelector('[data-field-hint="email"]');
+            if (emailHint) emailHint.textContent = 'Optional for farm establishments.';
+        } else {
+            const emailHint = document.querySelector('[data-field-hint="email"]');
+            if (emailHint) emailHint.textContent = 'For cafes and roasters, this email is also used to link the owner account.';
+        }
+    };
+
+    const showFieldError = (fieldName, message) => {
+        const errorNode = document.querySelector(`[data-field-error="${fieldName}"]`);
+        const field = form?.querySelector(`[name="${fieldName}"]`);
+
+        if (errorNode) {
+            errorNode.textContent = message;
+            errorNode.classList.remove('hidden');
+        }
+
+        if (field) {
+            field.setAttribute('aria-invalid', 'true');
+            field.classList.add('border-red-500', 'focus:ring-red-500');
+            field.classList.remove('focus:ring-[#4A6741]', 'border-gray-300');
+        }
+    };
+
+    const clearFieldError = (fieldName) => {
+        const errorNode = document.querySelector(`[data-field-error="${fieldName}"]`);
+        const field = form?.querySelector(`[name="${fieldName}"]`);
+
+        if (errorNode) {
+            errorNode.textContent = '';
+            errorNode.classList.add('hidden');
+        }
+
+        if (field) {
+            field.setAttribute('aria-invalid', 'false');
+            field.classList.remove('border-red-500', 'focus:ring-red-500');
+            field.classList.add('border-gray-300', 'focus:ring-[#4A6741]');
+        }
+    };
+
+    const validateClientField = (fieldName, customValidator) => {
+        const field = form?.querySelector(`[name="${fieldName}"]`);
+        if (!field) return true;
+
+        const value = field.value.trim();
+
+        if (customValidator) {
+            const message = customValidator(value);
+            if (message) {
+                showFieldError(fieldName, message);
+                return false;
+            }
+        }
+
+        clearFieldError(fieldName);
+        return true;
+    };
+
+    if (form?.type) {
+        form.type.addEventListener('change', setOwnerAccountFieldState);
+    }
+
+    if (form) {
+        ['email', 'website', 'contact_number', 'owner_password'].forEach((fieldName) => {
+            const field = form.querySelector(`[name="${fieldName}"]`);
+            if (!field) return;
+
+            field.addEventListener('input', () => {
+                clearFieldError(fieldName);
+            });
+
+            field.addEventListener('blur', () => {
+                if (fieldName === 'email' && form.type.value !== 'farm') {
+                    validateClientField('email', (value) => {
+                        if (!value) return 'Email is required for cafe and roaster establishments.';
+                        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? '' : 'Enter a valid email address.';
+                    });
+                }
+
+                if (fieldName === 'website' && field.value.trim()) {
+                    validateClientField('website', (value) => (value && !/^https?:\/\//i.test(value) ? 'Use a valid website URL, including http:// or https://.' : ''));
+                }
+
+                if (fieldName === 'contact_number' && field.value.trim()) {
+                    validateClientField('contact_number', (value) => (/^(?:\+63|0)?9\d{9}$/.test(value) ? '' : 'Contact number must be a valid Philippine mobile number.'));
+                }
+            });
+        });
+    }
+
+    pasteWebsiteBtn?.addEventListener('click', async () => {
+        const field = form?.querySelector('[name="website"]');
+        if (!field) return;
+
+        try {
+            const clipboardText = await navigator.clipboard.readText();
+            const nextValue = clipboardText?.trim();
+
+            if (!nextValue) {
+                showMapToast('warning', 'Paste website', 'No website was found on your clipboard.');
+                return;
+            }
+
+            const formattedValue = /^https?:\/\//i.test(nextValue) ? nextValue : `https://${nextValue}`;
+            field.value = formattedValue;
+            clearFieldError('website');
+            showMapToast('success', 'Website pasted', 'The website field has been updated.');
+        } catch (error) {
+            showMapToast('warning', 'Paste website', 'Clipboard access is unavailable in this browser.');
+        }
+    });
+
+    document.querySelectorAll('.toggle-password-btn').forEach((button) => {
+        button.addEventListener('click', () => {
+            const targetName = button.dataset.target;
+            const targetField = form?.querySelector(`[name="${targetName}"]`);
+            if (!targetField) return;
+
+            const isPassword = targetField.type === 'password';
+            targetField.type = isPassword ? 'text' : 'password';
+            button.textContent = isPassword ? 'Hide' : 'Show';
+            button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    });
+
+    setOwnerAccountFieldState();
 
     // Removed old addBtn click listener
 
@@ -3148,6 +3334,51 @@ function setupStaticEventListeners() {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const typeValue = form.type?.value || '';
+            const requiredFieldErrors = [];
+
+            ['name', 'address', 'barangay'].forEach((fieldName) => {
+                const el = form.querySelector(`[name="${fieldName}"]`);
+                if (el && !el.value.trim()) {
+                    showFieldError(fieldName, 'This field is required.');
+                    requiredFieldErrors.push(fieldName);
+                } else if (el) {
+                    clearFieldError(fieldName);
+                }
+            });
+
+            if (typeValue !== 'farm' && !form.email.value.trim()) {
+                showFieldError('email', 'Email is required for cafe and roaster establishments.');
+                requiredFieldErrors.push('email');
+            } else if (typeValue !== 'farm') {
+                const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.value.trim());
+                if (!emailValid) {
+                    showFieldError('email', 'Enter a valid email address.');
+                    requiredFieldErrors.push('email');
+                } else {
+                    clearFieldError('email');
+                }
+            }
+
+            if (form.contact_number.value.trim() && !/^(?:\+63|0)?9\d{9}$/.test(form.contact_number.value.trim())) {
+                showFieldError('contact_number', 'Contact number must be a valid Philippine mobile number.');
+                requiredFieldErrors.push('contact_number');
+            } else if (form.contact_number.value.trim()) {
+                clearFieldError('contact_number');
+            }
+
+            if (form.website.value.trim() && !/^https?:\/\//i.test(form.website.value.trim())) {
+                showFieldError('website', 'Use a valid website URL, including http:// or https://.');
+                requiredFieldErrors.push('website');
+            } else if (form.website.value.trim()) {
+                clearFieldError('website');
+            }
+
+            if (requiredFieldErrors.length > 0) {
+                showMapToast('warning', 'Please review the form', 'Some required fields need attention before saving the establishment.');
+                return;
+            }
 
             // Check if lat/lng fields are filled
             const latField = document.getElementById('latitude-input');

@@ -23,9 +23,16 @@ class MapController extends Controller
             $normalizedEmail = strtolower(trim((string) $request->input('email', '')));
 
             if ($normalizedEmail === '') {
-                throw ValidationException::withMessages([
+                $messages = [
                     'email' => 'Email is required for cafe and roaster establishments so BrewHub can link a dedicated owner account.',
-                ]);
+                ];
+
+                $ownerPassword = trim((string) $request->input('owner_password', ''));
+                if ($ownerPassword === '') {
+                    $messages['owner_password'] = 'Owner account password is required when creating a new cafe owner account.';
+                }
+
+                throw ValidationException::withMessages($messages);
             }
 
             $owner = User::query()
@@ -192,26 +199,35 @@ class MapController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'type' => ['required', Rule::in(['farm', 'cafe', 'roaster'])],
             'description' => 'nullable|string',
             'address' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
-            'contact_number' => 'nullable|string|max:50',
-            'email' => 'nullable|email|max:255',
+            'contact_number' => ['nullable', 'string', 'max:50', 'regex:/^(?:\+63|0)?9\d{9}$/'],
             'website' => 'nullable|url|max:255',
             'visit_hours' => 'nullable|string|max:255',
             'activities' => 'nullable|string|max:255',
-            'owner_password' => 'nullable|string|min:8|max:255',
             'latitude' => 'required|numeric|min:13.85|max:14.05',
             'longitude' => 'required|numeric|min:121.05|max:121.30',
             'varieties' => 'nullable|array',
             'varieties.*' => 'integer|exists:coffee_varieties,id',
             'primary_variety' => 'nullable|integer|exists:coffee_varieties,id',
             'image' => 'nullable|image|max:2048',
-        ], [
+        ];
+
+        if ($request->input('type') !== 'farm') {
+            $rules['email'] = ['required', 'email', 'max:255'];
+            $rules['owner_password'] = ['nullable', 'string', 'min:8', 'max:255', Rule::requiredIf(fn () => trim((string) $request->input('email', '')) === '')];
+        } else {
+            $rules['email'] = ['nullable', 'email', 'max:255'];
+            $rules['owner_password'] = ['nullable', 'string', 'min:8', 'max:255'];
+        }
+
+        $request->validate($rules, [
             'type.in' => 'The selected type is invalid. Choose Farm, Cafe, or Roaster.',
+            'contact_number.regex' => 'Contact number must be a valid Philippine mobile number, e.g. 0917XXXXXXX.',
         ]);
 
         $resolvedOwnerId = $this->resolveOwnerIdForMappedEstablishment($request);
@@ -258,7 +274,7 @@ class MapController extends Controller
             'success' => true,
             'message' => 'Establishment created successfully',
             'establishment' => $establishment
-        ], 201);
+        ], 200);
     }
 
     /**

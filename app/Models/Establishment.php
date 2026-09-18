@@ -53,6 +53,26 @@ class Establishment extends Model
         return $this->hasMany(\App\Models\Product::class, 'establishment_id');
     }
 
+    public function resellerProducts()
+    {
+        return $this->hasManyThrough(\App\Models\ResellerProduct::class, \App\Models\Product::class, 'establishment_id', 'product_id');
+    }
+
+    public function recommendations()
+    {
+        return $this->hasMany(\App\Models\Recommendation::class, 'establishment_id');
+    }
+
+    public function recommendationSnapshots()
+    {
+        return $this->hasMany(\App\Models\RecommendationSnapshot::class, 'establishment_id');
+    }
+
+    public function markerViews()
+    {
+        return $this->hasMany(\App\Models\CoffeeTrailMarkerView::class, 'establishment_id');
+    }
+
     protected $fillable = [
         'owner_id',
         'name',

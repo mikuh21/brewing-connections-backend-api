@@ -20,8 +20,8 @@ return new class extends Migration
             $table->date('delivery_date')->nullable();
             $table->text('notes')->nullable();
 
-            $table->foreign('reseller_id')->references('id')->on('users');
-            $table->foreign('product_id')->references('id')->on('products');
+            $table->foreign('reseller_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
         });
     }
 

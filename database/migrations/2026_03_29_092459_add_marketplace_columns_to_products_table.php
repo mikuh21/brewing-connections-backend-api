@@ -27,7 +27,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
 
             $table->foreign('seller_id')->references('id')->on('users');
-            $table->foreign('establishment_id')->references('id')->on('establishments');
+            $table->foreign('establishment_id')->references('id')->on('establishments')->cascadeOnDelete();
         });
     }
 

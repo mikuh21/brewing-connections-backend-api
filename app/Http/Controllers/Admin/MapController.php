@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
 use App\Services\MapDetailsService;
+use App\Services\EstablishmentDeletionService;
 
 class MapController extends Controller
 {
@@ -279,12 +280,12 @@ class MapController extends Controller
     }
 
     /**
-     * Soft delete establishment.
+     * Permanently delete an establishment and all dependent records.
      */
-    public function destroy($id)
+    public function destroy($id, EstablishmentDeletionService $deletionService)
     {
         $establishment = Establishment::findOrFail($id);
-        $establishment->delete(); // Soft delete
+        $deletionService->delete($establishment);
 
         return response()->json(['message' => 'Establishment deleted successfully']);
     }

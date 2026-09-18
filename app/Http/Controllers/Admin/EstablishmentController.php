@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
+use App\Services\EstablishmentDeletionService;
 use Illuminate\Http\RedirectResponse;
 
 class EstablishmentController extends Controller
@@ -35,11 +36,11 @@ class EstablishmentController extends Controller
     }
 
     /**
-     * Soft delete an establishment.
+     * Permanently delete an establishment and all dependent records.
      */
-    public function destroy(Establishment $establishment): RedirectResponse
+    public function destroy(Establishment $establishment, EstablishmentDeletionService $deletionService): RedirectResponse
     {
-        $establishment->delete();
+        $deletionService->delete($establishment);
 
         return redirect()->back()->with('success', 'Establishment deleted successfully.');
     }

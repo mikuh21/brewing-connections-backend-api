@@ -18,8 +18,8 @@ return new class extends Migration
             $table->integer('stock_quantity')->default(0);
             $table->boolean('is_available')->default(true);
 
-            $table->foreign('product_id')->references('id')->on('products');
-            $table->foreign('reseller_id')->references('id')->on('users');
+            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
+            $table->foreign('reseller_id')->references('id')->on('users')->cascadeOnDelete();
         });
     }
 

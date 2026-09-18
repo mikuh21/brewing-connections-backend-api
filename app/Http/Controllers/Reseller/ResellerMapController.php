@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Services\MapDetailsService;
 
 class ResellerMapController extends Controller
 {
@@ -20,6 +21,7 @@ class ResellerMapController extends Controller
             })
             ->whereNull('deactivated_at')
             ->orderBy('name')
+            ->with(['resellerProducts.product'])
             ->get(['id', 'name', 'barangay', 'latitude', 'longitude', 'updated_at'])
             ->map(function ($user) {
                 return [
@@ -29,6 +31,7 @@ class ResellerMapController extends Controller
                     'latitude' => $user->latitude,
                     'longitude' => $user->longitude,
                     'verified_at' => optional($user->updated_at)?->toIso8601String(),
+                    'associated_products' => MapDetailsService::resellerProducts($user->resellerProducts),
                 ];
             })
             ->values();
@@ -40,12 +43,13 @@ class ResellerMapController extends Controller
         $googleMapsKey = config('services.google_maps.key');
         $verifiedResellers = $this->getVerifiedResellersForMap();
         $resellerUser = User::query()
-            ->with('coffeeVarieties')
+            ->with(['coffeeVarieties', 'resellerProducts.product'])
             ->find(Auth::id());
 
         $establishments = Establishment::with([
             'varieties',
             'reviews',
+            'products',
             'couponPromos' => function ($query) {
                 $query->where('status', 'active')
                     ->where('valid_until', '>=', now()->toDateString());
@@ -84,6 +88,7 @@ class ResellerMapController extends Controller
                 'environment_avg' => $environmentAverage,
                 'cleanliness_avg' => $cleanlinessAverage,
                 'service_avg' => $serviceAverage,
+                'associated_products' => MapDetailsService::products($e->products),
                 'active_promos' => $e->couponPromos->map(function ($p) {
                     return [
                         'title' => $p->title,
@@ -124,6 +129,7 @@ class ResellerMapController extends Controller
                 'environment_avg' => null,
                 'cleanliness_avg' => null,
                 'service_avg' => null,
+                'associated_products' => MapDetailsService::resellerProducts($resellerUser->resellerProducts),
                 'active_promos' => [],
             ]);
         }

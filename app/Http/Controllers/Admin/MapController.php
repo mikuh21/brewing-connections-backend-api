@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
+use App\Services\MapDetailsService;
 
 class MapController extends Controller
 {
@@ -90,6 +91,7 @@ class MapController extends Controller
             })
             ->whereNull('deactivated_at')
             ->orderBy('name')
+            ->with(['resellerProducts.product'])
             ->get(['id', 'name', 'barangay', 'latitude', 'longitude', 'updated_at'])
             ->map(function ($user) {
                 return [
@@ -99,6 +101,7 @@ class MapController extends Controller
                     'latitude' => $user->latitude,
                     'longitude' => $user->longitude,
                     'verified_at' => optional($user->updated_at)?->toIso8601String(),
+                    'associated_products' => MapDetailsService::resellerProducts($user->resellerProducts),
                 ];
             })
             ->values();
@@ -117,6 +120,7 @@ class MapController extends Controller
         $establishments = Establishment::with([
             'varieties',
             'reviews',
+            'products',
             'couponPromos' => function($query) {
                 $query->where('status', 'active')
                       ->where('valid_until', '>=', now()->toDateString());
@@ -154,6 +158,7 @@ class MapController extends Controller
                 'environment_avg' => $environmentAverage,
                 'cleanliness_avg' => $cleanlinessAverage,
                 'service_avg' => $serviceAverage,
+                'associated_products' => MapDetailsService::products($e->products),
                 'active_promos' => $e->couponPromos->map(function($p) {
                     return [
                         'title' => $p->title,

@@ -121,6 +121,7 @@ class FarmOwnerController extends Controller
             })
             ->whereNull('deactivated_at')
             ->orderBy('name')
+            ->with(['resellerProducts.product'])
             ->get(['id', 'name', 'barangay', 'latitude', 'longitude', 'updated_at'])
             ->map(function ($user) {
                 return [
@@ -130,6 +131,7 @@ class FarmOwnerController extends Controller
                     'latitude' => $user->latitude,
                     'longitude' => $user->longitude,
                     'verified_at' => optional($user->updated_at)?->toIso8601String(),
+                    'associated_products' => \App\Services\MapDetailsService::resellerProducts($user->resellerProducts),
                 ];
             })
             ->values();
@@ -941,6 +943,7 @@ class FarmOwnerController extends Controller
         $establishments = Establishment::with([
             'varieties',
             'reviews',
+            'products',
             'couponPromos' => function ($query) {
                 $query->where('status', 'active')
                     ->where('valid_until', '>=', now()->toDateString());
@@ -978,6 +981,7 @@ class FarmOwnerController extends Controller
                 'environment_avg' => $environmentAverage,
                 'cleanliness_avg' => $cleanlinessAverage,
                 'service_avg' => $serviceAverage,
+                'associated_products' => \App\Services\MapDetailsService::products($e->products),
                 'active_promos' => $e->couponPromos->map(function ($p) {
                     return [
                         'title' => $p->title,

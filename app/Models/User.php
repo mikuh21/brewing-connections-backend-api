@@ -178,6 +178,11 @@ class User extends Authenticatable implements JWTSubject
         )->withPivot('is_primary')->withTimestamps();
     }
 
+    public function resellerProducts()
+    {
+        return $this->hasMany(ResellerProduct::class, 'reseller_id');
+    }
+
     public function getImageUrlAttribute($value): ?string
     {
         return static::normalizeMediaUrl($value);

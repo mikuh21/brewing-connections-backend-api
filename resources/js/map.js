@@ -1350,6 +1350,7 @@ async function loadEstablishments() {
                         environment_avg: est.environment_avg,
                         cleanliness_avg: est.cleanliness_avg,
                         service_avg: est.service_avg,
+                        associated_products: est.associated_products || [],
                         active_promos: est.active_promos,
                     }
                 };
@@ -2563,6 +2564,7 @@ function upsertMappedResellerMarker(reseller) {
             environment_avg: null,
             cleanliness_avg: null,
             service_avg: null,
+            associated_products: reseller.associated_products || [],
             active_promos: [],
             is_reseller_user: true,
             reseller_user_id: reseller.id,
@@ -3456,12 +3458,12 @@ function renderDetailsPanel(feature) {
   // Featured Properties
   const varieties = props.coffee_varieties || []
   const primaryVariety = props.primary_variety || null
-  const ratingAvg = props.rating_average || null
-  const reviewCount = props.review_count || 0
-  const tasteAvg = props.taste_avg || null
-  const envAvg = props.environment_avg || null
-  const cleanAvg = props.cleanliness_avg || null
-  const serviceAvg = props.service_avg || null
+    const ratingAvg = props.rating_average ?? null
+    const reviewCount = props.review_count ?? 0
+    const tasteAvg = props.taste_avg ?? null
+    const envAvg = props.environment_avg ?? null
+    const cleanAvg = props.cleanliness_avg ?? null
+    const serviceAvg = props.service_avg ?? null
 
   // Type color and label
     const typeTheme = getEstablishmentTypeTheme(type)
@@ -3482,23 +3484,39 @@ function renderDetailsPanel(feature) {
       </span>
     </div>
 
-    ${ratingAvg !== null || reviewCount > 0 ? `
-      <div class="rating-section">
-        <div class="rating-label">Overall Rating</div>
-        <div class="rating-value">
-          ${ratingAvg !== null ? `<span>${ratingAvg.toFixed(1)}</span>` : '<span class="text-[#9E8C78] italic">No rating yet</span>'}
-          ${reviewCount > 0 ? `<span class="rating-stars">★</span><span class="text-[#9E8C78]">(${reviewCount})</span>` : ''}
+        <div class="rating-section">
+            <div class="rating-label">Ratings</div>
+            ${ratingAvg !== null || reviewCount > 0 ? `
+                <div class="rating-label">Overall Rating</div>
+                <div class="rating-value">
+                    ${ratingAvg !== null ? `<span>${Number(ratingAvg).toFixed(1)}</span>` : '<span class="text-[#9E8C78] italic">No rating yet</span>'}
+                    ${reviewCount > 0 ? `<span class="rating-stars">★</span><span class="text-[#9E8C78]">(${reviewCount})</span>` : ''}
+                </div>
+                ${tasteAvg !== null || envAvg !== null || cleanAvg !== null || serviceAvg !== null ? `
+                    <div class="sub-ratings">
+                        ${tasteAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Taste</div><div class="sub-rating-value">${Number(tasteAvg).toFixed(1)}</div></div>` : ''}
+                        ${envAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Environment</div><div class="sub-rating-value">${Number(envAvg).toFixed(1)}</div></div>` : ''}
+                        ${cleanAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Cleanliness</div><div class="sub-rating-value">${Number(cleanAvg).toFixed(1)}</div></div>` : ''}
+                        ${serviceAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Service</div><div class="sub-rating-value">${Number(serviceAvg).toFixed(1)}</div></div>` : ''}
+                    </div>
+                ` : ''}
+            ` : '<div class="info-value text-[#9E8C78] italic">No ratings yet.</div>'}
         </div>
-        ${tasteAvg !== null || envAvg !== null || cleanAvg !== null || serviceAvg !== null ? `
-          <div class="sub-ratings">
-            ${tasteAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Taste</div><div class="sub-rating-value">${tasteAvg.toFixed(1)}</div></div>` : ''}
-            ${envAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Environment</div><div class="sub-rating-value">${envAvg.toFixed(1)}</div></div>` : ''}
-            ${cleanAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Cleanliness</div><div class="sub-rating-value">${cleanAvg.toFixed(1)}</div></div>` : ''}
-            ${serviceAvg !== null ? `<div class="sub-rating"><div class="sub-rating-label">Service</div><div class="sub-rating-value">${serviceAvg.toFixed(1)}</div></div>` : ''}
-          </div>
-        ` : ''}
-      </div>
-    ` : ''}
+
+        <div class="info-section">
+            <div class="info-label">Associated Products</div>
+            ${Array.isArray(props.associated_products) && props.associated_products.length > 0 ? `
+                <div class="space-y-2">
+                    ${props.associated_products.map(product => `
+                        <div class="rounded-lg border border-[#E5E0D8] px-3 py-2">
+                            <div class="font-medium text-[#3A2E22]">${escapeHtml(product.name || 'Unnamed product')}</div>
+                            ${product.description ? `<div class="text-xs text-[#6B5B4A]">${escapeHtml(product.description)}</div>` : ''}
+                            ${product.price_per_unit !== null && product.price_per_unit !== undefined ? `<div class="text-xs text-[#9E8C78]">${escapeHtml(String(product.price_per_unit))}${product.unit ? ` / ${escapeHtml(product.unit)}` : ''}</div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '<div class="info-value text-[#9E8C78] italic">No products available.</div>'}
+        </div>
 
     ${props.active_promos && props.active_promos.length > 0 ? `
       <hr style="border: none; border-top: 1px solid #e5e0d8; margin: 12px 0;">

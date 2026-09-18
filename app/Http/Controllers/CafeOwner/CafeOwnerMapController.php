@@ -5,6 +5,7 @@ namespace App\Http\Controllers\CafeOwner;
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use App\Models\User;
+use App\Services\MapDetailsService;
 
 class CafeOwnerMapController extends Controller
 {
@@ -19,6 +20,7 @@ class CafeOwnerMapController extends Controller
             })
             ->whereNull('deactivated_at')
             ->orderBy('name')
+            ->with(['resellerProducts.product'])
             ->get(['id', 'name', 'barangay', 'latitude', 'longitude', 'updated_at'])
             ->map(function ($user) {
                 return [
@@ -28,6 +30,7 @@ class CafeOwnerMapController extends Controller
                     'latitude' => $user->latitude,
                     'longitude' => $user->longitude,
                     'verified_at' => optional($user->updated_at)?->toIso8601String(),
+                    'associated_products' => MapDetailsService::resellerProducts($user->resellerProducts),
                 ];
             })
             ->values();
@@ -42,6 +45,7 @@ class CafeOwnerMapController extends Controller
         $establishments = Establishment::with([
             'varieties',
             'reviews',
+            'products',
             'couponPromos' => function ($query) {
                 $query->where('status', 'active')
                     ->where('valid_until', '>=', now()->toDateString());
@@ -79,6 +83,7 @@ class CafeOwnerMapController extends Controller
                 'environment_avg' => $environmentAverage,
                 'cleanliness_avg' => $cleanlinessAverage,
                 'service_avg' => $serviceAverage,
+                'associated_products' => MapDetailsService::products($e->products),
                 'active_promos' => $e->couponPromos->map(function ($p) {
                     return [
                         'title' => $p->title,

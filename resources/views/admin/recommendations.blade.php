@@ -499,11 +499,13 @@
             <div class="mb-6 border-b border-gray-200 pb-4">
                 <div class="flex gap-2">
                     @foreach(['all' => 'All', 'high' => 'High', 'medium' => 'Medium', 'low' => 'Low'] as $key => $label)
-                        <a href="{{ route('admin.recommendations', array_merge(request()->except('page'), ['priority' => $key])) }}"
-   class="filter-tab px-4 py-2 text-sm font-medium transition-colors {{ ($priority ?? 'all') === $key ? 'text-[#3B2F2F] border-b-4 border-[#3B2F2F] bg-[#F5F0E8]' : 'text-[#9E8C78]' }}"
-   style="color: {{ ($priority ?? 'all') === $key ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ ($priority ?? 'all') === $key ? '#3B2F2F' : 'transparent' }};">
-    {{ $label }}
-</a>
+                        <a
+                            href="{{ route('admin.recommendations', array_merge(request()->except('page'), ['priority' => $key])) }}"
+                            data-recommendation-priority="{{ $key }}"
+                            class="filter-tab recommendation-priority-tab px-4 py-2 text-sm font-medium transition-colors {{ ($priority ?? 'all') === $key ? 'text-[#3B2F2F] border-b-4 border-[#3B2F2F] bg-[#F5F0E8]' : 'text-[#9E8C78]' }}"
+                            style="color: {{ ($priority ?? 'all') === $key ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ ($priority ?? 'all') === $key ? '#3B2F2F' : 'transparent' }};">
+                            {{ $label }}
+                        </a>
                     @endforeach
                 </div>
             </div>
@@ -624,8 +626,12 @@
                 @php
                     $cafeCards = $groupedRecommendations->get($p, collect());
                 @endphp
-                @if(($priorityToShow === 'all' || $priorityToShow === $p) && $cafeCards->count() > 0)
-                <div class="mb-6">
+                @if($cafeCards->count() > 0)
+                <div
+                    class="mb-6 recommendation-priority-group"
+                    data-recommendation-priority-group="{{ $p }}"
+                    @if($priorityToShow !== 'all' && $priorityToShow !== $p) hidden @endif
+                >
                     <h3 class="text-lg font-medium text-[#3A2E22] mb-3 uppercase tracking-wide">
                         {{ ucfirst($p) }} Priority
                         <span class="inline-block ml-2 px-2 py-1 bg-{{ $p === 'high' ? 'red' : ($p === 'medium' ? 'yellow' : 'green') }}-100 text-{{ $p === 'high' ? 'red' : ($p === 'medium' ? 'yellow' : 'green') }}-800 text-xs font-medium rounded">
@@ -1037,6 +1043,59 @@
         }
     });
 </script>
+    <script>
+        (function () {
+            const tabs = Array.from(document.querySelectorAll('[data-recommendation-priority]'));
+            const groups = Array.from(document.querySelectorAll('[data-recommendation-priority-group]'));
+
+            if (!tabs.length || !groups.length) {
+                return;
+            }
+
+            const activeClasses = ['text-[#3B2F2F]', 'border-b-4', 'border-[#3B2F2F]', 'bg-[#F5F0E8]'];
+            const inactiveClasses = ['text-[#9E8C78]'];
+
+            const applyPriority = (priority) => {
+                const selected = ['all', 'high', 'medium', 'low'].includes(priority) ? priority : 'all';
+
+                groups.forEach((group) => {
+                    group.hidden = selected !== 'all' && group.dataset.recommendationPriorityGroup !== selected;
+                });
+
+                tabs.forEach((tab) => {
+                    const isActive = tab.dataset.recommendationPriority === selected;
+                    tab.classList.remove(...activeClasses, ...inactiveClasses);
+                    tab.classList.add(...(isActive ? activeClasses : inactiveClasses));
+                    tab.style.color = isActive ? '#3B2F2F' : '#9E8C78';
+                    tab.style.borderBottom = isActive ? '3px solid #3B2F2F' : '3px solid transparent';
+                    tab.setAttribute('aria-current', isActive ? 'page' : 'false');
+                });
+            };
+
+            tabs.forEach((tab) => {
+                tab.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    const priority = tab.dataset.recommendationPriority || 'all';
+                    applyPriority(priority);
+
+                    const url = new URL(tab.href, window.location.origin);
+                    url.searchParams.set('priority', priority);
+                    url.searchParams.delete('page');
+
+                    window.history.pushState({ priority }, '', url.toString());
+                });
+            });
+
+            window.addEventListener('popstate', () => {
+                const priority = new URLSearchParams(window.location.search).get('priority') || 'all';
+                applyPriority(priority);
+            });
+
+            applyPriority(new URLSearchParams(window.location.search).get('priority') || @json($priorityToShow));
+        })();
+    </script>
+
 @endpush
 
 @endsection

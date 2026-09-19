@@ -271,9 +271,12 @@
         $sidebarActiveFarmId = (int) request('farm_id', 0);
         $sidebarRouteParams = [];
         if ($sidebarUserId) {
+            $sidebarColumns = \Illuminate\Support\Facades\Schema::getColumnListing('establishments');
+            $hasOwnerId = in_array('owner_id', $sidebarColumns, true);
+            $hasUserId = in_array('user_id', $sidebarColumns, true);
+            $hasType = in_array('type', $sidebarColumns, true);
+
             $sidebarEstablishmentQuery = \App\Models\Establishment::query();
-            $hasOwnerId = \Illuminate\Support\Facades\Schema::hasColumn('establishments', 'owner_id');
-            $hasUserId = \Illuminate\Support\Facades\Schema::hasColumn('establishments', 'user_id');
 
             if ($hasOwnerId && $hasUserId) {
                 $sidebarEstablishmentQuery->where(function ($ownerQuery) use ($sidebarUserId) {
@@ -288,20 +291,22 @@
                 $sidebarEstablishmentQuery->whereRaw('1 = 0');
             }
 
-            if (\Illuminate\Support\Facades\Schema::hasColumn('establishments', 'type')) {
+            if ($hasType) {
                 $sidebarEstablishmentQuery->where('type', 'farm');
             }
 
-            $sidebarManagedFarms = (clone $sidebarEstablishmentQuery)
+            // Load the managed farms once and reuse the selected record instead of
+            // issuing a second establishment query just for the sidebar image.
+            $sidebarManagedFarms = $sidebarEstablishmentQuery
                 ->orderBy('name')
-                ->get(['id', 'name']);
+                ->get(['id', 'name', 'image', 'profile_focus_x', 'profile_focus_y']);
 
             if ($sidebarActiveFarmId <= 0 || !$sidebarManagedFarms->contains('id', $sidebarActiveFarmId)) {
                 $sidebarActiveFarmId = (int) ($sidebarManagedFarms->first()->id ?? 0);
             }
 
             $sidebarEstablishment = $sidebarActiveFarmId > 0
-                ? (clone $sidebarEstablishmentQuery)->whereKey($sidebarActiveFarmId)->first()
+                ? $sidebarManagedFarms->firstWhere('id', $sidebarActiveFarmId)
                 : null;
 
             if ($sidebarActiveFarmId > 0) {

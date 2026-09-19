@@ -469,7 +469,7 @@
             @php
                 $featuredFarms = $featuredFarms ?? collect();
             @endphp
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="flex flex-wrap justify-center gap-8">
                 @foreach($featuredFarms as $farm)
                     @php
                         $farmImage = $farm->image
@@ -478,7 +478,7 @@
                                 : asset(ltrim($farm->image, '/')))
                             : null;
                     @endphp
-                    <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ $loop->iteration }}">
+                    <div class="w-full md:w-[calc((100%-4rem)/3)] bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ $loop->iteration }}">
                         @if($farmImage)
                             <img src="{{ $farmImage }}" alt="{{ $farm->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
                             <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">

@@ -1093,7 +1093,6 @@
                             <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#6A5A48]" x-text="createForm.discount_type === 'percentage' ? '%' : '₱'"></span>
                         </div>
                         <p x-show="createForm.discount_value !== '' && Number(createForm.discount_value) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Discount value must be greater than 0.</p>
-                        </div>
                     </div>
 
                     <div class="coupon-date-grid grid grid-cols-1 gap-4 sm:grid-cols-2">

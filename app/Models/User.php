@@ -153,6 +153,25 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Message::class, 'sender_id');
     }
 
+    public function unreadMessagesCount(): int
+    {
+        return (int) Message::query()
+            ->join('conversation_participants as recipient_participants', 'recipient_participants.conversation_id', '=', 'messages.conversation_id')
+            ->where('recipient_participants.user_id', $this->id)
+            ->where('messages.sender_id', '!=', $this->id)
+            ->where(function ($query) {
+                $query->where(function ($query) {
+                    $query->whereNotNull('recipient_participants.last_read_at')
+                        ->whereColumn('messages.created_at', '>', 'recipient_participants.last_read_at');
+                })->orWhere(function ($query) {
+                    $query->whereNull('recipient_participants.last_read_at')
+                        ->whereNull('messages.read_at');
+                });
+            })
+            ->count();
+    }
+
+
     public function establishment()
     {
         return $this->hasOne(Establishment::class, 'owner_id');

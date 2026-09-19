@@ -201,7 +201,9 @@
             }
 
             .reseller-sidebar-open .reseller-sidebar {
-                transform: translateX(0);
+                /* Tailwind v4 uses the individual `translate` property for translate-x utilities. */
+                translate: 0 !important;
+                transform: none !important;
             }
 
             .reseller-sidebar-open .reseller-sidebar-overlay {

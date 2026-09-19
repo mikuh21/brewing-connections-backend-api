@@ -581,7 +581,7 @@
 
     <section id="farm-products-list" class="py-24 bg-[#3A2E22]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p class="section-tag text-white text-center mb-3 reveal">
+            <p class="section-tag text-center mb-3 reveal" style="color: #ffffff;">
                 Fresh From Farms
             </p>
             <h2 class="text-4xl md:text-5xl font-bold text-white font-display text-center mb-4 reveal">

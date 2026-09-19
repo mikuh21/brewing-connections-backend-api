@@ -20,6 +20,15 @@ use Illuminate\Support\Facades\Schema;
 
 class FarmOwnerController extends Controller
 {
+    private ?array $establishmentColumns = null;
+
+    protected function hasEstablishmentColumn(string $column): bool
+    {
+        $this->establishmentColumns ??= Schema::getColumnListing('establishments');
+
+        return in_array($column, $this->establishmentColumns, true);
+    }
+
     public function __construct(
         private readonly OrderReceiptNotifier $orderReceiptNotifier,
         private readonly OrderStockManager $orderStockManager,
@@ -30,8 +39,8 @@ class FarmOwnerController extends Controller
     {
         $query = Establishment::query();
 
-        $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
-        $hasUserId = Schema::hasColumn('establishments', 'user_id');
+        $hasOwnerId = $this->hasEstablishmentColumn('owner_id');
+        $hasUserId = $this->hasEstablishmentColumn('user_id');
 
         if ($hasOwnerId && $hasUserId) {
             $query->where(function ($ownerQuery) use ($user) {
@@ -46,7 +55,7 @@ class FarmOwnerController extends Controller
             $query->whereRaw('1 = 0');
         }
 
-        if (Schema::hasColumn('establishments', 'type')) {
+        if ($this->hasEstablishmentColumn('type')) {
             $query->where('type', 'farm');
         }
 
@@ -81,11 +90,11 @@ class FarmOwnerController extends Controller
             'type' => 'farm',
         ];
 
-        if (Schema::hasColumn('establishments', 'owner_id')) {
+        if ($this->hasEstablishmentColumn('owner_id')) {
             $createPayload['owner_id'] = $user->id;
         }
 
-        if (Schema::hasColumn('establishments', 'user_id')) {
+        if ($this->hasEstablishmentColumn('user_id')) {
             $createPayload['user_id'] = $user->id;
         }
 
@@ -101,10 +110,10 @@ class FarmOwnerController extends Controller
 
     protected function isFarmManagedByUser(Establishment $establishment, User $user): bool
     {
-        $matchesOwner = Schema::hasColumn('establishments', 'owner_id')
+        $matchesOwner = $this->hasEstablishmentColumn('owner_id')
             && (int) $establishment->owner_id === (int) $user->id;
 
-        $matchesUser = Schema::hasColumn('establishments', 'user_id')
+        $matchesUser = $this->hasEstablishmentColumn('user_id')
             && (int) $establishment->user_id === (int) $user->id;
 
         return $matchesOwner || $matchesUser;
@@ -478,15 +487,15 @@ class FarmOwnerController extends Controller
             }
         }
 
-        if (Schema::hasColumn('establishments', 'visit_hours')) {
+        if ($this->hasEstablishmentColumn('visit_hours')) {
             $updatePayload['visit_hours'] = $validated['operating_hours'] ?? null;
         }
 
-        if (Schema::hasColumn('establishments', 'operating_hours')) {
+        if ($this->hasEstablishmentColumn('operating_hours')) {
             $updatePayload['operating_hours'] = $validated['operating_hours'] ?? null;
         }
 
-        if ($request->hasFile('image') && Schema::hasColumn('establishments', 'image')) {
+        if ($request->hasFile('image') && $this->hasEstablishmentColumn('image')) {
             $path = $request->file('image')->store('establishments', 'supabase');
             $updatePayload['image'] = $path;
         }

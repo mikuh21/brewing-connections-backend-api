@@ -1136,3 +1136,25 @@
     }
 }
 
+
+
+/* Tailwind v4 compatibility for legacy opacity utility classes */
+.bg-black.bg-opacity-40 {
+    background-color: rgb(0 0 0 / 40%) !important;
+}
+
+.bg-black.bg-opacity-50 {
+    background-color: rgb(0 0 0 / 50%) !important;
+}
+
+.bg-black.bg-opacity-70 {
+    background-color: rgb(0 0 0 / 70%) !important;
+}
+
+.bg-white.bg-opacity-90 {
+    background-color: rgb(255 255 255 / 90%) !important;
+}
+
+.bg-white.hover\\:bg-opacity-100:hover {
+    background-color: rgb(255 255 255 / 100%) !important;
+}

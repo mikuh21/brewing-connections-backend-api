@@ -152,6 +152,7 @@ class CafeOwnerDashboardController extends Controller
         $unreadChatCount = 0;
 
         $conversations = $user->conversations()
+            ->messageableParticipants()
             ->with(['latestMessage.sender:id,name'])
             ->get();
 

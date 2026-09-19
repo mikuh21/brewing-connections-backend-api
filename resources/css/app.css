@@ -1173,3 +1173,77 @@ button:disabled,
 [role="tab"][aria-disabled="true"] {
     cursor: not-allowed;
 }
+
+
+/* Mobile Cafe Owner Edit Product modal */
+@media (max-width: 767px) {
+    .cafe-edit-product-modal {
+        align-items: flex-start;
+        padding: 4.25rem 0.75rem 1rem !important;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cafe-edit-product-modal > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: calc(100vh - 5.25rem) !important;
+        padding: 1rem !important;
+        overflow-y: auto !important;
+        border-radius: 0.9rem;
+        box-sizing: border-box;
+    }
+
+    .cafe-edit-product-modal form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+
+    .cafe-edit-product-modal form > div,
+    .cafe-edit-product-modal form > template + div {
+        width: 100% !important;
+    }
+
+    .cafe-edit-product-modal label {
+        display: block;
+        margin-bottom: 0.3rem !important;
+        line-height: 1.2;
+    }
+
+    .cafe-edit-product-modal input:not([type="file"]),
+    .cafe-edit-product-modal select,
+    .cafe-edit-product-modal textarea {
+        display: block;
+        width: 100% !important;
+        min-height: 2.5rem;
+        box-sizing: border-box;
+        line-height: 1.25rem;
+    }
+
+    .cafe-edit-product-modal textarea {
+        min-height: 5rem;
+        resize: vertical;
+    }
+
+    .cafe-edit-product-modal input[type="file"] {
+        display: block;
+        width: 100% !important;
+        min-height: 2.75rem;
+        box-sizing: border-box;
+        font-size: 0.75rem;
+        line-height: 1.2rem;
+    }
+
+    .cafe-edit-product-modal .flex.justify-end {
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 0.5rem !important;
+        padding-top: 0.25rem !important;
+    }
+
+    .cafe-edit-product-modal .flex.justify-end button {
+        min-height: 2.4rem;
+    }
+}

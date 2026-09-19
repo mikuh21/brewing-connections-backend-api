@@ -66,7 +66,8 @@ Route::get('/', function () {
         ->with(['couponPromos' => function ($query) {
             $query->active()->latest('valid_until');
         }])
-        ->latest()
+        ->orderByDesc('reviews_avg_overall_rating')
+        ->latest('id')
         ->take(3)
         ->get();
 

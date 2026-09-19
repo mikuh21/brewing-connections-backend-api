@@ -115,6 +115,7 @@ class DashboardController extends Controller
             ->values();
 
         $establishmentDisplayData = Establishment::query()
+            ->whereIn('id', $activityIds->all())
             ->select(['id', 'name', 'barangay', 'address', 'image'])
             ->get()
             ->mapWithKeys(function (Establishment $establishment) {

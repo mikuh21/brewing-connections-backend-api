@@ -87,6 +87,13 @@
         color: #2E5A3D;
     }
 
+    /* Dark landing sections explicitly use white section tags. */
+    #barako-overview .section-tag,
+    #farm-products-list .section-tag,
+    #farm-products .section-tag {
+        color: #ffffff !important;
+    }
+
     .navbar-glass {
         background: rgba(58, 46, 34, 0.4) !important;
         backdrop-filter: blur(12px);

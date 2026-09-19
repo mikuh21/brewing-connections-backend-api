@@ -19,6 +19,7 @@ class ChatController extends Controller
         $authUser = User::query()->findOrFail(Auth::id());
 
         $conversations = $authUser->conversations()
+            ->messageableParticipants()
             ->with([
                 'users:id,name,role,image_url',
                 'latestMessage.sender:id,name,role',
@@ -47,6 +48,7 @@ class ChatController extends Controller
     public function recipients(): JsonResponse
     {
         $users = User::query()
+            ->messageable()
             ->where('id', '!=', Auth::id())
             ->whereIn('role', ['admin', 'farm_owner', 'cafe_owner', 'reseller'])
             ->orderBy('name')
@@ -68,6 +70,12 @@ class ChatController extends Controller
         $payload = $request->validate([
             'recipient_id' => ['required', 'integer', 'exists:users,id', 'different:' . Auth::id()],
         ]);
+
+        abort_unless(
+            User::messageable()->whereKey($payload['recipient_id'])->exists(),
+            422,
+            'The selected user is no longer available for messaging.'
+        );
 
         $conversation = $this->findOrCreateConversation((int) $payload['recipient_id']);
 
@@ -167,6 +175,7 @@ class ChatController extends Controller
         $authUser = User::query()->findOrFail(Auth::id());
 
         $existingConversation = $authUser->conversations()
+            ->messageableParticipants()
             ->whereHas('users', function ($query) use ($recipientId) {
                 $query->where('users.id', $recipientId);
             })
@@ -185,7 +194,8 @@ class ChatController extends Controller
 
     private function isParticipant(Conversation $conversation, int $userId): bool
     {
-        return $conversation->users()->where('users.id', $userId)->exists();
+        return $conversation->users()->where('users.id', $userId)->exists()
+            && $conversation->messageableParticipants()->whereKey($conversation->id)->exists();
     }
 
     private function serializeConversation(Conversation $conversation, int $authUserId): array

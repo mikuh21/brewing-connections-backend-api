@@ -62,11 +62,11 @@ Route::get('/', function () {
     $featuredCoffeeShops = Establishment::query()
         ->whereNull('deleted_at')
         ->where('type', 'cafe')
+        ->whereHas('reviews')
         ->withAvg('reviews', 'overall_rating')
         ->with(['couponPromos' => function ($query) {
             $query->active()->latest('valid_until');
         }])
-        ->orderByRaw('CASE WHEN reviews_avg_overall_rating IS NULL THEN 1 ELSE 0 END ASC')
         ->orderByDesc('reviews_avg_overall_rating')
         ->latest('id')
         ->take(3)

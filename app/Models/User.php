@@ -86,8 +86,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return $query
             ->where('status', 'active')
-            ->whereDoesntHave('establishment', function ($establishmentQuery) {
-                $establishmentQuery->withTrashed()->whereNotNull('establishments.deleted_at');
+            ->where(function ($query) {
+                // Farm/Cafe owners must still have a live establishment.
+                // This also handles permanent establishment deletion, where
+                // no deleted establishment row remains to inspect.
+                $query->whereNotIn('role', ['farm_owner', 'cafe_owner'])
+                    ->orWhereHas('establishment', function ($establishmentQuery) {
+                        $establishmentQuery->whereNull('establishments.deleted_at');
+                    });
             });
     }
 
@@ -172,6 +178,21 @@ class User extends Authenticatable implements JWTSubject
             ->join('conversation_participants as recipient_participants', 'recipient_participants.conversation_id', '=', 'messages.conversation_id')
             ->where('recipient_participants.user_id', $this->id)
             ->where('messages.sender_id', '!=', $this->id)
+            ->whereExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('users as message_senders')
+                    ->whereColumn('message_senders.id', 'messages.sender_id')
+                    ->where('message_senders.status', 'active')
+                    ->where(function ($query) {
+                        $query->whereNotIn('message_senders.role', ['farm_owner', 'cafe_owner'])
+                            ->orWhereExists(function ($establishmentQuery) {
+                                $establishmentQuery->selectRaw('1')
+                                    ->from('establishments')
+                                    ->whereColumn('establishments.owner_id', 'message_senders.id')
+                                    ->whereNull('establishments.deleted_at');
+                            });
+                    });
+            })
             ->where(function ($query) {
                 $query->where(function ($query) {
                     $query->whereNotNull('recipient_participants.last_read_at')

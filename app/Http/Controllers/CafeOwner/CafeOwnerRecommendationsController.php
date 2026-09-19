@@ -140,8 +140,6 @@ class CafeOwnerRecommendationsController extends Controller
             ]);
         }
 
-        $this->analyticsService->rebuildHistoricalSnapshots((int) $establishment->id);
-
         $ratingColumn = Schema::hasColumn('rating', 'score') ? 'score' : 'overall_rating';
 
         $ratingsQuery = Rating::query()->where('establishment_id', $establishment->id);

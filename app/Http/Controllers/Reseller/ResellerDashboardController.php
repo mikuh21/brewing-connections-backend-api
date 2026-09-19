@@ -144,6 +144,7 @@ class ResellerDashboardController extends Controller
         $unreadChatCount = 0;
 
         $conversations = $user->conversations()
+            ->messageableParticipants()
             ->with(['latestMessage.sender:id,name'])
             ->get();
 
@@ -316,7 +317,7 @@ class ResellerDashboardController extends Controller
         $chatActivity = collect();
         $user = \App\Models\User::find($resellerId);
         if ($user) {
-            $conversations = $user->conversations()->get();
+            $conversations = $user->conversations()->messageableParticipants()->get();
             foreach ($conversations as $conversation) {
                 $latest = $conversation->messages()
                     ->with('sender:id,name')

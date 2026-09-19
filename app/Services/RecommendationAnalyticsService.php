@@ -102,8 +102,24 @@ class RecommendationAnalyticsService
         ];
     }
 
+    private function purgeOrphanedInsights(): void
+    {
+        // Recommendations and snapshot history must never survive without an
+        // active establishment. This also cleans up legacy orphaned records
+        // left by older deletion flows or soft-deleted establishments.
+        Recommendation::query()
+            ->whereDoesntHave('establishment')
+            ->delete();
+
+        RecommendationSnapshot::query()
+            ->whereDoesntHave('establishment')
+            ->delete();
+    }
+
     public function generateInsights()
     {
+        $this->purgeOrphanedInsights();
+
         $establishments = Establishment::all();
 
         foreach ($establishments as $establishment) {

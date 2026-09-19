@@ -268,28 +268,24 @@
         $sidebarProfileY = 50;
         $sidebarUserId = auth()->id();
         if ($sidebarUserId) {
+            $sidebarColumns = \Illuminate\Support\Facades\Schema::getColumnListing('establishments');
             $sidebarEstablishmentQuery = \App\Models\Establishment::query();
-            if (\Illuminate\Support\Facades\Schema::hasColumn('establishments', 'user_id')) {
+
+            if (in_array('user_id', $sidebarColumns, true)) {
                 $sidebarEstablishmentQuery->where('user_id', $sidebarUserId);
             } else {
                 $sidebarEstablishmentQuery->where('owner_id', $sidebarUserId);
             }
 
             $sidebarActiveEstablishmentId = (int) session('cafe_owner_active_establishment_id', 0);
-            $sidebarEstablishment = null;
 
-            if ($sidebarActiveEstablishmentId > 0) {
-                $sidebarEstablishment = (clone $sidebarEstablishmentQuery)
-                    ->whereKey($sidebarActiveEstablishmentId)
-                    ->first();
-            }
-
-            if (!$sidebarEstablishment) {
-                $sidebarEstablishment = (clone $sidebarEstablishmentQuery)
-                    ->orderByDesc('updated_at')
-                    ->orderByDesc('id')
-                    ->first();
-            }
+            // Resolve the active cafe in one query instead of querying once for the
+            // requested establishment and again as a fallback.
+            $sidebarEstablishment = $sidebarEstablishmentQuery
+                ->orderByRaw('CASE WHEN id = ? THEN 0 ELSE 1 END', [$sidebarActiveEstablishmentId])
+                ->orderByDesc('updated_at')
+                ->orderByDesc('id')
+                ->first();
 
             $sidebarImage = optional($sidebarEstablishment)->image;
             $sidebarProfileX = (int) (optional($sidebarEstablishment)->profile_focus_x ?? 50);

@@ -78,6 +78,19 @@ class User extends Authenticatable implements JWTSubject
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
+    /**
+     * Scope users who are currently eligible to appear in Messages.
+     * Excludes inactive/deactivated accounts and owners of soft-deleted establishments.
+     */
+    public function scopeMessageable($query)
+    {
+        return $query
+            ->where('status', 'active')
+            ->whereDoesntHave('establishment', function ($establishmentQuery) {
+                $establishmentQuery->withTrashed()->whereNotNull('establishments.deleted_at');
+            });
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

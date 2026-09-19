@@ -72,6 +72,28 @@ Route::get('/', function () {
         ->take(3)
         ->get();
 
+    // Keep the highest-rated cafes first, then fill any remaining featured slots
+    // with the most recently added cafes that do not have ratings yet.
+    if ($featuredCoffeeShops->count() < 3) {
+        $featuredCafeIds = $featuredCoffeeShops->pluck('id');
+
+        $recentUnratedCafes = Establishment::query()
+            ->whereNull('deleted_at')
+            ->where('type', 'cafe')
+            ->whereDoesntHave('reviews')
+            ->when($featuredCafeIds->isNotEmpty(), function ($query) use ($featuredCafeIds) {
+                $query->whereNotIn('id', $featuredCafeIds);
+            })
+            ->with(['couponPromos' => function ($query) {
+                $query->active()->latest('valid_until');
+            }])
+            ->latest('id')
+            ->take(3 - $featuredCoffeeShops->count())
+            ->get();
+
+        $featuredCoffeeShops = $featuredCoffeeShops->concat($recentUnratedCafes);
+    }
+
     return view('landing', compact('farmProducts', 'recentProductRatings', 'featuredFarms', 'featuredCoffeeShops'));
 });
 

@@ -253,7 +253,7 @@ class DashboardController extends Controller
         $chatItems = collect();
         $unreadChatCount = 0;
 
-        $conversations = $user->conversations()->get();
+        $conversations = $user->conversations()->messageableParticipants()->get();
 
         foreach ($conversations as $conversation) {
             $unread = $conversation->unreadCount($user->id);

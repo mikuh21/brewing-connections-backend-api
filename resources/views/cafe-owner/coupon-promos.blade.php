@@ -19,6 +19,7 @@
         scannerError: '',
         scannerSuccess: '',
         isWebMobile: window.innerWidth < 768,
+        todayDate: (() => { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); const day = String(now.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`; })(),
         establishmentName: @js((auth()->user()->name ?? 'Your Cafe') . "'s Cafe"),
         dailyClaimsChart: null,
         timeOfDayChart: null,
@@ -1072,7 +1073,7 @@
                                 :class="createForm.discount_type === 'fixed' ? 'bg-[#4A6741] text-white border-[#4A6741]' : 'bg-white text-[#4A6741] border-[#4A6741]'"
                                 class="rounded-lg border px-4 py-2 text-sm font-semibold transition-colors"
                             >
-                                $ Fixed Amount
+                                ₱ Fixed Amount
                             </button>
                         </div>
                     </div>
@@ -1084,12 +1085,14 @@
                                 type="number"
                                 name="discount_value"
                                 x-model="createForm.discount_value"
-                                min="0"
+                                min="0.01"
                                 step="0.01"
                                 required
                                 class="w-full rounded-lg border border-[#D8CFC1] px-3 py-2 pr-10 text-sm focus:border-[#4A6741] focus:outline-none"
                             />
-                            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#6A5A48]" x-text="createForm.discount_type === 'percentage' ? '%' : 'PHP'"></span>
+                            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-[#6A5A48]" x-text="createForm.discount_type === 'percentage' ? '%' : '₱'"></span>
+                        </div>
+                        <p x-show="createForm.discount_value !== '' && Number(createForm.discount_value) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Discount value must be greater than 0.</p>
                         </div>
                     </div>
 
@@ -1100,6 +1103,7 @@
                                 type="date"
                                 name="valid_from"
                                 x-model="createForm.valid_from"
+                                :min="todayDate"
                                 required
                                 class="coupon-date-input w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
                             />
@@ -1110,6 +1114,7 @@
                                 type="date"
                                 name="valid_until"
                                 x-model="createForm.valid_until"
+                                :min="createForm.valid_from || todayDate"
                                 required
                                 class="coupon-date-input w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
                             />

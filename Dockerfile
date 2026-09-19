@@ -31,6 +31,10 @@ COPY --from=frontend /frontend/public/build ./public/build
 
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
+# Precompile Blade views during the image build so the first production request
+# does not pay the template-compilation cost.
+RUN php artisan view:cache
+
 RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000

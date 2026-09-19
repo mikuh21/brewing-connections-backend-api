@@ -9,7 +9,6 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
     {{-- App CSS for admin map page styling --}}
-    @vite('resources/css/app.css')
 @endpush
 
 @section('content')

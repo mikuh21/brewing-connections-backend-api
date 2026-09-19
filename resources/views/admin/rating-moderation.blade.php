@@ -212,7 +212,7 @@
                     </div>
                     <div class="w-12 h-12 bg-[#800000]/15 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-[#800000]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 21c3.5 0 6.5-2 8.5-5.5C16.5 11.8 18 6.5 18 3c-3.5 0-8.8 1.5-12.5 3.5C2 8.5 0 11.5 0 15c0 3.5 2.5 6 6 6zm0 0c2-2 4-4.5 5.5-7.5"/> 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7V6a6 6 0 0112 0v1m-14 0h16l-1 14H5L4 7zm5 4v1m6-1v1"/>
                         </svg>
                     </div>
                 </div>

@@ -496,7 +496,7 @@
                         @endif
                     </div>
                 @endforeach
-            </div>            </div>
+            </div>
             <div class="text-center mt-10">
                 <a href="#farm-products-list" class="inline-flex items-center gap-2 text-[#2E5A3D] font-body font-medium hover:gap-4 transition-all duration-300">
                     See All Products
@@ -553,7 +553,7 @@
                         @endif
                     </div>
                 @endforeach
-            </div>            </div>
+            </div>
             <div class="text-center mt-10 reveal">
                 <p class="text-[#3A2E22] font-body text-base md:text-lg mb-4">
                     Download <em>BrewHub</em> to experience more quality coffee!

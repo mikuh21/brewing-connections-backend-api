@@ -450,6 +450,7 @@ class RecommendationAnalyticsService
 
         return $query
             ->orderBy('rating.created_at', 'desc')
+            ->limit(12)
             ->get();
     }
 }

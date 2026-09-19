@@ -467,78 +467,36 @@
             <h2 class="text-3xl md:text-4xl font-bold text-[#3A2E22] text-center mb-4 font-display leading-snug reveal">Featured Coffee Farms</h2>
             <p class="text-center text-[#3A2E22] mb-12 text-base md:text-lg font-body max-w-2xl mx-auto leading-relaxed reveal">Discover our curated selection of top-rated Coffee Farms</p>
             @php
-                $farmCardOne = ($featuredFarms ?? collect())->get(0);
-                $farmCardTwo = ($featuredFarms ?? collect())->get(1);
-                $farmCardThree = ($featuredFarms ?? collect())->get(2);
-                $farmImageOne = $farmCardOne?->image
-                    ? (str_starts_with($farmCardOne->image, 'http')
-                        ? $farmCardOne->image
-                        : asset(ltrim($farmCardOne->image, '/')))
-                    : null;
-                $farmImageTwo = $farmCardTwo?->image
-                    ? (str_starts_with($farmCardTwo->image, 'http')
-                        ? $farmCardTwo->image
-                        : asset(ltrim($farmCardTwo->image, '/')))
-                    : null;
-                $farmImageThree = $farmCardThree?->image
-                    ? (str_starts_with($farmCardThree->image, 'http')
-                        ? $farmCardThree->image
-                        : asset(ltrim($farmCardThree->image, '/')))
-                    : null;
+                $featuredFarms = $featuredFarms ?? collect();
             @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-1">
-                    @if($farmImageOne)
-                        <img src="{{ $farmImageOne }}" alt="{{ $farmCardOne?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
-                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                        </div>
-                    @else
-                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                        </div>
-                    @endif
-                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardOne?->name ?? 'Farm One' }}</h3>
-                    <p class="text-[#946042]">{{ $farmCardOne?->address ?? 'Lipa, Batangas' }}</p>
-                    @if(filled($farmCardOne?->description))
-                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farmCardOne->description, 120) }}</p>
-                    @endif
-                </div>
-                <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-2">
-                    @if($farmImageTwo)
-                        <img src="{{ $farmImageTwo }}" alt="{{ $farmCardTwo?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
-                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                        </div>
-                    @else
-                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                        </div>
-                    @endif
-                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardTwo?->name ?? 'Farm Two' }}</h3>
-                    <p class="text-[#946042]">{{ $farmCardTwo?->address ?? 'Lipa, Batangas' }}</p>
-                    @if(filled($farmCardTwo?->description))
-                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farmCardTwo->description, 120) }}</p>
-                    @endif
-                </div>
-                <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-3">
-                    @if($farmImageThree)
-                        <img src="{{ $farmImageThree }}" alt="{{ $farmCardThree?->name ?? 'Featured Farm' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
-                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                        </div>
-                    @else
-                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                        </div>
-                    @endif
-                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farmCardThree?->name ?? 'Farm Three' }}</h3>
-                    <p class="text-[#946042]">{{ $farmCardThree?->address ?? 'Lipa, Batangas' }}</p>
-                    @if(filled($farmCardThree?->description))
-                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farmCardThree->description, 120) }}</p>
-                    @endif
-                </div>
-            </div>
+                @foreach($featuredFarms as $farm)
+                    @php
+                        $farmImage = $farm->image
+                            ? (str_starts_with($farm->image, 'http')
+                                ? $farm->image
+                                : asset(ltrim($farm->image, '/')))
+                            : null;
+                    @endphp
+                    <div class="bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ $loop->iteration }}">
+                        @if($farmImage)
+                            <img src="{{ $farmImage }}" alt="{{ $farm->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                            <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                            </div>
+                        @else
+                            <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                            </div>
+                        @endif
+                        <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farm->name }}</h3>
+                        <p class="text-[#946042]">{{ $farm->address ?? 'Lipa, Batangas' }}</p>
+                        @if(filled($farm->description))
+                            <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farm->description, 120) }}</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>            </div>
             <div class="text-center mt-10">
                 <a href="#farm-products-list" class="inline-flex items-center gap-2 text-[#2E5A3D] font-body font-medium hover:gap-4 transition-all duration-300">
                     See All Products
@@ -556,108 +514,46 @@
             <h2 class="text-3xl md:text-4xl font-bold text-[#3A2E22] text-center mb-4 font-display leading-snug reveal">Featured Coffee Shops</h2>
             <p class="text-center text-[#3A2E22] mb-12 text-base md:text-lg font-body max-w-2xl mx-auto leading-relaxed reveal">Explore the best local cafés in Lipa, Batangas</p>
             @php
-                $shopCardOne = ($featuredCoffeeShops ?? collect())->get(0);
-                $shopCardTwo = ($featuredCoffeeShops ?? collect())->get(1);
-                $shopCardThree = ($featuredCoffeeShops ?? collect())->get(2);
-                $shopImageOne = $shopCardOne?->image
-                    ? (str_starts_with($shopCardOne->image, 'http')
-                        ? $shopCardOne->image
-                        : asset(ltrim($shopCardOne->image, '/')))
-                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
-                $shopImageTwo = $shopCardTwo?->image
-                    ? (str_starts_with($shopCardTwo->image, 'http')
-                        ? $shopCardTwo->image
-                        : asset(ltrim($shopCardTwo->image, '/')))
-                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
-                $shopImageThree = $shopCardThree?->image
-                    ? (str_starts_with($shopCardThree->image, 'http')
-                        ? $shopCardThree->image
-                        : asset(ltrim($shopCardThree->image, '/')))
-                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
-                $shopPromoOne = $shopCardOne?->couponPromos?->first();
-                $shopPromoTwo = $shopCardTwo?->couponPromos?->first();
-                $shopPromoThree = $shopCardThree?->couponPromos?->first();
+                $featuredCoffeeShops = $featuredCoffeeShops ?? collect();
             @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-1">
-                    <img src="{{ $shopImageOne }}" alt="{{ $shopCardOne?->name ?? 'Featured Coffee Shop' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
-                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shopCardOne?->name ?? 'Shop One' }}</h3>
-                    <p class="text-[#946042]">{{ $shopCardOne?->address ?? 'Lipa, Batangas' }}</p>
-                    @if(is_numeric($shopCardOne?->reviews_avg_overall_rating))
-                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
-                                </svg>
-                            </span>
-                            <span class="font-semibold">{{ number_format((float) $shopCardOne->reviews_avg_overall_rating, 1) }}/5</span>
-                            <span class="text-[#3A2E22]/70">rating</span>
-                        </p>
-                    @else
-                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
-                    @endif
-                    @if($shopPromoOne)
-                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
-                            Promo: {{ \Illuminate\Support\Str::limit($shopPromoOne->title, 42) }}
-                        </div>
-                    @endif
-                    @if(filled($shopCardOne?->description))
-                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shopCardOne->description, 120) }}</p>
-                    @endif
-                </div>
-                <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-2">
-                    <img src="{{ $shopImageTwo }}" alt="{{ $shopCardTwo?->name ?? 'Featured Coffee Shop' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
-                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shopCardTwo?->name ?? 'Shop Two' }}</h3>
-                    <p class="text-[#946042]">{{ $shopCardTwo?->address ?? 'Lipa, Batangas' }}</p>
-                    @if(is_numeric($shopCardTwo?->reviews_avg_overall_rating))
-                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
-                                </svg>
-                            </span>
-                            <span class="font-semibold">{{ number_format((float) $shopCardTwo->reviews_avg_overall_rating, 1) }}/5</span>
-                            <span class="text-[#3A2E22]/70">rating</span>
-                        </p>
-                    @else
-                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
-                    @endif
-                    @if($shopPromoTwo)
-                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
-                            Promo: {{ \Illuminate\Support\Str::limit($shopPromoTwo->title, 42) }}
-                        </div>
-                    @endif
-                    @if(filled($shopCardTwo?->description))
-                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shopCardTwo->description, 120) }}</p>
-                    @endif
-                </div>
-                <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-3">
-                    <img src="{{ $shopImageThree }}" alt="{{ $shopCardThree?->name ?? 'Featured Coffee Shop' }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
-                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shopCardThree?->name ?? 'Shop Three' }}</h3>
-                    <p class="text-[#946042]">{{ $shopCardThree?->address ?? 'Lipa, Batangas' }}</p>
-                    @if(is_numeric($shopCardThree?->reviews_avg_overall_rating))
-                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
-                                </svg>
-                            </span>
-                            <span class="font-semibold">{{ number_format((float) $shopCardThree->reviews_avg_overall_rating, 1) }}/5</span>
-                            <span class="text-[#3A2E22]/70">overall</span>
-                        </p>
-                    @else
-                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
-                    @endif
-                    @if($shopPromoThree)
-                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
-                            Promo: {{ \Illuminate\Support\Str::limit($shopPromoThree->title, 42) }}
-                        </div>
-                    @endif
-                    @if(filled($shopCardThree?->description))
-                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shopCardThree->description, 120) }}</p>
-                    @endif
-                </div>
-            </div>
+                @foreach($featuredCoffeeShops as $shop)
+                    @php
+                        $shopImage = $shop->image
+                            ? (str_starts_with($shop->image, 'http')
+                                ? $shop->image
+                                : asset(ltrim($shop->image, '/')))
+                            : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
+                        $shopPromo = $shop->couponPromos?->first();
+                    @endphp
+                    <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ $loop->iteration }}">
+                        <img src="{{ $shopImage }}" alt="{{ $shop->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
+                        <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shop->name }}</h3>
+                        <p class="text-[#946042]">{{ $shop->address ?? 'Lipa, Batangas' }}</p>
+                        @if(is_numeric($shop->reviews_avg_overall_rating))
+                            <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
+                                <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
+                                    </svg>
+                                </span>
+                                <span class="font-semibold">{{ number_format((float) $shop->reviews_avg_overall_rating, 1) }}/5</span>
+                                <span class="text-[#3A2E22]/70">rating</span>
+                            </p>
+                        @else
+                            <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
+                        @endif
+                        @if($shopPromo)
+                            <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
+                                Promo: {{ \Illuminate\Support\Str::limit($shopPromo->title, 42) }}
+                            </div>
+                        @endif
+                        @if(filled($shop->description))
+                            <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shop->description, 120) }}</p>
+                        @endif
+                    </div>
+                @endforeach
+            </div>            </div>
             <div class="text-center mt-10 reveal">
                 <p class="text-[#3A2E22] font-body text-base md:text-lg mb-4">
                     Download <em>BrewHub</em> to experience more quality coffee!

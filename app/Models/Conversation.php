@@ -8,6 +8,23 @@ class Conversation extends Model
 {
     protected $fillable = ['title'];
 
+    /**
+     * Scope conversations whose participants are all currently messageable.
+     * This keeps deleted/deactivated users out of existing chats and new-chat lists.
+     */
+    public function scopeMessageableParticipants($query)
+    {
+        return $query->whereDoesntHave('users', function ($userQuery) {
+            $userQuery->where(function ($query) {
+                $query->where('status', '!=', 'active')
+                    ->orWhereNull('status')
+                    ->orWhereHas('establishment', function ($establishmentQuery) {
+                        $establishmentQuery->withTrashed()->whereNotNull('establishments.deleted_at');
+                    });
+            });
+        });
+    }
+
     public function participants()
     {
         return $this->hasMany(ConversationParticipant::class);

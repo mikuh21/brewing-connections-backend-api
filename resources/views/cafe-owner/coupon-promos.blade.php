@@ -51,6 +51,34 @@
             this.createForm.status = 'active';
             this.createForm.isEditing = false;
         },
+        validateCouponDate(field, selectedValue) {
+            const value = selectedValue ?? this.createForm[field];
+            const minimum = field === 'valid_until'
+                ? (this.createForm.valid_from || this.todayDate)
+                : this.todayDate;
+
+            if (!value) {
+                return true;
+            }
+
+            if (value < minimum) {
+                this.createForm[field] = field === 'valid_until'
+                    ? (this.createForm.valid_from || this.todayDate)
+                    : this.todayDate;
+                return false;
+            }
+
+            if (field === 'valid_from' && this.createForm.valid_until && this.createForm.valid_until < value) {
+                this.createForm.valid_until = value;
+            }
+
+            return true;
+        },
+        validateCouponDates() {
+            const validFromOk = this.validateCouponDate('valid_from');
+            const validUntilOk = this.validateCouponDate('valid_until');
+            return validFromOk && validUntilOk;
+        },
         openCreateModal() {
             this.resetCreateForm();
             this.createModalOpen = true;
@@ -1025,7 +1053,7 @@
                 <button type="button" x-on:click="createModalOpen = false" class="text-[#6A5A48] hover:text-[#3A2E22]">✕</button>
             </div>
 
-            <form method="POST" x-bind:action="createForm.isEditing ? updateRouteBase + '/' + createForm.id : postRoute" class="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <form method="POST" x-bind:action="createForm.isEditing ? updateRouteBase + '/' + createForm.id : postRoute" x-on:submit="if (!validateCouponDates()) { $event.preventDefault(); }" class="grid grid-cols-1 gap-6 lg:grid-cols-5">
                 @csrf
                 <input type="hidden" name="_method" x-bind:value="createForm.isEditing ? 'PATCH' : 'POST'" />
                 <input type="hidden" name="status" x-model="createForm.status" />
@@ -1103,6 +1131,8 @@
                                 name="valid_from"
                                 x-model="createForm.valid_from"
                                 :min="todayDate"
+                                x-on:input="validateCouponDate('valid_from', $event.target.value)"
+                                x-on:change="validateCouponDate('valid_from', $event.target.value)"
                                 required
                                 class="coupon-date-input w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
                             />
@@ -1114,6 +1144,8 @@
                                 name="valid_until"
                                 x-model="createForm.valid_until"
                                 :min="createForm.valid_from || todayDate"
+                                x-on:input="validateCouponDate('valid_until', $event.target.value)"
+                                x-on:change="validateCouponDate('valid_until', $event.target.value)"
                                 required
                                 class="coupon-date-input w-full rounded-lg border border-[#D8CFC1] px-3 py-2 text-sm focus:border-[#4A6741] focus:outline-none"
                             />

@@ -223,10 +223,10 @@ class ResellerMarketplaceController extends Controller
             'category' => 'required|in:Coffee Beans,Ground Coffee',
             'roast_level' => 'nullable|string|max:100',
             'grind_type' => 'nullable|string|max:100',
-            'price_per_unit' => 'required|numeric|min:0',
+            'price_per_unit' => 'required|numeric|gt:0',
             'unit' => 'nullable|string|max:50',
             'moq' => 'nullable|integer|min:1',
-            'stock_quantity' => 'required|integer|min:0',
+            'stock_quantity' => 'required|integer|min:1',
             'image' => 'nullable|image|max:5120',
         ]);
 

@@ -15,13 +15,14 @@ RUN npm run build
 
 FROM php:8.4-cli
 
-RUN apt-get update && apt-get install -y git curl libpq-dev libzip-dev zip unzip libxml2-dev libonig-dev && docker-php-ext-install pdo pdo_pgsql pgsql zip mbstring
+RUN apt-get update && apt-get install -y git curl libpq-dev libzip-dev zip unzip libxml2-dev libonig-dev && docker-php-ext-install pdo pdo_pgsql pgsql zip mbstring opcache
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
 COPY php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+COPY php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 COPY . .
 

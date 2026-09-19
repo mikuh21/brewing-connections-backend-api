@@ -1158,3 +1158,18 @@
 .bg-white.hover\\:bg-opacity-100:hover {
     background-color: rgb(255 255 255 / 100%) !important;
 }
+
+
+/* Consistent pointer cursor for interactive controls */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"]:not([aria-disabled="true"]),
+.filter-tab {
+    cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[role="tab"][aria-disabled="true"] {
+    cursor: not-allowed;
+}

@@ -14,8 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" 
           rel="stylesheet">
 
-    {{-- Tailwind CDN --}}
-    <script src="https://cdn.tailwindcss.com"></script>
+    {{-- Production frontend bundle (Tailwind + shared app CSS) --}}
+    @vite('resources/css/app.css')
 
     {{-- Alpine.js --}}
     <script src="//unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" 

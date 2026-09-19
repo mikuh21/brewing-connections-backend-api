@@ -1115,7 +1115,11 @@ class FarmOwnerController extends Controller
 
     public function sendConversationMessage(Request $request, Conversation $conversation)
     {
-        abort_unless($conversation->users->contains(Auth::id()), 403);
+        abort_unless(
+            $conversation->users()->whereKey(Auth::id())->exists()
+            && $conversation->messageableParticipants()->whereKey($conversation->id)->exists(),
+            403
+        );
 
         $request->validate(['body' => 'required|string|max:1000']);
 

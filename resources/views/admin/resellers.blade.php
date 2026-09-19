@@ -77,11 +77,7 @@
                     Messages
                     @php
                         $authUser = Auth::user();
-                        $totalUnread = $authUser->conversations()
-                            ->get()
-                            ->sum(function($conv) use ($authUser) {
-                                return $conv->unreadCount($authUser->id);
-                            });
+                        $totalUnread = $authUser->unreadMessagesCount();
                     @endphp
                     @if($totalUnread > 0)
                         <span class="ml-auto inline-flex items-center justify-center min-w-[20px] h-5 px-1 text-[10px] font-bold text-white bg-red-600 rounded-full">

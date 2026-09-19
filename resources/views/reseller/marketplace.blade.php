@@ -1318,7 +1318,7 @@
             <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('reseller.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+        <form method="POST" action="{{ route('reseller.marketplace.products.store') }}" enctype="multipart/form-data" @submit="if (Number(createForm.price_per_unit) <= 0) { $event.preventDefault(); } else { isCreatingProduct = true; }" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
             @csrf
 
             <div class="md:col-span-3">
@@ -1336,7 +1336,8 @@
 
             <div>
                 <label class="block text-[11px] font-semibold">Price *</label>
-                <input x-model="createForm.price_per_unit" type="number" min="0" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <input x-model="createForm.price_per_unit" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <p x-show="createForm.price_per_unit !== '' && Number(createForm.price_per_unit) <= 0" x-cloak class="mt-1 text-[11px] font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>
@@ -1351,7 +1352,7 @@
 
             <div>
                 <label class="block text-[11px] font-semibold">Stock Quantity *</label>
-                <input x-model="createForm.stock_quantity" type="number" min="0" step="1" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <input x-model="createForm.stock_quantity" type="number" min="1" step="1" inputmode="numeric" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div>
@@ -1361,7 +1362,7 @@
 
             <div>
                 <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
-                <input x-model="createForm.moq" type="number" min="1" step="1" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <input x-model="createForm.moq" type="number" min="1" step="1" inputmode="numeric" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div class="md:col-span-3">

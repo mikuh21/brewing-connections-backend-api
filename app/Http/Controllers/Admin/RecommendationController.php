@@ -29,7 +29,11 @@ class RecommendationController extends Controller
         $this->analyticsService->generateInsights();
         $overallAnalytics = $this->analyticsService->getOverallAnalytics();
         $recentReviews = $this->analyticsService->getRecentReviews($recentReviewsRange);
-        $recommendations = Recommendation::with('establishment')->get()->groupBy('priority');
+        $recommendations = Recommendation::query()
+            ->with('establishment')
+            ->whereHas('establishment')
+            ->get()
+            ->groupBy('priority');
         $establishments = Establishment::all()->map(function ($est) {
             return [
                 'establishment' => $est,

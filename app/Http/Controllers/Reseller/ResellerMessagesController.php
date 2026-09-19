@@ -15,7 +15,11 @@ class ResellerMessagesController extends Controller
         $authUser = User::query()->findOrFail(Auth::id());
 
         if ($conversation) {
-            abort_unless($conversation->users->contains(Auth::id()), 403);
+            abort_unless(
+            $conversation->users()->whereKey(Auth::id())->exists()
+            && $conversation->messageableParticipants()->whereKey($conversation->id)->exists(),
+            403
+        );
 
             $conversation->participants()
                 ->where('user_id', Auth::id())
@@ -23,6 +27,7 @@ class ResellerMessagesController extends Controller
         }
 
         $conversations = $authUser->conversations()
+            ->messageableParticipants()
             ->with(['users', 'latestMessage.sender'])
             ->orderByDesc(function ($query) {
                 $query->select('created_at')
@@ -33,7 +38,7 @@ class ResellerMessagesController extends Controller
             })
             ->get();
 
-        $users = User::where('id', '!=', Auth::id())->get();
+        $users = User::messageable()->where('id', '!=', Auth::id())->get();
 
         $messages = collect();
 
@@ -51,9 +56,16 @@ class ResellerMessagesController extends Controller
     {
         $request->validate(['recipient_id' => 'required|exists:users,id']);
 
+        abort_unless(
+            User::messageable()->whereKey($request->recipient_id)->exists(),
+            422,
+            'The selected user is no longer available for messaging.'
+        );
+
         $authUser = User::query()->findOrFail(Auth::id());
 
         $existingConversation = $authUser->conversations()
+            ->messageableParticipants()
             ->whereHas('users', function ($query) use ($request) {
                 $query->where('users.id', $request->recipient_id);
             })

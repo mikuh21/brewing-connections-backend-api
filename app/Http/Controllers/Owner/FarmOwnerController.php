@@ -940,24 +940,31 @@ class FarmOwnerController extends Controller
         $googleMapsKey = config('services.google_maps.key');
         $verifiedResellers = $this->getVerifiedResellersForMap();
 
-        $establishments = Establishment::with([
-            'varieties',
-            'reviews',
-            'products',
-            'couponPromos' => function ($query) {
-                $query->where('status', 'active')
-                    ->where('valid_until', '>=', now()->toDateString());
-            }
-        ])->whereNull('deleted_at')->get();
+        $establishments = Establishment::query()
+            ->whereNull('deleted_at')
+            ->with([
+                'varieties:id,name',
+                'products:id,establishment_id,name,description,category,price_per_unit,unit,image_url,is_active',
+                'couponPromos' => function ($query) {
+                    $query->where('status', 'active')
+                        ->where('valid_until', '>=', now()->toDateString());
+                },
+            ])
+            ->withCount('reviews')
+            ->withAvg('reviews', 'overall_rating')
+            ->withAvg('reviews', 'taste_rating')
+            ->withAvg('reviews', 'environment_rating')
+            ->withAvg('reviews', 'cleanliness_rating')
+            ->withAvg('reviews', 'service_rating')
+            ->get();
 
         $establishments = $establishments->map(function ($e) {
-            $reviews = $e->reviews ?? collect();
-            $reviewCount = (int) $reviews->count();
-            $overallAverage = $reviewCount > 0 ? round((float) $reviews->avg('overall_rating'), 1) : null;
-            $tasteAverage = $reviewCount > 0 ? round((float) $reviews->avg('taste_rating'), 1) : null;
-            $environmentAverage = $reviewCount > 0 ? round((float) $reviews->avg('environment_rating'), 1) : null;
-            $cleanlinessAverage = $reviewCount > 0 ? round((float) $reviews->avg('cleanliness_rating'), 1) : null;
-            $serviceAverage = $reviewCount > 0 ? round((float) $reviews->avg('service_rating'), 1) : null;
+            $reviewCount = (int) ($e->reviews_count ?? 0);
+            $overallAverage = $reviewCount > 0 ? round((float) ($e->reviews_avg_overall_rating ?? 0), 1) : null;
+            $tasteAverage = $reviewCount > 0 ? round((float) ($e->reviews_avg_taste_rating ?? 0), 1) : null;
+            $environmentAverage = $reviewCount > 0 ? round((float) ($e->reviews_avg_environment_rating ?? 0), 1) : null;
+            $cleanlinessAverage = $reviewCount > 0 ? round((float) ($e->reviews_avg_cleanliness_rating ?? 0), 1) : null;
+            $serviceAverage = $reviewCount > 0 ? round((float) ($e->reviews_avg_service_rating ?? 0), 1) : null;
 
             return [
                 'id' => $e->id,

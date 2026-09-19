@@ -18,8 +18,11 @@ class Conversation extends Model
             $userQuery->where(function ($query) {
                 $query->where('status', '!=', 'active')
                     ->orWhereNull('status')
-                    ->orWhereHas('establishment', function ($establishmentQuery) {
-                        $establishmentQuery->withTrashed()->whereNotNull('establishments.deleted_at');
+                    ->orWhere(function ($query) {
+                        $query->whereIn('role', ['farm_owner', 'cafe_owner'])
+                            ->whereDoesntHave('establishment', function ($establishmentQuery) {
+                                $establishmentQuery->whereNull('establishments.deleted_at');
+                            });
                     });
             });
         });

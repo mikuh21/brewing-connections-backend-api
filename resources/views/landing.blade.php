@@ -208,7 +208,7 @@
         <div class="absolute inset-0 bg-gradient-to-b from-[#F3E9D7]/50 via-[#F3E9D7]/75 to-[#F3E9D7]"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             <div class="max-w-3xl mx-auto">
-                <div class="animate-bounce inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-[#3A2E22] text-xs px-3 py-1.5 rounded-full mb-4 font-body">
+                <div class="animate-bounce inline-flex items-center gap-2 bg-[#2E5A3D] text-white text-xs px-3 py-1.5 rounded-full mb-4 font-body">
                     Proudly from Lipa, Batangas
                 </div>
                 <h1 class="text-4xl md:text-5xl font-bold text-[#3A2E22] mb-6 leading-tight font-display animate-fade-in-up">

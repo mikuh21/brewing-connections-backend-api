@@ -452,7 +452,9 @@ class FarmOwnerController extends Controller
             'contact_number' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
+            'visit_hours' => 'nullable|string|max:255',
             'operating_hours' => 'nullable|string|max:255',
+            'activities' => 'nullable|string|max:255',
             'banner_focus_x' => 'nullable|integer|between:0,100',
             'banner_focus_y' => 'nullable|integer|between:0,100',
             'profile_focus_x' => 'nullable|integer|between:0,100',
@@ -487,12 +489,23 @@ class FarmOwnerController extends Controller
             }
         }
 
+        // The My Farm form submits visit_hours. Keep operating_hours as a
+        // backward-compatible alias for older clients/forms, but prefer the
+        // field that was actually submitted so edits are never silently lost.
+        $submittedHours = array_key_exists('visit_hours', $validated)
+            ? $validated['visit_hours']
+            : ($validated['operating_hours'] ?? null);
+
         if ($this->hasEstablishmentColumn('visit_hours')) {
-            $updatePayload['visit_hours'] = $validated['operating_hours'] ?? null;
+            $updatePayload['visit_hours'] = $submittedHours;
         }
 
         if ($this->hasEstablishmentColumn('operating_hours')) {
-            $updatePayload['operating_hours'] = $validated['operating_hours'] ?? null;
+            $updatePayload['operating_hours'] = $submittedHours;
+        }
+
+        if ($this->hasEstablishmentColumn('activities')) {
+            $updatePayload['activities'] = $validated['activities'] ?? null;
         }
 
         if ($request->hasFile('image') && $this->hasEstablishmentColumn('image')) {

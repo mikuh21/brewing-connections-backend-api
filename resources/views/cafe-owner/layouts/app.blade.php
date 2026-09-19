@@ -201,7 +201,9 @@
             }
 
             .cafe-sidebar-open .cafe-sidebar {
-                transform: translateX(0);
+                /* Tailwind v4 uses the individual `translate` property for translate-x utilities. */
+                translate: 0 !important;
+                transform: none !important;
             }
 
             .cafe-sidebar-open .cafe-sidebar-overlay {

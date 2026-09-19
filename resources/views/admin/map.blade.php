@@ -273,9 +273,9 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold" for="establishment-website">Website</label>
-                                    <div class="mt-1 flex gap-2">
-                                        <input id="establishment-website" type="url" name="website" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                                        <button type="button" id="paste-website-btn" class="inline-flex shrink-0 items-center justify-center rounded-lg border border-[#4A6741] bg-[#F5F0E8] px-2.5 py-2 text-[#3A2E22] hover:bg-[#E8E0D2]" aria-label="Paste website link" title="Paste website link">
+                                    <div class="relative mt-1">
+                                        <input id="establishment-website" type="url" name="website" class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                        <button type="button" id="paste-website-btn" class="absolute inset-y-0 right-0 flex items-center bg-transparent px-3 text-[#6B3A2A] hover:text-[#3A2E22]" aria-label="Paste website link" title="Paste website link">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m0 0h2a2 2 0 0 1 2 2v3m-4 4 2 2m0 0 2-2m-2 2V9" />
                                             </svg>
@@ -290,7 +290,7 @@
                                     </label>
                                     <div class="mt-1 relative">
                                         <input id="establishment-owner-password" type="password" name="owner_password" data-field="owner_password" autocomplete="new-password" class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                                        <button type="button" class="toggle-password-btn absolute inset-y-0 right-0 flex items-center px-3 text-[#6B3A2A] hover:text-[#3A2E22]" data-target="owner_password" aria-label="Show password" title="Show password">
+                                        <button type="button" class="toggle-password-btn absolute inset-y-0 right-0 flex items-center bg-transparent px-3 text-[#6B3A2A] hover:text-[#3A2E22]" data-target="owner_password" aria-label="Show password" title="Show password">
                                             <svg class="password-visibility-icon h-4 w-4" data-icon-state="hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />

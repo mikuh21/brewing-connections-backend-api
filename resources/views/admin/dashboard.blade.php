@@ -558,7 +558,7 @@
                             <tr style="background-color: #3B2F2F;">
                                 <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Rank</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Name</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">City</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Location</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Popularity Score</th>
                             </tr>
                         </thead>

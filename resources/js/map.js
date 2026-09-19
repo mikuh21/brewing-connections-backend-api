@@ -1496,6 +1496,21 @@ function openMapSidebar() {
     const modal = document.getElementById('add-establishment-modal');
     if (!modal) return;
 
+    const passwordField = modal.querySelector('[name="owner_password"]');
+    const passwordButton = modal.querySelector('.toggle-password-btn[data-target="owner_password"]');
+    if (passwordField) {
+        passwordField.type = 'password';
+    }
+    if (passwordButton) {
+        passwordButton.setAttribute('aria-label', 'Show password');
+        passwordButton.setAttribute('title', 'Show password');
+        const icon = passwordButton.querySelector('.password-visibility-icon');
+        if (icon) {
+            icon.dataset.iconState = 'hidden';
+            icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />';
+        }
+    }
+
     modal.classList.remove('hidden', 'opacity-0');
     modal.classList.add('opacity-100');
     modal.style.zIndex = '99999';
@@ -3197,6 +3212,10 @@ function setupStaticEventListeners() {
         if (!field) return;
 
         try {
+            if (!navigator.clipboard?.readText) {
+                throw new Error('Clipboard API unavailable');
+            }
+
             const clipboardText = await navigator.clipboard.readText();
             const nextValue = clipboardText?.trim();
 
@@ -3206,6 +3225,7 @@ function setupStaticEventListeners() {
             }
 
             field.value = nextValue;
+            field.dispatchEvent(new Event('input', { bubbles: true }));
             const isValid = validateClientField('website', (value) => (value && !/^https?:\/\//i.test(value) ? 'Use a valid website URL, including http:// or https://.' : ''));
             showMapToast(
                 isValid ? 'success' : 'warning',

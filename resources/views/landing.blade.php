@@ -171,7 +171,7 @@
 @section('content')
 <div class="bg-[#F3E9D7] text-[#3A2E22] font-body">
     <!-- Navbar -->
-    <nav id="navbar" class="fixed top-0 w-full z-50 navbar-solid transition-all duration-300 ease-in-out" x-data="{ open: false, active: window.location.hash ? window.location.hash.substring(1) : 'home' }">
+    <nav id="navbar" class="fixed top-0 w-full z-50 navbar-solid transition-all duration-300 ease-in-out" x-data="{ active: window.location.hash ? window.location.hash.substring(1) : 'home' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 md:h-20">
                 <div class="flex items-center">
@@ -204,15 +204,17 @@
                 </div>
                 <div class="flex items-center">
                     <a href="/login" class="border border-white text-white px-4 py-2 rounded-md hover:bg-[#F3E9D7] hover:text-[#3A2E22] hover:border-[#F3E9D7] transition-colors duration-200 text-sm md:text-base">Log In</a>
-                    <button @click="open = !open" class="md:hidden ml-4 nav-arrow text-white hover:text-[#F3E9D7] text-sm md:text-base">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                            <path x-show="open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    <button id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation menu" class="md:hidden ml-4 nav-arrow text-white hover:text-[#F3E9D7] text-sm md:text-base p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#F3E9D7]/60">
+                        <svg id="mobileMenuIconOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg id="mobileMenuIconClose" class="hidden w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
             </div>
-            <div x-show="open" class="md:hidden">
+            <div id="mobileMenu" class="hidden md:hidden border-t border-[#F3E9D7]/15 bg-[#3A2E22] px-2 pb-4 pt-2 shadow-lg">
                 <a href="#home" @click="active = 'home'" :class="active === 'home' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block px-4 py-2 hover:text-[#2E5A3D] transition-colors">Home</a>
                 <a href="#farm-products-list" @click="active = 'farm-products-list'" :class="active === 'farm-products-list' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block px-4 py-2 hover:text-[#2E5A3D] transition-colors">Products</a>
                 <div class="px-4 py-2">
@@ -2862,6 +2864,62 @@
             <p id="reservationToastMessage" class="text-sm font-body">Reservation submitted successfully.</p>
         </div>
     </div>
+
+    <script>
+        // Mobile landing navigation is handled independently of Alpine so the
+        // hamburger/X remains reliable even if Alpine is delayed or re-initialized.
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuIconOpen = document.getElementById('mobileMenuIconOpen');
+            const mobileMenuIconClose = document.getElementById('mobileMenuIconClose');
+
+            if (!mobileMenuToggle || !mobileMenu) {
+                return;
+            }
+
+            const setMobileMenuOpen = (isOpen) => {
+                mobileMenu.classList.toggle('hidden', !isOpen);
+                mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                mobileMenuToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+
+                if (mobileMenuIconOpen) {
+                    mobileMenuIconOpen.classList.toggle('hidden', isOpen);
+                }
+                if (mobileMenuIconClose) {
+                    mobileMenuIconClose.classList.toggle('hidden', !isOpen);
+                }
+            };
+
+            mobileMenuToggle.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setMobileMenuOpen(mobileMenu.classList.contains('hidden'));
+            });
+
+            mobileMenu.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => setMobileMenuOpen(false));
+            });
+
+            document.addEventListener('click', (event) => {
+                if (
+                    !mobileMenu.classList.contains('hidden') &&
+                    !mobileMenu.contains(event.target) &&
+                    !mobileMenuToggle.contains(event.target)
+                ) {
+                    setMobileMenuOpen(false);
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    setMobileMenuOpen(false);
+                }
+            });
+
+            setMobileMenuOpen(false);
+        });
+    </script>
 
     <!-- Include html2canvas library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>

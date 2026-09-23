@@ -1,0 +1,4 @@
+Contact: https://brewing-hub.online/
+Expires: 2027-09-23T00:00:00Z
+Preferred-Languages: en
+Canonical: https://brewing-hub.online/.well-known/security.txt

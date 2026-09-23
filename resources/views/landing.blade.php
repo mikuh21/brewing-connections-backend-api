@@ -104,7 +104,7 @@
         background: #3A2E22 !important;
     }
 
-    /* Landing header CTA colors: inactive items are always white; active item is green. */
+    /* Landing header: restore original inactive/hover styling; active navigation is green. */
     #navbar .landing-nav-item {
         color: #ffffff !important;
     }
@@ -112,15 +112,8 @@
         color: #2E5A3D !important;
         font-weight: 600;
     }
-    #navbar .landing-nav-item:hover:not(.is-active) {
+    #navbar .landing-nav-item:hover {
         color: #F3E9D7 !important;
-    }
-
-    #navbar .landing-nav-item.is-active,
-    #navbar .landing-nav-item.is-active:hover,
-    #navbar .landing-nav-item.is-active:focus-visible {
-        color: #2E5A3D !important;
-        font-weight: 600;
     }
 
     /* Keep native date/time controls aligned with text inputs on mobile browsers */
@@ -201,7 +194,7 @@
                     </div>
                 </div>
                 <div class="flex items-center">
-                    <a href="/login" class="bg-[#2E5A3D] text-white px-4 py-2 rounded-md hover:bg-[#1E3A2A] transition-colors duration-200 text-sm md:text-base">Log In</a>
+                    <a href="/login" class="border border-white text-white px-4 py-2 rounded-md hover:bg-[#F3E9D7] hover:text-[#3A2E22] hover:border-[#F3E9D7] transition-colors duration-200 text-sm md:text-base">Log In</a>
                     <button @click="open = !open" class="md:hidden ml-4 nav-arrow text-white hover:text-[#F3E9D7] text-sm md:text-base">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>

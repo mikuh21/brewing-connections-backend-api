@@ -17,18 +17,18 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()');
-        $response->headers->set(
-            'Strict-Transport-Security',
-            'max-age=31536000; includeSubDomains'
-        );
+        if (app()->environment('production')) {
+            $response->headers->set(
+                'Strict-Transport-Security',
+                'max-age=31536000; includeSubDomains'
+            );
+        }
 
         // BrewHub currently uses inline Alpine/Blade scripts and trusted CDNs
         // for Alpine, Leaflet, QR code, Chart.js, jsPDF and the QR scanner.
         // Keep those dependencies explicitly allowlisted while blocking
         // object/plugin content and cross-origin framing.
-        $response->headers->set(
-            'Content-Security-Policy',
-            implode('; ', [
+        $csp = implode('; ', [
                 "default-src 'self'",
                 "base-uri 'self'",
                 "form-action 'self'",
@@ -42,9 +42,13 @@ class SecurityHeaders
                 "media-src 'self' blob:",
                 "worker-src 'self' blob:",
                 "manifest-src 'self'",
-                "upgrade-insecure-requests",
-            ])
-        );
+            ]);
+
+        if (app()->environment('production')) {
+            $csp .= '; upgrade-insecure-requests';
+        }
+
+        $response->headers->set('Content-Security-Policy', $csp);
 
         return $response;
     }

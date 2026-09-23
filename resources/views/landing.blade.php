@@ -104,6 +104,18 @@
         background: #3A2E22 !important;
     }
 
+    /* Landing header CTA colors: inactive items are always white; active item is green. */
+    #navbar .landing-nav-item {
+        color: #ffffff !important;
+    }
+    #navbar .landing-nav-item.is-active {
+        color: #2E5A3D !important;
+        font-weight: 600;
+    }
+    #navbar .landing-nav-item:hover {
+        color: #F3E9D7 !important;
+    }
+
     /* Keep native date/time controls aligned with text inputs on mobile browsers */
     .reservation-datetime-input {
         display: block;
@@ -162,10 +174,10 @@
                     </a>
                 </div>
                 <div class="hidden md:flex items-center space-x-6 md:space-x-8">
-                    <a href="#home"  :class="active === 'home' ? 'nav-link !text-[#2E5A3D] hover:!text-[#F3E9D7] font-semibold' : 'nav-link !text-white hover:!text-[#F3E9D7]'" @click="active = 'home'" class="text-sm md:text-base">Home</a>
-                    <a href="#farm-products-list"  :class="active === 'farm-products-list' ? 'nav-link !text-[#2E5A3D] hover:!text-[#F3E9D7] font-semibold' : 'nav-link !text-white hover:!text-[#F3E9D7]'" @click="active = 'farm-products-list'" class="text-sm md:text-base">Products</a>
+                    <a href="#home" :class="{ 'is-active': active === 'home' }" @click="active = 'home'" class="landing-nav-item nav-link text-sm md:text-base">Home</a>
+                    <a href="#farm-products-list" :class="{ 'is-active': active === 'farm-products-list' }" @click="active = 'farm-products-list'" class="landing-nav-item nav-link text-sm md:text-base">Products</a>
                     <div class="relative group">
-                        <button :class="(active === 'coffee-farms' || active === 'coffee-shops') ? '!text-[#2E5A3D] font-semibold text-sm md:text-base hover:!text-[#F3E9D7]' : '!text-white text-sm md:text-base hover:!text-[#F3E9D7]'">Featured Establishments ▾</button>
+                        <button :class="{ 'is-active': active === 'coffee-farms' || active === 'coffee-shops' }" class="landing-nav-item text-sm md:text-base">Featured Establishments ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                             <a href="#coffee-farms" @click="active = 'coffee-farms'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Farms</a>
@@ -1365,14 +1377,16 @@
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        link.classList.remove('text-[#2E5A3D]', 'font-semibold');
-                        if (link.getAttribute('href') === `#${id}`) {
-                            link.classList.add('text-[#2E5A3D]', 'font-semibold');
-                        }
-                    });
+                if (!entry.isIntersecting) return;
+
+                const id = entry.target.getAttribute('id');
+                navLinks.forEach(link => {
+                    link.classList.remove('is-active');
+                });
+
+                const activeLink = Array.from(navLinks).find(link => link.getAttribute('href') === `#${id}`);
+                if (activeLink) {
+                    activeLink.classList.add('is-active');
                 }
             });
         }, { threshold: 0.5 });

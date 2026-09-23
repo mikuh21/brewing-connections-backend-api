@@ -125,6 +125,24 @@
         font-weight: 600;
     }
 
+    /* Mobile landing navigation: explicit colors so menu text stays visible on the dark header. */
+    #navbar .landing-mobile-nav-item {
+        color: #ffffff !important;
+        display: block;
+        text-decoration: none;
+    }
+    #navbar .landing-mobile-nav-item.is-active {
+        color: #2E5A3D !important;
+        font-weight: 600;
+    }
+    #navbar .landing-mobile-nav-item:hover {
+        color: #F3E9D7 !important;
+    }
+    #navbar .landing-mobile-nav-heading {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+
     /* Keep native date/time controls aligned with text inputs on mobile browsers */
     .reservation-datetime-input {
         display: block;
@@ -215,17 +233,17 @@
                 </div>
             </div>
             <div id="mobileMenu" class="hidden md:hidden border-t border-[#F3E9D7]/15 bg-[#3A2E22] px-2 pb-4 pt-2 shadow-lg">
-                <a href="#home" @click="active = 'home'" :class="active === 'home' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block px-4 py-2 hover:text-[#2E5A3D] transition-colors">Home</a>
-                <a href="#farm-products-list" @click="active = 'farm-products-list'" :class="active === 'farm-products-list' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block px-4 py-2 hover:text-[#2E5A3D] transition-colors">Products</a>
+                <a href="#home" data-mobile-nav="home" class="landing-mobile-nav-item px-4 py-2">Home</a>
+                <a href="#farm-products-list" data-mobile-nav="farm-products-list" class="landing-mobile-nav-item px-4 py-2">Products</a>
                 <div class="px-4 py-2">
-                    <p class="text-white font-semibold">Featured Establishments</p>
-                    <a href="#coffee-farms" @click="active = 'coffee-farms'" :class="active === 'coffee-farms' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] transition-colors">Coffee Farms</a>
-                    <a href="#coffee-shops" @click="active = 'coffee-shops'" :class="active === 'coffee-shops' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] transition-colors">Coffee Shops</a>
+                    <p class="landing-mobile-nav-heading">Featured Establishments</p>
+                    <a href="#coffee-farms" data-mobile-nav="coffee-farms" class="landing-mobile-nav-item pl-4 py-1 text-sm">Coffee Farms</a>
+                    <a href="#coffee-shops" data-mobile-nav="coffee-shops" class="landing-mobile-nav-item pl-4 py-1 text-sm">Coffee Shops</a>
                 </div>
                 <div class="px-4 py-2">
-                    <p class="text-white font-semibold">About</p>
-                    <a href="#about" @click="active = 'about'" :class="active === 'about' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] font-body transition-colors">System Features</a>
-                    <a href="#coffee-varieties" @click="active = 'coffee-varieties'" :class="active === 'coffee-varieties' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] font-body transition-colors">Coffee Varieties</a>
+                    <p class="landing-mobile-nav-heading">About</p>
+                    <a href="#about" data-mobile-nav="about" class="landing-mobile-nav-item pl-4 py-1 text-sm font-body">System Features</a>
+                    <a href="#coffee-varieties" data-mobile-nav="coffee-varieties" class="landing-mobile-nav-item pl-4 py-1 text-sm font-body">Coffee Varieties</a>
                 </div>
             </div>
         </div>
@@ -2867,7 +2885,7 @@
 
     <script>
         // Mobile landing navigation is handled independently of Alpine so the
-        // hamburger/X remains reliable even if Alpine is delayed or re-initialized.
+        // hamburger/X and mobile text state remain reliable even if Alpine is delayed or re-initialized.
         document.addEventListener('DOMContentLoaded', () => {
             const mobileMenuToggle = document.getElementById('mobileMenuToggle');
             const mobileMenu = document.getElementById('mobileMenu');
@@ -2911,12 +2929,29 @@
                 }
             });
 
+            const syncMobileActiveItem = () => {
+                const activeId = window.location.hash ? window.location.hash.substring(1) : 'home';
+                mobileMenu.querySelectorAll('[data-mobile-nav]').forEach((link) => {
+                    link.classList.toggle('is-active', link.dataset.mobileNav === activeId);
+                });
+            };
+
+            mobileMenu.querySelectorAll('[data-mobile-nav]').forEach((link) => {
+                link.addEventListener('click', () => {
+                    syncMobileActiveItem();
+                    setMobileMenuOpen(false);
+                });
+            });
+
+            window.addEventListener('hashchange', syncMobileActiveItem);
+
             window.addEventListener('resize', () => {
                 if (window.innerWidth >= 768) {
                     setMobileMenuOpen(false);
                 }
             });
 
+            syncMobileActiveItem();
             setMobileMenuOpen(false);
         });
     </script>

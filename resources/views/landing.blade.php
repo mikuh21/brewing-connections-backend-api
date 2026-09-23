@@ -1323,13 +1323,7 @@
                                 <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
                             </svg>
                         </a>
-                        <a href="mailto:brewhub1@gmail.com" class="text-[#F3E9D7] hover:text-[#2E5A3D] transition-colors duration-300" aria-label="Email BrewHub">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <rect x="3" y="5" width="18" height="14" rx="2" ry="2"/>
-                                <path d="M3 7l9 6 9-6"/>
-                            </svg>
-                        </a>
-                    </div>
+</div>
                 </div>
             </div>
             <div class="border-t border-[#F3E9D7] mt-8 pt-8 text-center">

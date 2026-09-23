@@ -229,7 +229,7 @@
                     farm-to-cup excellence in 
                     Lipa, Batangas
                 </p>
-                <a href="#coffee-farms" class="js-smooth-scroll bg-[#2E5A3D] text-white px-8 py-3 rounded-md text-lg hover:bg-[#1E3A2A] font-body inline-block animate-fade-in-up-delay-2">
+                <a href="#coffee-farms" class="landing-cta-primary js-smooth-scroll bg-[#2E5A3D] text-white px-8 py-3 rounded-md text-lg hover:bg-[#1E3A2A] font-body inline-block animate-fade-in-up-delay-2">
                     Explore →
                 </a>
             </div>
@@ -566,13 +566,13 @@
                     Download <em>BrewHub</em> to experience more quality coffee!
                 </p>
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <a href="#" class="inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md bg-[#2E5A3D] text-white font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
+                    <a href="#" class="landing-cta-primary inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md bg-[#2E5A3D] text-white font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M16.7 12.5c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8s-1.8-.8-2.9-.8c-1.5 0-2.8.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.2 2.8 2.1 1.1 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-1.1 2.7-2.2.9-1.3 1.2-2.6 1.2-2.7 0 0-2.3-.9-2.3-3.5zM14.6 6.2c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"></path>
                         </svg>
                         for iOS
                     </a>
-                    <a href="https://drive.google.com/file/d/1hADOVn6fL5cvFkI5eGzQShrvAY5eaMqm/view?usp=drive_link" class="inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md border border-[#2E5A3D] text-[#2E5A3D] font-body font-medium hover:bg-[#2E5A3D] hover:text-white transition-colors duration-200">
+                    <a href="https://drive.google.com/file/d/1hADOVn6fL5cvFkI5eGzQShrvAY5eaMqm/view?usp=drive_link" class="landing-cta-secondary inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md border border-[#2E5A3D] text-[#2E5A3D] font-body font-medium hover:bg-[#2E5A3D] hover:text-white transition-colors duration-200">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M8 9h8a2 2 0 012 2v5a2 2 0 01-2 2H8a2 2 0 01-2-2v-5a2 2 0 012-2z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.5 9l-1-2m6 2l1-2"></path>

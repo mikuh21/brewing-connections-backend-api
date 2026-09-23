@@ -1,4 +1,4 @@
-Contact: https://brewing-hub.online/
+Contact: https://github.com/mikuh21/brewing-connections-backend-api/security/advisories/new
 Expires: 2027-09-23T00:00:00Z
 Preferred-Languages: en
 Canonical: https://brewing-hub.online/.well-known/security.txt

@@ -150,7 +150,7 @@
 @section('content')
 <div class="bg-[#F3E9D7] text-[#3A2E22] font-body">
     <!-- Navbar -->
-    <nav id="navbar" class="fixed top-0 w-full z-50 navbar-solid transition-all duration-300 ease-in-out" x-data="{ open: false, active: 'home' }">
+    <nav id="navbar" class="fixed top-0 w-full z-50 navbar-solid transition-all duration-300 ease-in-out" x-data="{ open: false, active: window.location.hash ? window.location.hash.substring(1) : 'home' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 md:h-20">
                 <div class="flex items-center">
@@ -162,22 +162,22 @@
                     </a>
                 </div>
                 <div class="hidden md:flex items-center space-x-6 md:space-x-8">
-                    <a href="#home" :class="active === 'home' ? 'nav-link text-white hover:text-[#F3E9D7] font-semibold' : 'nav-link text-white hover:text-[#F3E9D7]'" @click="active = 'home'" class="text-sm md:text-base">Home</a>
-                    <a href="#farm-products-list" :class="active === 'farm-products-list' ? 'nav-link text-white hover:text-[#F3E9D7] font-semibold' : 'nav-link text-white hover:text-[#F3E9D7]'" @click="active = 'farm-products-list'" class="text-sm md:text-base">Products</a>
+                    <a href="#home"  :class="active === 'home' ? 'nav-link !text-[#2E5A3D] hover:!text-[#F3E9D7] font-semibold' : 'nav-link !text-white hover:!text-[#F3E9D7]'" @click="active = 'home'" class="text-sm md:text-base">Home</a>
+                    <a href="#farm-products-list"  :class="active === 'farm-products-list' ? 'nav-link !text-[#2E5A3D] hover:!text-[#F3E9D7] font-semibold' : 'nav-link !text-white hover:!text-[#F3E9D7]'" @click="active = 'farm-products-list'" class="text-sm md:text-base">Products</a>
                     <div class="relative group">
-                        <button class="text-white hover:text-[#F3E9D7] text-sm md:text-base">Featured Establishments ▾</button>
+                        <button :class="(active === 'coffee-farms' || active === 'coffee-shops') ? '!text-[#2E5A3D] font-semibold text-sm md:text-base hover:!text-[#F3E9D7]' : '!text-white text-sm md:text-base hover:!text-[#F3E9D7]'">Featured Establishments ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="#coffee-farms" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Farms</a>
-                            <a href="#coffee-shops" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Shops</a>
+                            <a href="#coffee-farms" @click="active = 'coffee-farms'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Farms</a>
+                            <a href="#coffee-shops" @click="active = 'coffee-shops'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Shops</a>
                         </div>
                     </div>
                     <div class="relative group">
-                        <button class="nav-link text-white hover:text-[#F3E9D7] text-sm md:text-base">About ▾</button>
+                        <button :class="(active === 'about' || active === 'coffee-varieties') ? 'nav-link !text-[#2E5A3D] font-semibold text-sm md:text-base hover:!text-[#F3E9D7]' : 'nav-link !text-white text-sm md:text-base hover:!text-[#F3E9D7]'">About ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="#about" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7] font-body">System Features</a>
-                            <a href="#coffee-varieties" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7] font-body">Coffee Varieties</a>
+                            <a href="#about" @click="active = 'about'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7] font-body">System Features</a>
+                            <a href="#coffee-varieties" @click="active = 'coffee-varieties'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7] font-body">Coffee Varieties</a>
                         </div>
                     </div>
                 </div>

@@ -1247,3 +1247,21 @@ button:disabled,
         min-height: 2.4rem;
     }
 }
+
+
+/* Landing page CTA colors */
+.landing-cta-primary {
+    color: #ffffff !important;
+}
+
+.landing-cta-primary:hover {
+    color: #ffffff !important;
+}
+
+.landing-cta-secondary {
+    color: #2E5A3D !important;
+}
+
+.landing-cta-secondary:hover {
+    color: #ffffff !important;
+}

@@ -112,8 +112,15 @@
         color: #2E5A3D !important;
         font-weight: 600;
     }
-    #navbar .landing-nav-item:hover {
+    #navbar .landing-nav-item:hover:not(.is-active) {
         color: #F3E9D7 !important;
+    }
+
+    #navbar .landing-nav-item.is-active,
+    #navbar .landing-nav-item.is-active:hover,
+    #navbar .landing-nav-item.is-active:focus-visible {
+        color: #2E5A3D !important;
+        font-weight: 600;
     }
 
     /* Keep native date/time controls aligned with text inputs on mobile browsers */

@@ -1382,23 +1382,50 @@
             });
         });
 
+        const setActiveNav = (id) => {
+            if (!id) return;
+
+            const activeLink = Array.from(navLinks).find(
+                link => link.getAttribute('href') === `#${id}`
+            );
+
+            // Some page sections (for example #farm-products) do not have a
+            // corresponding top-level CTA. Never clear the current active CTA
+            // just because such a section enters the viewport.
+            if (!activeLink) return;
+
+            navLinks.forEach(link => link.classList.remove('is-active'));
+            activeLink.classList.add('is-active');
+
+            // Keep Alpine's navbar state synchronized with the actual active CTA.
+            const navbar = document.getElementById('navbar');
+            if (navbar && navbar.__x) {
+                // Alpine 3 does not expose a stable public setter, so the
+                // click/hash handlers below remain the authoritative state.
+            }
+        };
+
+        const initialHash = window.location.hash ? window.location.hash.substring(1) : 'home';
+        setActiveNav(initialHash);
+
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
+            const visibleEntry = entries
+                .filter(entry => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+                .find(entry => Array.from(navLinks).some(
+                    link => link.getAttribute('href') === `#${entry.target.getAttribute('id')}`
+                ));
 
-                const id = entry.target.getAttribute('id');
-                navLinks.forEach(link => {
-                    link.classList.remove('is-active');
-                });
-
-                const activeLink = Array.from(navLinks).find(link => link.getAttribute('href') === `#${id}`);
-                if (activeLink) {
-                    activeLink.classList.add('is-active');
-                }
-            });
-        }, { threshold: 0.5 });
+            if (visibleEntry) {
+                setActiveNav(visibleEntry.target.getAttribute('id'));
+            }
+        }, { threshold: [0.25, 0.5, 0.75] });
 
         sections.forEach(section => observer.observe(section));
+
+        window.addEventListener('hashchange', () => {
+            setActiveNav(window.location.hash ? window.location.hash.substring(1) : 'home');
+        });
 
         // Intersection Observer for reveal animations
         const revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');

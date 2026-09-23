@@ -187,16 +187,16 @@
                         <button :class="{ 'is-active': active === 'coffee-farms' || active === 'coffee-shops' }" class="landing-nav-item text-sm md:text-base">Featured Establishments ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="#coffee-farms" @click="active = 'coffee-farms'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Farms</a>
-                            <a href="#coffee-shops" @click="active = 'coffee-shops'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7]">Coffee Shops</a>
+                            <a href="#coffee-farms" @click="active = 'coffee-farms'" :class="active === 'coffee-farms' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] transition-colors">Coffee Farms</a>
+                            <a href="#coffee-shops" @click="active = 'coffee-shops'" :class="active === 'coffee-shops' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] transition-colors">Coffee Shops</a>
                         </div>
                     </div>
                     <div class="relative group">
-                        <button :class="(active === 'about' || active === 'coffee-varieties') ? 'nav-link !text-[#2E5A3D] font-semibold text-sm md:text-base hover:!text-[#F3E9D7]' : 'nav-link !text-white text-sm md:text-base hover:!text-[#F3E9D7]'">About ▾</button>
+                        <button :class="{ 'is-active': active === 'about' || active === 'coffee-varieties' }" class="landing-nav-item nav-link text-sm md:text-base">About ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="#about" @click="active = 'about'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7] font-body">System Features</a>
-                            <a href="#coffee-varieties" @click="active = 'coffee-varieties'" class="block px-4 py-2 text-sm text-[#3A2E22] hover:bg-[#F3E9D7] font-body">Coffee Varieties</a>
+                            <a href="#about" @click="active = 'about'" :class="active === 'about' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] font-body transition-colors">System Features</a>
+                            <a href="#coffee-varieties" @click="active = 'coffee-varieties'" :class="active === 'coffee-varieties' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] font-body transition-colors">Coffee Varieties</a>
                         </div>
                     </div>
                 </div>
@@ -211,17 +211,17 @@
                 </div>
             </div>
             <div x-show="open" class="md:hidden">
-                <a href="#home" class="block px-4 py-2 text-white hover:text-[#F3E9D7]">Home</a>
-                <a href="#farm-products-list" class="block px-4 py-2 text-white hover:text-[#F3E9D7]">Products</a>
+                <a href="#home" @click="active = 'home'" :class="active === 'home' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block px-4 py-2 hover:text-[#2E5A3D] transition-colors">Home</a>
+                <a href="#farm-products-list" @click="active = 'farm-products-list'" :class="active === 'farm-products-list' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block px-4 py-2 hover:text-[#2E5A3D] transition-colors">Products</a>
                 <div class="px-4 py-2">
                     <p class="text-white font-semibold">Featured Establishments</p>
-                    <a href="#coffee-farms" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7]">Coffee Farms</a>
-                    <a href="#coffee-shops" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7]">Coffee Shops</a>
+                    <a href="#coffee-farms" @click="active = 'coffee-farms'" :class="active === 'coffee-farms' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] transition-colors">Coffee Farms</a>
+                    <a href="#coffee-shops" @click="active = 'coffee-shops'" :class="active === 'coffee-shops' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] transition-colors">Coffee Shops</a>
                 </div>
                 <div class="px-4 py-2">
                     <p class="text-white font-semibold">About</p>
-                    <a href="#about" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7] font-body">System Features</a>
-                    <a href="#coffee-varieties" class="block pl-4 py-1 text-sm text-white hover:text-[#F3E9D7] font-body">Coffee Varieties</a>
+                    <a href="#about" @click="active = 'about'" :class="active === 'about' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] font-body transition-colors">System Features</a>
+                    <a href="#coffee-varieties" @click="active = 'coffee-varieties'" :class="active === 'coffee-varieties' ? 'text-[#2E5A3D] font-semibold' : 'text-white'" class="block pl-4 py-1 text-sm hover:text-[#2E5A3D] font-body transition-colors">Coffee Varieties</a>
                 </div>
             </div>
         </div>

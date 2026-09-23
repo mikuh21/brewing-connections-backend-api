@@ -116,6 +116,15 @@
         color: #F3E9D7 !important;
     }
 
+    /* Dropdown choices: active section is explicitly green. */
+    #navbar .landing-dropdown-item {
+        color: #3A2E22 !important;
+    }
+    #navbar .landing-dropdown-item.is-active {
+        color: #2E5A3D !important;
+        font-weight: 600;
+    }
+
     /* Keep native date/time controls aligned with text inputs on mobile browsers */
     .reservation-datetime-input {
         display: block;
@@ -180,16 +189,16 @@
                         <button :class="{ 'is-active': active === 'coffee-farms' || active === 'coffee-shops' }" class="landing-nav-item text-sm md:text-base">Featured Establishments ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="#coffee-farms" @click="active = 'coffee-farms'" :class="active === 'coffee-farms' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] transition-colors">Coffee Farms</a>
-                            <a href="#coffee-shops" @click="active = 'coffee-shops'" :class="active === 'coffee-shops' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] transition-colors">Coffee Shops</a>
+                            <a href="#coffee-farms" @click="active = 'coffee-farms'" :class="active === 'coffee-farms' ? 'is-active' : ''" class="landing-dropdown-item block px-4 py-2 text-sm hover:bg-[#F3E9D7] transition-colors">Coffee Farms</a>
+                            <a href="#coffee-shops" @click="active = 'coffee-shops'" :class="active === 'coffee-shops' ? 'is-active' : ''" class="landing-dropdown-item block px-4 py-2 text-sm hover:bg-[#F3E9D7] transition-colors">Coffee Shops</a>
                         </div>
                     </div>
                     <div class="relative group">
                         <button :class="{ 'is-active': active === 'about' || active === 'coffee-varieties' }" class="landing-nav-item nav-link text-sm md:text-base">About ▾</button>
                         <div class="absolute top-full left-0 w-full h-2 bg-transparent"></div>
                         <div class="absolute left-0 top-full mt-2 w-52 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                            <a href="#about" @click="active = 'about'" :class="active === 'about' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] font-body transition-colors">System Features</a>
-                            <a href="#coffee-varieties" @click="active = 'coffee-varieties'" :class="active === 'coffee-varieties' ? '!text-[#2E5A3D] font-semibold' : 'text-[#3A2E22]'" class="block px-4 py-2 text-sm hover:bg-[#F3E9D7] font-body transition-colors">Coffee Varieties</a>
+                            <a href="#about" @click="active = 'about'" :class="active === 'about' ? 'is-active' : ''" class="landing-dropdown-item block px-4 py-2 text-sm hover:bg-[#F3E9D7] font-body transition-colors">System Features</a>
+                            <a href="#coffee-varieties" @click="active = 'coffee-varieties'" :class="active === 'coffee-varieties' ? 'is-active' : ''" class="landing-dropdown-item block px-4 py-2 text-sm hover:bg-[#F3E9D7] font-body transition-colors">Coffee Varieties</a>
                         </div>
                     </div>
                 </div>

@@ -28,13 +28,31 @@ class SecurityHeaders
         // for Alpine, Leaflet, QR code, Chart.js, jsPDF and the QR scanner.
         // Keep those dependencies explicitly allowlisted while blocking
         // object/plugin content and cross-origin framing.
+        $scriptSrc = [
+            "'self'",
+            "'unsafe-inline'",
+            "https://unpkg.com",
+            "https://cdn.tailwindcss.com",
+            "https://cdn.jsdelivr.net",
+            "https://cdnjs.cloudflare.com",
+        ];
+
+        // The Farm Owner UI uses the standard Alpine runtime with Blade-defined
+        // component expressions. Alpine evaluates those expressions with the
+        // Function constructor, which CSP blocks unless unsafe-eval is allowed.
+        // Keep the stronger policy everywhere else and scope this exception to
+        // Farm Owner routes only.
+        if ($request->is('farm-owner/*')) {
+            $scriptSrc[] = "'unsafe-eval'";
+        }
+
         $csp = implode('; ', [
                 "default-src 'self'",
                 "base-uri 'self'",
                 "form-action 'self'",
                 "frame-ancestors 'self'",
                 "object-src 'none'",
-                "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+                "script-src " . implode(' ', $scriptSrc),
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "img-src 'self' data: blob: https:",

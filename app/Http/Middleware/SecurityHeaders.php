@@ -42,7 +42,12 @@ class SecurityHeaders
         // Function constructor, which CSP blocks unless unsafe-eval is allowed.
         // Keep the stronger policy everywhere else and scope this exception to
         // Farm Owner routes only.
-        if ($request->is('farm-owner/*')) {
+        if (
+            $request->is('admin/*') ||
+            $request->is('farm-owner/*') ||
+            $request->is('cafe-owner/*') ||
+            $request->is('reseller/*')
+        ) {
             $scriptSrc[] = "'unsafe-eval'";
         }
 

@@ -41,11 +41,15 @@ class SecurityHeaders
         // component expressions. Alpine evaluates those expressions with the
         // Function constructor, which CSP blocks unless unsafe-eval is allowed.
         // Keep the stronger policy everywhere else and scope this exception to
-        // Farm Owner routes only.
+        // the dashboard routes that use the standard Alpine runtime.
         if (
+            $request->is('admin') ||
             $request->is('admin/*') ||
+            $request->is('farm-owner') ||
             $request->is('farm-owner/*') ||
+            $request->is('cafe-owner') ||
             $request->is('cafe-owner/*') ||
+            $request->is('reseller') ||
             $request->is('reseller/*')
         ) {
             $scriptSrc[] = "'unsafe-eval'";

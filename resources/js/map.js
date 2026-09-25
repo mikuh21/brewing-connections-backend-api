@@ -3098,19 +3098,22 @@ function setupStaticEventListeners() {
             passwordRequiredIndicator.classList.add('hidden');
         }
 
-        const ownerFields = document.querySelectorAll('[data-field="email"], [data-field="owner_password"]');
+        const ownerFields = form.querySelectorAll('[data-field="email"], [data-field="owner_password"]');
         ownerFields.forEach((field) => {
-            const container = field.closest('div') || field.parentElement;
-            if (!container) return;
+            // Each owner-account field lives inside one direct child row of the
+            // add-establishment form. The previous implementation used
+            // field.closest('div').parentElement, which resolves to the form
+            // itself for these fields and hides the entire modal form when the
+            // establishment type changes.
+            const fieldRow = field.closest('#add-establishment-form > div');
+            if (!fieldRow) return;
+
             const shouldHide = isFarm;
-            if (field.name === 'owner_password') {
-                container.parentElement?.classList.toggle('hidden', shouldHide);
-                return;
-            }
+            fieldRow.classList.toggle('hidden', shouldHide);
+
             if (field.name === 'email') {
-                container.parentElement?.classList.toggle('hidden', shouldHide);
-                const hint = document.querySelector('[data-field-hint="email"]');
-                const error = document.querySelector('[data-field-error="email"]');
+                const hint = fieldRow.querySelector('[data-field-hint="email"]');
+                const error = fieldRow.querySelector('[data-field-error="email"]');
                 if (hint) hint.classList.toggle('hidden', shouldHide);
                 if (error) error.classList.add('hidden');
             }

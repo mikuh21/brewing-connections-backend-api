@@ -34,7 +34,7 @@ class SecurityHeaders
                 "form-action 'self'",
                 "frame-ancestors 'self'",
                 "object-src 'none'",
-                "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+                "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
                 "font-src 'self' https://fonts.gstatic.com data:",
                 "img-src 'self' data: blob: https:",

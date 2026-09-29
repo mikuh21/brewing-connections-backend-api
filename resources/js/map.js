@@ -360,6 +360,33 @@ function initializeMapStyles() {
             transform: translateY(-1px);
         }
 
+        /* Owner map header filter dropdown
+         * Match the Admin map dropdown border and focus treatment.
+         * Farm Owner uses the CDN layout, so these styles must live here.
+         */
+        :is(.farm-owner-map-page, .cafe-owner-map-page) .map-header-search .map-filter-dropdown {
+            appearance: auto;
+            -webkit-appearance: auto;
+            box-sizing: border-box;
+            min-width: 72px;
+            height: 34px;
+            padding: 6px 32px 6px 12px !important;
+            border: 1px solid #D1D5DB !important;
+            border-radius: 14px !important;
+            background: #FFFFFF !important;
+            color: #3A2E22 !important;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.06) !important;
+            outline: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) .map-header-search .map-filter-dropdown:hover,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) .map-header-search .map-filter-dropdown:focus {
+            border-color: #4A6741 !important;
+            box-shadow: 0 10px 20px rgba(74, 103, 65, 0.15) !important;
+            outline: none;
+        }
+
         /* Filter panel styling
          * Keep the desktop filter toolbar on one row, matching the original
          * owner-map layout. The previous two-row header/content arrangement

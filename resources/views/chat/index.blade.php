@@ -303,6 +303,7 @@
     <div 
         class="fixed inset-0 z-50 flex items-center justify-center px-4"
         x-show="newChatOpen"
+        x-cloak
         @keydown.escape="newChatOpen = false"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-95"

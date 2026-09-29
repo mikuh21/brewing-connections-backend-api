@@ -539,6 +539,229 @@ function initializeMapStyles() {
             display: none !important;
         }
 
+        /* Owner map details panel
+         * Farm Owner uses the CDN Tailwind layout, so it does not load the
+         * shared app.css details-panel rules. Keep the owner panels visually
+         * consistent with the Admin map while leaving other map pages alone.
+         */
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel {
+            padding: 20px !important;
+            font-family: 'Poppins', sans-serif;
+            box-sizing: border-box;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #E7DED1;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #3A2E22;
+            margin: 0;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .panel-close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #b0a89e;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .panel-close-btn:hover {
+            color: #888780;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .establishment-photo,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .photo-placeholder {
+            width: 100%;
+            height: 160px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .establishment-photo {
+            object-fit: cover;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .photo-placeholder {
+            background: #F5F0E8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b0a89e;
+            font-size: 12px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .info-section {
+            margin-bottom: 16px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .info-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #9E8C78;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .info-value {
+            font-size: 14px;
+            color: #3A2E22;
+            line-height: 1.5;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .type-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .type-farm { background: #4A6741; }
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .type-cafe { background: #8B4513; }
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .type-roaster { background: #6B3A2A; }
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .type-default { background: #3A2E22; }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .rating-section {
+            background: #F5F0E8;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .rating-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #9E8C78;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .rating-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3A2E22;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .rating-stars {
+            color: #FFD700;
+            font-size: 14px;
+            margin: 0 4px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .sub-ratings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .sub-rating {
+            text-align: center;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .sub-rating-label {
+            font-size: 10px;
+            color: #9E8C78;
+            font-weight: 500;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .sub-rating-value {
+            font-size: 14px;
+            color: #3A2E22;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .varieties-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .variety-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: #F5F0E8;
+            font-size: 12px;
+            color: #3A2E22;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .variety-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .owner-info {
+            background: #F5F0E8;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #3A2E22;
+            margin-bottom: 12px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #E7DED1;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            background: white;
+            color: #3A2E22;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .action-btn:hover {
+            background: #F5F0E8;
+            border-color: #D1CBBF;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .action-btn.primary {
+            background: #4A6741;
+            color: white;
+            border-color: #4A6741;
+        }
+
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #details-panel .action-btn.primary:hover {
+            background: #3A5A31;
+        }
+
         /* Details panel overlap fixes */
         #map.has-details-panel .leaflet-top.leaflet-right,
         #map.has-details-panel .leaflet-bottom.leaflet-right {
@@ -3722,6 +3945,9 @@ function openDetailsPanel(feature) {
   const isMobile = window.innerWidth < 768
 
   renderDetailsPanel(feature)
+
+  // Always start a newly opened details panel at the top.
+  panel.scrollTop = 0
 
   panel.style.transform = isMobile
     ? 'translateY(0)'

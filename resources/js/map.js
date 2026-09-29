@@ -360,22 +360,56 @@ function initializeMapStyles() {
             transform: translateY(-1px);
         }
 
-        /* Filter panel styling */
+        /* Filter panel styling
+         * Keep the desktop filter toolbar on one row, matching the original
+         * owner-map layout. The previous two-row header/content arrangement
+         * wasted vertical space and could clip the "Filters" label.
+         */
         #filter-panel {
             position: relative;
             z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             overflow-x: auto;
             overflow-y: hidden;
             white-space: nowrap;
+            padding: 8px 12px !important;
+        }
+
+        #filter-panel #filter-panel-header {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            padding: 0 !important;
+            margin: 0;
+            border: 0;
+            background: transparent;
+            border-radius: 0;
+        }
+
+        #filter-panel #filter-panel-header h3 {
+            margin: 0;
+            white-space: nowrap;
+            line-height: 1.2;
         }
 
         #filter-panel .filter-content {
             display: flex;
-            flex-wrap: nowrap;
+            flex: 1 1 auto;
+            min-width: max-content;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            min-width: max-content;
+            gap: 12px;
+            padding: 0 !important;
+            background: transparent;
+            border-radius: 0;
+            overflow: visible;
+            max-height: none;
+            opacity: 1;
         }
 
         #filter-panel .filter-section-types,
@@ -386,12 +420,14 @@ function initializeMapStyles() {
             gap: 8px;
             flex-wrap: nowrap;
             white-space: nowrap;
+            margin: 0;
         }
 
         #filter-panel .type-filters,
         #filter-panel .variety-filters {
             display: flex;
             flex-wrap: nowrap;
+            align-items: center;
             gap: 6px;
         }
 
@@ -623,6 +659,7 @@ function initializeMapStyles() {
             }
 
             #filter-panel {
+                display: block;
                 overflow: visible;
                 white-space: normal;
                 padding: 0.75rem 0.85rem !important;

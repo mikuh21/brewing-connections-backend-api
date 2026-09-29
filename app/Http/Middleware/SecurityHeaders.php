@@ -50,7 +50,9 @@ class SecurityHeaders
             $request->is('cafe-owner') ||
             $request->is('cafe-owner/*') ||
             $request->is('reseller') ||
-            $request->is('reseller/*')
+            $request->is('reseller/*') ||
+            $request->is('chat') ||
+            $request->is('chat/*')
         ) {
             $scriptSrc[] = "'unsafe-eval'";
         }

@@ -365,7 +365,7 @@ function initializeMapStyles() {
          * owner-map layout. The previous two-row header/content arrangement
          * wasted vertical space and could clip the "Filters" label.
          */
-        #filter-panel {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel {
             position: relative;
             z-index: 20;
             display: flex;
@@ -380,7 +380,7 @@ function initializeMapStyles() {
             padding: 8px 12px !important;
         }
 
-        #filter-panel #filter-panel-header {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel #filter-panel-header {
             flex: 0 0 auto;
             display: flex;
             align-items: center;
@@ -391,13 +391,13 @@ function initializeMapStyles() {
             border-radius: 0;
         }
 
-        #filter-panel #filter-panel-header h3 {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel #filter-panel-header h3 {
             margin: 0;
             white-space: nowrap;
             line-height: 1.2;
         }
 
-        #filter-panel .filter-content {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .filter-content {
             display: flex;
             flex: 1 1 auto;
             min-width: max-content;
@@ -412,9 +412,9 @@ function initializeMapStyles() {
             opacity: 1;
         }
 
-        #filter-panel .filter-section-types,
-        #filter-panel .filter-section-varieties,
-        #filter-panel .filter-section-summary {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .filter-section-types,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .filter-section-varieties,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .filter-section-summary {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -423,16 +423,16 @@ function initializeMapStyles() {
             margin: 0;
         }
 
-        #filter-panel .type-filters,
-        #filter-panel .variety-filters {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .variety-filters {
             display: flex;
             flex-wrap: nowrap;
             align-items: center;
             gap: 6px;
         }
 
-        #filter-panel .type-filters .type-filter-btn,
-        #filter-panel .variety-btn {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters .type-filter-btn,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .variety-btn {
             background: #fff;
             border: 1px solid #E7DED1;
             color: #7A6A58;
@@ -442,13 +442,13 @@ function initializeMapStyles() {
             line-height: 1;
         }
 
-        #filter-panel .type-filters .type-filter-btn {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters .type-filter-btn {
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        #filter-panel .type-filters .type-filter-swatch {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters .type-filter-swatch {
             width: 10px;
             height: 10px;
             border-radius: 999px;
@@ -456,26 +456,26 @@ function initializeMapStyles() {
             flex-shrink: 0;
         }
 
-        #filter-panel .type-filters .type-filter-btn:hover {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters .type-filter-btn:hover {
             border-color: var(--type-color);
             color: #3A2E22;
         }
 
-        #filter-panel .type-filters .type-filter-btn.active,
-        #filter-panel .variety-btn.active {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters .type-filter-btn.active,
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .variety-btn.active {
             background: #F7F2EA;
             color: #3A2E22;
             border-color: #D8C8B3;
             box-shadow: 0 4px 10px rgba(58, 46, 34, 0.06);
         }
 
-        #filter-panel .type-filters .type-filter-btn.active {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .type-filters .type-filter-btn.active {
             background: var(--type-color-soft);
             border-color: var(--type-color);
             box-shadow: 0 4px 10px rgba(58, 46, 34, 0.08);
         }
 
-        #filter-panel .badge {
+        :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel .badge {
             background: #EFE7DB;
             color: #6B5A48;
             border-radius: 999px;
@@ -658,7 +658,7 @@ function initializeMapStyles() {
                 min-height: 0;
             }
 
-            #filter-panel {
+            :is(.farm-owner-map-page, .cafe-owner-map-page) #filter-panel {
                 display: block;
                 overflow: visible;
                 white-space: normal;

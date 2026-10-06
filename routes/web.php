@@ -121,6 +121,9 @@ Route::get('/', function () {
         ->with(['couponPromos' => function ($query) {
             $query->active()->latest('valid_until');
         }])
+        // Keep rated cafes ahead of cafes with no ratings yet. This preserves
+        // rating-based ordering throughout the full carousel, not only its first 3.
+        ->orderByRaw('CASE WHEN reviews_avg_overall_rating IS NULL THEN 1 ELSE 0 END')
         ->orderByDesc('reviews_avg_overall_rating')
         ->latest('id')
         ->get();

@@ -59,6 +59,9 @@ Route::get('/', function () {
                 ->latest('created_at')
                 ->take(3);
         },
+        'couponPromos' => function ($query) {
+            $query->active()->latest('valid_until');
+        },
         'products' => function ($query) {
             $query->select([
                 'id',
@@ -81,6 +84,17 @@ Route::get('/', function () {
         ->whereNull('deleted_at')
         ->where('type', 'farm')
         ->with($landingEstablishmentRelations)
+        ->withAvg('reviews', 'overall_rating')
+        ->withAvg('reviews', 'taste_rating')
+        ->withAvg('reviews', 'environment_rating')
+        ->withAvg('reviews', 'cleanliness_rating')
+        ->withAvg('reviews', 'service_rating')
+        ->withCount('reviews')
+        ->withAvg('reviews', 'taste_rating')
+        ->withAvg('reviews', 'environment_rating')
+        ->withAvg('reviews', 'cleanliness_rating')
+        ->withAvg('reviews', 'service_rating')
+        ->withCount('reviews')
         ->latest()
         ->take(3)
         ->get();
@@ -93,6 +107,12 @@ Route::get('/', function () {
         ->whereNull('deleted_at')
         ->where('type', 'farm')
         ->with($landingEstablishmentRelations)
+        ->withAvg('reviews', 'overall_rating')
+        ->withAvg('reviews', 'taste_rating')
+        ->withAvg('reviews', 'environment_rating')
+        ->withAvg('reviews', 'cleanliness_rating')
+        ->withAvg('reviews', 'service_rating')
+        ->withCount('reviews')
         ->when($featuredFarmIds->isNotEmpty(), function ($query) use ($featuredFarmIds) {
             $query->whereNotIn('id', $featuredFarmIds);
         })
@@ -122,6 +142,12 @@ Route::get('/', function () {
             ->whereNull('deleted_at')
             ->where('type', 'cafe')
             ->with($landingEstablishmentRelations)
+            ->withAvg('reviews', 'overall_rating')
+            ->withAvg('reviews', 'taste_rating')
+            ->withAvg('reviews', 'environment_rating')
+            ->withAvg('reviews', 'cleanliness_rating')
+            ->withAvg('reviews', 'service_rating')
+            ->withCount('reviews')
             ->whereDoesntHave('reviews')
             ->when($featuredCafeIds->isNotEmpty(), function ($query) use ($featuredCafeIds) {
                 $query->whereNotIn('id', $featuredCafeIds);
@@ -144,6 +170,12 @@ Route::get('/', function () {
         ->whereNull('deleted_at')
         ->where('type', 'cafe')
         ->with($landingEstablishmentRelations)
+        ->withAvg('reviews', 'overall_rating')
+        ->withAvg('reviews', 'taste_rating')
+        ->withAvg('reviews', 'environment_rating')
+        ->withAvg('reviews', 'cleanliness_rating')
+        ->withAvg('reviews', 'service_rating')
+        ->withCount('reviews')
         ->when($featuredCoffeeShopIds->isNotEmpty(), function ($query) use ($featuredCoffeeShopIds) {
             $query->whereNotIn('id', $featuredCoffeeShopIds);
         })

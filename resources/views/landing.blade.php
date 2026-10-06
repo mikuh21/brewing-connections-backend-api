@@ -3587,7 +3587,7 @@
             const modalTitle = document.getElementById('landingEstablishmentModalTitle');
             const modalSubtitle = document.getElementById('landingEstablishmentModalSubtitle');
             const modalClose = document.getElementById('landingEstablishmentModalClose');
-            const establishmentDetails = {{ Illuminate\\Support\\Js::from($landingEstablishmentDetails ?? []) }};
+            const establishmentDetails = {{ Illuminate\Support\Js::from($landingEstablishmentDetails ?? []) }};
 
             if (!modal || !modalCard || !modalScroll || !modalTitle || !modalClose) {
                 return;
@@ -3626,7 +3626,7 @@
                 const type = String(promo?.discount_type || '').toLowerCase();
 
                 if (!Number.isFinite(value)) return '';
-                if (type === 'percentage') return `${Number.isInteger(value) ? value : value.toFixed(2).replace(/0+$/, '').replace(/\\.$/, '')}% off`;
+                if (type === 'percentage') return `${Number.isInteger(value) ? value : value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}% off`;
                 if (['amount', 'fixed', 'fixed_amount'].includes(type)) return `PHP ${value.toFixed(2)} off`;
                 return '';
             };
@@ -3660,20 +3660,24 @@
                 const isCafe = String(item.type || '').toLowerCase() === 'cafe';
                 const isFarm = String(item.type || '').toLowerCase() === 'farm';
 
-                const productMarkup = products.length
-                    ? `<div class="landing-establishment-modal-list">${products.map((product) => {
-                        const productRating = Number(product.rating_average);
-                        const hasRating = Number.isFinite(productRating) && Number(product.rating_count) > 0;
-                        return `
-                            <div class="landing-establishment-modal-list-card">
-                                <div class="landing-establishment-modal-list-title">${escapeHtml(product.name)}</div>
-                                <div class="landing-establishment-modal-list-meta">
-                                    ${hasRating ? `${formatStars(productRating)} ${productRating.toFixed(1)}/5 · ${Number(product.rating_count)} ratings` : 'No ratings yet'}
+                const productMarkup = isCafe
+                    ? `<div class="landing-establishment-modal-chip-list">
+                        ${['Iced Coffee', 'Hot Coffee', 'Food'].map((product) => `<span class="landing-establishment-modal-chip">${escapeHtml(product)}</span>`).join('')}
+                    </div>`
+                    : products.length
+                        ? `<div class="landing-establishment-modal-list">${products.map((product) => {
+                            const productRating = Number(product.rating_average);
+                            const hasRating = Number.isFinite(productRating) && Number(product.rating_count) > 0;
+                            return `
+                                <div class="landing-establishment-modal-list-card">
+                                    <div class="landing-establishment-modal-list-title">${escapeHtml(product.name)}</div>
+                                    <div class="landing-establishment-modal-list-meta">
+                                        ${hasRating ? `${formatStars(productRating)} ${productRating.toFixed(1)}/5 · ${Number(product.rating_count)} ratings` : 'No ratings yet'}
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    }).join('')}</div>`
-                    : `<p class="landing-establishment-modal-empty">${isFarm ? 'No rated farm products available yet.' : 'No products listed.'}</p>`;
+                            `;
+                        }).join('')}</div>`
+                        : `<p class="landing-establishment-modal-empty">No rated farm products available yet.</p>`;
 
                 const varietyMarkup = varieties.length
                     ? `<div class="landing-establishment-modal-chip-list">${varieties.map((variety) => `<span class="landing-establishment-modal-chip">${escapeHtml(variety)}</span>`).join('')}</div>`

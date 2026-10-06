@@ -80,12 +80,69 @@ class MapController extends Controller
             return (int) User::query()->create($ownerPayload)->id;
         }
 
+        $ownerAssignment = $request->input('farm_owner_assignment', 'arnold');
+
+        if ($ownerAssignment === 'individual') {
+            $normalizedEmail = strtolower(trim((string) $request->input('email', '')));
+            $ownerPassword = trim((string) $request->input('owner_password', ''));
+
+            if ($normalizedEmail === '') {
+                throw ValidationException::withMessages([
+                    'email' => 'Email is required for an individual farm owner.',
+                ]);
+            }
+
+            if ($ownerPassword === '') {
+                throw ValidationException::withMessages([
+                    'owner_password' => 'Owner account password is required for an individual farm owner.',
+                ]);
+            }
+
+            $owner = User::query()
+                ->whereRaw('LOWER(email) = ?', [$normalizedEmail])
+                ->first();
+
+            if ($owner) {
+                if ($owner->role !== 'farm_owner') {
+                    throw ValidationException::withMessages([
+                        'email' => 'This email is already assigned to a non farm-owner account. Use a dedicated farm owner email instead.',
+                    ]);
+                }
+
+                return (int) $owner->id;
+            }
+
+            $ownerPayload = [
+                'name' => trim((string) $request->input('name', '')),
+                'email' => $normalizedEmail,
+                'password' => Hash::make($ownerPassword),
+                'role' => 'farm_owner',
+                'email_verified_at' => now(),
+            ];
+
+            if (Schema::hasColumn('users', 'status')) {
+                $ownerPayload['status'] = 'active';
+            }
+
+            if (Schema::hasColumn('users', 'deactivated_at')) {
+                $ownerPayload['deactivated_at'] = null;
+            }
+
+            return (int) User::query()->create($ownerPayload)->id;
+        }
+
         $farmOwner = User::query()
             ->where('role', 'farm_owner')
             ->whereRaw('LOWER(email) = ?', [strtolower(self::DEFAULT_FARM_OWNER_EMAIL)])
             ->first();
 
-        return $farmOwner?->id ?? optional($request->user())->id;
+        if (!$farmOwner) {
+            throw ValidationException::withMessages([
+                'farm_owner_assignment' => 'Sir Arnold\'s farm owner account could not be found. Please choose an individual farm owner or contact an administrator.',
+            ]);
+        }
+
+        return (int) $farmOwner->id;
     }
 
     protected function getVerifiedResellersForMapping()
@@ -226,10 +283,22 @@ class MapController extends Controller
 
         if ($request->input('type') !== 'farm') {
             $rules['email'] = ['required', 'email', 'max:255'];
-            $rules['owner_password'] = ['nullable', 'string', 'min:8', 'max:255', Rule::requiredIf(fn () => trim((string) $request->input('email', '')) === '')];
-        } else {
-            $rules['email'] = ['nullable', 'email', 'max:255'];
             $rules['owner_password'] = ['nullable', 'string', 'min:8', 'max:255'];
+        } else {
+            $rules['farm_owner_assignment'] = ['nullable', Rule::in(['arnold', 'individual'])];
+            $rules['email'] = [
+                'nullable',
+                'email',
+                'max:255',
+                Rule::requiredIf(fn () => $request->input('farm_owner_assignment', 'arnold') === 'individual'),
+            ];
+            $rules['owner_password'] = [
+                'nullable',
+                'string',
+                'min:8',
+                'max:255',
+                Rule::requiredIf(fn () => $request->input('farm_owner_assignment', 'arnold') === 'individual'),
+            ];
         }
 
         $request->validate($rules, [

@@ -52,9 +52,35 @@ Route::get('/', function () {
         ->take(4)
         ->get();
 
+    $landingEstablishmentRelations = [
+        'varieties:id,name',
+        'reviews' => function ($query) {
+            $query->with('user:id,name')
+                ->latest('created_at')
+                ->take(3);
+        },
+        'products' => function ($query) {
+            $query->select([
+                'id',
+                'establishment_id',
+                'name',
+                'is_active',
+            ])
+                ->withAvg(['ratings' => function ($ratingQuery) {
+                    $ratingQuery->whereNotNull('overall_rating');
+                }], 'overall_rating')
+                ->withCount(['ratings' => function ($ratingQuery) {
+                    $ratingQuery->whereNotNull('overall_rating');
+                }])
+                ->orderByRaw('CASE WHEN is_active IS TRUE THEN 0 ELSE 1 END ASC')
+                ->orderBy('name');
+        },
+    ];
+
     $featuredFarms = Establishment::query()
         ->whereNull('deleted_at')
         ->where('type', 'farm')
+        ->with($landingEstablishmentRelations)
         ->latest()
         ->take(3)
         ->get();
@@ -66,6 +92,7 @@ Route::get('/', function () {
     $additionalFeaturedFarms = Establishment::query()
         ->whereNull('deleted_at')
         ->where('type', 'farm')
+        ->with($landingEstablishmentRelations)
         ->when($featuredFarmIds->isNotEmpty(), function ($query) use ($featuredFarmIds) {
             $query->whereNotIn('id', $featuredFarmIds);
         })
@@ -76,6 +103,7 @@ Route::get('/', function () {
         ->whereNull('deleted_at')
         ->where('type', 'cafe')
         ->whereHas('reviews')
+        ->with($landingEstablishmentRelations)
         ->withAvg('reviews', 'overall_rating')
         ->with(['couponPromos' => function ($query) {
             $query->active()->latest('valid_until');
@@ -93,6 +121,7 @@ Route::get('/', function () {
         $recentUnratedCafes = Establishment::query()
             ->whereNull('deleted_at')
             ->where('type', 'cafe')
+            ->with($landingEstablishmentRelations)
             ->whereDoesntHave('reviews')
             ->when($featuredCafeIds->isNotEmpty(), function ($query) use ($featuredCafeIds) {
                 $query->whereNotIn('id', $featuredCafeIds);
@@ -114,6 +143,7 @@ Route::get('/', function () {
     $additionalFeaturedCoffeeShops = Establishment::query()
         ->whereNull('deleted_at')
         ->where('type', 'cafe')
+        ->with($landingEstablishmentRelations)
         ->when($featuredCoffeeShopIds->isNotEmpty(), function ($query) use ($featuredCoffeeShopIds) {
             $query->whereNotIn('id', $featuredCoffeeShopIds);
         })
@@ -134,13 +164,95 @@ Route::get('/', function () {
         ->latest('id')
         ->get();
 
+    $landingEstablishments = $featuredFarms
+        ->concat($additionalFeaturedFarms)
+        ->concat($featuredCoffeeShops)
+        ->concat($additionalFeaturedCoffeeShops)
+        ->unique('id')
+        ->values();
+
+    $landingEstablishmentDetails = $landingEstablishments->mapWithKeys(function ($establishment) {
+        return [
+            (string) $establishment->id => [
+                'id' => (int) $establishment->id,
+                'name' => (string) $establishment->name,
+                'type' => (string) $establishment->type,
+                'description' => (string) ($establishment->description ?? ''),
+                'address' => (string) ($establishment->address ?? ''),
+                'barangay' => (string) ($establishment->barangay ?? ''),
+                'contact_number' => (string) ($establishment->contact_number ?? ''),
+                'email' => (string) ($establishment->email ?? ''),
+                'website' => (string) ($establishment->website ?? ''),
+                'visit_hours' => (string) ($establishment->visit_hours ?? ''),
+                'activities' => (string) ($establishment->activities ?? ''),
+                'image' => $establishment->image,
+                'coffee_varieties' => $establishment->varieties
+                    ->pluck('name')
+                    ->values()
+                    ->all(),
+                'rating_average' => is_numeric($establishment->reviews_avg_overall_rating)
+                    ? round((float) $establishment->reviews_avg_overall_rating, 1)
+                    : null,
+                'review_count' => (int) ($establishment->reviews_count ?? $establishment->reviews->count()),
+                'taste_avg' => is_numeric($establishment->reviews_avg_taste_rating)
+                    ? round((float) $establishment->reviews_avg_taste_rating, 1)
+                    : null,
+                'environment_avg' => is_numeric($establishment->reviews_avg_environment_rating)
+                    ? round((float) $establishment->reviews_avg_environment_rating, 1)
+                    : null,
+                'cleanliness_avg' => is_numeric($establishment->reviews_avg_cleanliness_rating)
+                    ? round((float) $establishment->reviews_avg_cleanliness_rating, 1)
+                    : null,
+                'service_avg' => is_numeric($establishment->reviews_avg_service_rating)
+                    ? round((float) $establishment->reviews_avg_service_rating, 1)
+                    : null,
+                'products' => $establishment->products->map(function ($product) {
+                    return [
+                        'id' => (int) $product->id,
+                        'name' => (string) $product->name,
+                        'rating_average' => is_numeric($product->ratings_avg_overall_rating)
+                            ? round((float) $product->ratings_avg_overall_rating, 1)
+                            : null,
+                        'rating_count' => (int) ($product->ratings_count ?? 0),
+                        'is_active' => (bool) $product->is_active,
+                    ];
+                })->values()->all(),
+                'promos' => $establishment->couponPromos->map(function ($promo) {
+                    return [
+                        'id' => (int) $promo->id,
+                        'title' => (string) ($promo->title ?? ''),
+                        'description' => (string) ($promo->description ?? ''),
+                        'discount_type' => (string) ($promo->discount_type ?? ''),
+                        'discount_value' => $promo->discount_value !== null ? (float) $promo->discount_value : null,
+                        'valid_from' => optional($promo->valid_from)->format('M d, Y'),
+                        'valid_until' => optional($promo->valid_until)->format('M d, Y'),
+                    ];
+                })->values()->all(),
+                'recent_reviews' => $establishment->reviews->map(function ($review) {
+                    return [
+                        'id' => (int) $review->id,
+                        'reviewer' => (string) ($review->user?->name ?? 'Anonymous'),
+                        'taste_rating' => (int) ($review->taste_rating ?? 0),
+                        'environment_rating' => (int) ($review->environment_rating ?? 0),
+                        'cleanliness_rating' => (int) ($review->cleanliness_rating ?? 0),
+                        'service_rating' => (int) ($review->service_rating ?? 0),
+                        'overall_rating' => is_numeric($review->overall_rating) ? (float) $review->overall_rating : null,
+                        'owner_response' => (string) ($review->owner_response ?? ''),
+                        'created_at' => optional($review->created_at)->format('M d, Y'),
+                    ];
+                })->values()->all(),
+            ],
+        ];
+    });
+
     return view('landing', compact(
         'farmProducts',
         'recentProductRatings',
         'featuredFarms',
         'additionalFeaturedFarms',
         'featuredCoffeeShops',
-        'additionalFeaturedCoffeeShops'
+        'additionalFeaturedCoffeeShops',
+        'landingEstablishmentDetails'
     ));
 });
 

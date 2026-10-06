@@ -275,6 +275,360 @@
             font-size: 16px;
         }
     }
+    .landing-establishment-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(34, 27, 20, 0.62);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+    .landing-establishment-modal.hidden {
+        display: none;
+    }
+
+    .landing-establishment-modal-card {
+        width: min(100%, 900px);
+        max-height: min(90vh, 900px);
+        overflow: hidden;
+        border: 1px solid #D8C8B1;
+        border-radius: 1.25rem;
+        background: #FFF9F0;
+        box-shadow: 0 24px 70px rgba(58, 46, 34, 0.28);
+    }
+
+    .landing-establishment-modal-header {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid #E4D8C8;
+        background: #FFFDF9;
+    }
+
+    .landing-establishment-modal-header h3 {
+        margin: 0;
+        color: #3A2E22;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    .landing-establishment-modal-subtitle {
+        margin-top: 0.25rem;
+        color: #7B6756;
+        font-size: 0.82rem;
+    }
+
+    .landing-establishment-modal-close {
+        flex: 0 0 auto;
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 1px solid #D8C8B1;
+        border-radius: 9999px;
+        background: #F3E9D7;
+        color: #3A2E22;
+        font-size: 1.35rem;
+        line-height: 1;
+        transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .landing-establishment-modal-close:hover {
+        background: #2E5A3D;
+        color: #FFFFFF;
+        transform: translateY(-1px);
+    }
+
+    .landing-establishment-modal-scroll {
+        max-height: calc(min(90vh, 900px) - 76px);
+        overflow-y: auto;
+        padding: 1.25rem;
+    }
+
+    .landing-establishment-modal-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+        gap: 1.25rem;
+        align-items: stretch;
+    }
+
+    .landing-establishment-modal-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: 0.9rem;
+        background: #E8D9BE;
+    }
+
+    .landing-establishment-modal-image-placeholder {
+        display: flex;
+        min-height: 250px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.9rem;
+        background: #E8D9BE;
+        color: #946042;
+    }
+
+    .landing-establishment-modal-summary {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.65rem;
+        padding: 1rem;
+        border: 1px solid #E1D4C2;
+        border-radius: 0.9rem;
+        background: #F7F2EA;
+    }
+
+    .landing-establishment-modal-type {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        border: 1px solid rgba(46, 90, 61, 0.25);
+        border-radius: 9999px;
+        background: rgba(46, 90, 61, 0.1);
+        padding: 0.25rem 0.65rem;
+        color: #2E5A3D;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .landing-establishment-modal-rating {
+        color: #8B4513;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .landing-establishment-modal-address {
+        color: #3A2E22;
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    .landing-establishment-modal-section {
+        margin-top: 1.15rem;
+        padding-top: 1.05rem;
+        border-top: 1px solid #E2D6C7;
+    }
+
+    .landing-establishment-modal-section h4 {
+        margin: 0 0 0.55rem;
+        color: #3A2E22;
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .landing-establishment-modal-text {
+        color: #4D3F31;
+        font-size: 0.84rem;
+        line-height: 1.65;
+        white-space: pre-line;
+    }
+
+    .landing-establishment-modal-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem 1rem;
+    }
+
+    .landing-establishment-modal-info-item {
+        min-width: 0;
+    }
+
+    .landing-establishment-modal-info-label {
+        color: #7A6857;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .landing-establishment-modal-info-value {
+        margin-top: 0.12rem;
+        color: #3A2E22;
+        font-size: 0.82rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
+    .landing-establishment-modal-link {
+        color: #1E40AF;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .landing-establishment-modal-chip-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .landing-establishment-modal-chip {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #D2C5B3;
+        border-radius: 9999px;
+        background: #F7F2EA;
+        padding: 0.3rem 0.65rem;
+        color: #3A2E22;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .landing-establishment-modal-list {
+        display: grid;
+        gap: 0.55rem;
+    }
+
+    .landing-establishment-modal-list-card {
+        border: 1px solid #D9C9B2;
+        border-radius: 0.75rem;
+        background: #F7F2EA;
+        padding: 0.7rem 0.8rem;
+    }
+
+    .landing-establishment-modal-list-title {
+        color: #3A2E22;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .landing-establishment-modal-list-meta {
+        margin-top: 0.2rem;
+        color: #6A5A4B;
+        font-size: 0.74rem;
+        line-height: 1.5;
+    }
+
+    .landing-establishment-modal-promo {
+        border: 1px solid rgba(46, 90, 61, 0.25);
+        border-radius: 0.75rem;
+        background: rgba(46, 90, 61, 0.08);
+        padding: 0.75rem 0.85rem;
+    }
+
+    .landing-establishment-modal-promo + .landing-establishment-modal-promo {
+        margin-top: 0.55rem;
+    }
+
+    .landing-establishment-modal-promo-title {
+        color: #2E5A3D;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    .landing-establishment-modal-promo-meta {
+        margin-top: 0.15rem;
+        color: #3A2E22;
+        font-size: 0.76rem;
+        font-weight: 600;
+    }
+
+    .landing-establishment-modal-promo-description {
+        margin-top: 0.25rem;
+        color: #4D3F31;
+        font-size: 0.76rem;
+        line-height: 1.5;
+    }
+
+    .landing-establishment-modal-metrics {
+        display: grid;
+        gap: 0.45rem;
+    }
+
+    .landing-establishment-modal-metric {
+        display: grid;
+        grid-template-columns: 110px 1fr auto;
+        gap: 0.55rem;
+        align-items: center;
+        color: #4B3B2D;
+        font-size: 0.78rem;
+    }
+
+    .landing-establishment-modal-stars {
+        color: #D19B3B;
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+    }
+
+    .landing-establishment-modal-review {
+        border: 1px solid #D9C9B2;
+        border-radius: 0.7rem;
+        background: #F7F2EA;
+        padding: 0.65rem 0.75rem;
+    }
+
+    .landing-establishment-modal-review + .landing-establishment-modal-review {
+        margin-top: 0.5rem;
+    }
+
+    .landing-establishment-modal-review-author {
+        color: #3A2E22;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .landing-establishment-modal-review-meta {
+        margin-top: 0.15rem;
+        color: #6A5A4B;
+        font-size: 0.7rem;
+        line-height: 1.5;
+    }
+
+    .landing-establishment-modal-empty {
+        color: #7B6756;
+        font-size: 0.8rem;
+    }
+
+    @media (max-width: 700px) {
+        .landing-establishment-modal {
+            align-items: flex-end;
+            padding: 0;
+        }
+
+        .landing-establishment-modal-card {
+            width: 100%;
+            max-height: 92vh;
+            border-radius: 1.25rem 1.25rem 0 0;
+        }
+
+        .landing-establishment-modal-scroll {
+            max-height: calc(92vh - 76px);
+            padding: 1rem;
+        }
+
+        .landing-establishment-modal-hero {
+            grid-template-columns: 1fr;
+        }
+
+        .landing-establishment-modal-image,
+        .landing-establishment-modal-image-placeholder {
+            min-height: 0;
+            height: 200px;
+        }
+
+        .landing-establishment-modal-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .landing-establishment-modal-metric {
+            grid-template-columns: 96px 1fr auto;
+            gap: 0.4rem;
+        }
+    }
+
 </style>
 @endpush
 
@@ -651,6 +1005,13 @@
                                     @if(filled($farm->description))
                                         <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farm->description, 120) }}</p>
                                     @endif
+                                    <button
+                                        type="button"
+                                        class="landing-establishment-view-more mt-4 w-full rounded-lg border border-[#2E5A3D] bg-white px-4 py-2.5 text-sm font-semibold font-body text-[#2E5A3D] transition-colors duration-200 hover:bg-[#2E5A3D] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/30"
+                                        data-establishment-view-more="{{ $farm->id }}"
+                                    >
+                                        View More
+                                    </button>
                                 </div>
                             </div>
                         @endforeach
@@ -740,6 +1101,13 @@
                                     @if(filled($shop->description))
                                         <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shop->description, 120) }}</p>
                                     @endif
+                                    <button
+                                        type="button"
+                                        class="landing-establishment-view-more mt-4 w-full rounded-lg border border-[#2E5A3D] bg-white px-4 py-2.5 text-sm font-semibold font-body text-[#2E5A3D] transition-colors duration-200 hover:bg-[#2E5A3D] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/30"
+                                        data-establishment-view-more="{{ $shop->id }}"
+                                    >
+                                        View More
+                                    </button>
                                 </div>
                             </div>
                         @endforeach
@@ -3112,6 +3480,25 @@
         });
     </script>
 
+
+    <div id="landingEstablishmentModal" class="landing-establishment-modal hidden" role="dialog" aria-modal="true" aria-labelledby="landingEstablishmentModalTitle">
+        <div class="landing-establishment-modal-card" data-establishment-modal-card>
+            <div class="landing-establishment-modal-header">
+                <div>
+                    <h3 id="landingEstablishmentModalTitle">Establishment Details</h3>
+                    <p id="landingEstablishmentModalSubtitle" class="landing-establishment-modal-subtitle"></p>
+                </div>
+                <button
+                    type="button"
+                    id="landingEstablishmentModalClose"
+                    class="landing-establishment-modal-close"
+                    aria-label="Close establishment details"
+                >×</button>
+            </div>
+            <div id="landingEstablishmentModalScroll" class="landing-establishment-modal-scroll"></div>
+        </div>
+    </div>
+
     <!-- Include html2canvas library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </div>
@@ -3187,6 +3574,287 @@
 
                 window.addEventListener('resize', updateCarousel);
                 updateCarousel();
+            });
+        });
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('landingEstablishmentModal');
+            const modalCard = modal?.querySelector('[data-establishment-modal-card]');
+            const modalScroll = document.getElementById('landingEstablishmentModalScroll');
+            const modalTitle = document.getElementById('landingEstablishmentModalTitle');
+            const modalSubtitle = document.getElementById('landingEstablishmentModalSubtitle');
+            const modalClose = document.getElementById('landingEstablishmentModalClose');
+            const establishmentDetails = {{ Illuminate\\Support\\Js::from($landingEstablishmentDetails ?? []) }};
+
+            if (!modal || !modalCard || !modalScroll || !modalTitle || !modalClose) {
+                return;
+            }
+
+            const escapeHtml = (value) => {
+                const text = String(value ?? '');
+                return text
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            };
+
+            const safeUrl = (value) => {
+                const raw = String(value ?? '').trim();
+                if (!raw) return '';
+                try {
+                    const url = new URL(raw, window.location.origin);
+                    if (!['http:', 'https:'].includes(url.protocol)) return '';
+                    return url.href;
+                } catch {
+                    return '';
+                }
+            };
+
+            const formatStars = (value) => {
+                const rating = Math.max(0, Math.min(5, Number(value) || 0));
+                const filled = Math.round(rating);
+                return `${'★'.repeat(filled)}${'☆'.repeat(5 - filled)}`;
+            };
+
+            const formatDiscount = (promo) => {
+                const value = Number(promo?.discount_value);
+                const type = String(promo?.discount_type || '').toLowerCase();
+
+                if (!Number.isFinite(value)) return '';
+                if (type === 'percentage') return `${Number.isInteger(value) ? value : value.toFixed(2).replace(/0+$/, '').replace(/\\.$/, '')}% off`;
+                if (['amount', 'fixed', 'fixed_amount'].includes(type)) return `PHP ${value.toFixed(2)} off`;
+                return '';
+            };
+
+            const typeLabel = (type) => {
+                const labels = {
+                    farm: 'Coffee Farm',
+                    cafe: 'Coffee Shop',
+                    roaster: 'Coffee Roaster',
+                    reseller: 'Reseller',
+                };
+                return labels[String(type || '').toLowerCase()] || 'Establishment';
+            };
+
+            const valueOrNA = (value) => {
+                const text = String(value ?? '').trim();
+                return text || 'N/A';
+            };
+
+            const buildModalContent = (item) => {
+                const imageUrl = safeUrl(item.image);
+                const addressParts = [item.address, item.barangay].filter((value, index, list) => {
+                    const normalized = String(value || '').trim();
+                    return normalized && list.findIndex((entry) => String(entry || '').trim() === normalized) === index;
+                });
+                const address = addressParts.join(', ') || 'Address not available';
+                const products = Array.isArray(item.products) ? item.products : [];
+                const varieties = Array.isArray(item.coffee_varieties) ? item.coffee_varieties : [];
+                const promos = Array.isArray(item.promos) ? item.promos : [];
+                const reviews = Array.isArray(item.recent_reviews) ? item.recent_reviews : [];
+                const isCafe = String(item.type || '').toLowerCase() === 'cafe';
+                const isFarm = String(item.type || '').toLowerCase() === 'farm';
+
+                const productMarkup = products.length
+                    ? `<div class="landing-establishment-modal-list">${products.map((product) => {
+                        const productRating = Number(product.rating_average);
+                        const hasRating = Number.isFinite(productRating) && Number(product.rating_count) > 0;
+                        return `
+                            <div class="landing-establishment-modal-list-card">
+                                <div class="landing-establishment-modal-list-title">${escapeHtml(product.name)}</div>
+                                <div class="landing-establishment-modal-list-meta">
+                                    ${hasRating ? `${formatStars(productRating)} ${productRating.toFixed(1)}/5 · ${Number(product.rating_count)} ratings` : 'No ratings yet'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}</div>`
+                    : `<p class="landing-establishment-modal-empty">${isFarm ? 'No rated farm products available yet.' : 'No products listed.'}</p>`;
+
+                const varietyMarkup = varieties.length
+                    ? `<div class="landing-establishment-modal-chip-list">${varieties.map((variety) => `<span class="landing-establishment-modal-chip">${escapeHtml(variety)}</span>`).join('')}</div>`
+                    : '<p class="landing-establishment-modal-empty">No varieties listed.</p>';
+
+                const promoMarkup = promos.length
+                    ? promos.map((promo) => {
+                        const discount = formatDiscount(promo);
+                        return `
+                            <div class="landing-establishment-modal-promo">
+                                <div class="landing-establishment-modal-promo-title">${escapeHtml(promo.title || 'Active Promo')}</div>
+                                ${discount ? `<div class="landing-establishment-modal-promo-meta">${escapeHtml(discount)}</div>` : ''}
+                                <div class="landing-establishment-modal-promo-description">${escapeHtml(promo.description || 'No promo description available.')}</div>
+                                <div class="landing-establishment-modal-promo-description">Valid: ${escapeHtml(promo.valid_from || 'N/A')} – ${escapeHtml(promo.valid_until || 'N/A')}</div>
+                            </div>
+                        `;
+                    }).join('')
+                    : '<p class="landing-establishment-modal-empty">No active promo.</p>';
+
+                const metrics = [
+                    ['Taste', item.taste_avg],
+                    ['Environment', item.environment_avg],
+                    ['Cleanliness', item.cleanliness_avg],
+                    ['Service', item.service_avg],
+                ];
+
+                const ratingMarkup = isCafe
+                    ? `
+                        <div class="landing-establishment-modal-section">
+                            <h4>Ratings</h4>
+                            <p class="landing-establishment-modal-text">
+                                Average: ${Number.isFinite(Number(item.rating_average)) ? Number(item.rating_average).toFixed(1) : '0.0'} (${Number(item.review_count) || 0} ratings)
+                            </p>
+                            <div class="landing-establishment-modal-metrics">
+                                ${metrics.map(([label, value]) => {
+                                    const numeric = Number(value);
+                                    return `
+                                        <div class="landing-establishment-modal-metric">
+                                            <span>${label}</span>
+                                            <span class="landing-establishment-modal-stars">${formatStars(numeric)}</span>
+                                            <span>${Number.isFinite(numeric) ? numeric.toFixed(1) : '0.0'}</span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `
+                    : '';
+
+                const reviewMarkup = isCafe
+                    ? `
+                        <div class="landing-establishment-modal-section">
+                            <h4>Recent Ratings</h4>
+                            ${reviews.length ? reviews.map((review) => `
+                                <div class="landing-establishment-modal-review">
+                                    <div class="landing-establishment-modal-review-author">${escapeHtml(review.reviewer || 'Anonymous')}</div>
+                                    <div class="landing-establishment-modal-review-meta">
+                                        Overall: ${Number.isFinite(Number(review.overall_rating)) ? Number(review.overall_rating).toFixed(1) : 'N/A'} ·
+                                        Taste: ${Number(review.taste_rating || 0).toFixed(0)} ·
+                                        Environment: ${Number(review.environment_rating || 0).toFixed(0)} ·
+                                        Cleanliness: ${Number(review.cleanliness_rating || 0).toFixed(0)} ·
+                                        Service: ${Number(review.service_rating || 0).toFixed(0)}
+                                        ${review.created_at ? ` · ${escapeHtml(review.created_at)}` : ''}
+                                    </div>
+                                    ${review.owner_response ? `<div class="landing-establishment-modal-review-meta">Owner response: ${escapeHtml(review.owner_response)}</div>` : ''}
+                                </div>
+                            `).join('') : '<p class="landing-establishment-modal-empty">No recent ratings available.</p>'}
+                        </div>
+                    `
+                    : '';
+
+                const website = safeUrl(item.website);
+                const contact = String(item.contact_number || '').trim();
+                const email = String(item.email || '').trim();
+
+                return `
+                    <div class="landing-establishment-modal-hero">
+                        ${imageUrl
+                            ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.name)}" class="landing-establishment-modal-image" onerror="this.outerHTML='<div class=&quot;landing-establishment-modal-image-placeholder&quot;>No Photo</div>'">`
+                            : '<div class="landing-establishment-modal-image-placeholder">No Photo</div>'}
+                        <div class="landing-establishment-modal-summary">
+                            <span class="landing-establishment-modal-type">${escapeHtml(typeLabel(item.type))}</span>
+                            ${isCafe ? `<div class="landing-establishment-modal-rating">${formatStars(item.rating_average)} ${Number.isFinite(Number(item.rating_average)) ? Number(item.rating_average).toFixed(1) : '0.0'} / 5 · ${Number(item.review_count) || 0} ratings</div>` : ''}
+                            <div class="landing-establishment-modal-address">${escapeHtml(address)}</div>
+                        </div>
+                    </div>
+
+                    ${item.description ? `
+                        <section class="landing-establishment-modal-section">
+                            <h4>Description</h4>
+                            <p class="landing-establishment-modal-text">${escapeHtml(item.description)}</p>
+                        </section>
+                    ` : ''}
+
+                    <section class="landing-establishment-modal-section">
+                        <h4>Information</h4>
+                        <div class="landing-establishment-modal-info-grid">
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Type</div>
+                                <div class="landing-establishment-modal-info-value">${escapeHtml(typeLabel(item.type))}</div>
+                            </div>
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Barangay</div>
+                                <div class="landing-establishment-modal-info-value">${escapeHtml(valueOrNA(item.barangay))}</div>
+                            </div>
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Contact</div>
+                                <div class="landing-establishment-modal-info-value">${contact ? `<a class="landing-establishment-modal-link" href="tel:${escapeHtml(contact)}">${escapeHtml(contact)}</a>` : 'N/A'}</div>
+                            </div>
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Email</div>
+                                <div class="landing-establishment-modal-info-value">${email ? `<a class="landing-establishment-modal-link" href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>` : 'N/A'}</div>
+                            </div>
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Website</div>
+                                <div class="landing-establishment-modal-info-value">${website ? `<a class="landing-establishment-modal-link" href="${escapeHtml(website)}" target="_blank" rel="noopener noreferrer">${escapeHtml(website)}</a>` : 'N/A'}</div>
+                            </div>
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Visit Hours</div>
+                                <div class="landing-establishment-modal-info-value">${escapeHtml(valueOrNA(item.visit_hours))}</div>
+                            </div>
+                            <div class="landing-establishment-modal-info-item">
+                                <div class="landing-establishment-modal-info-label">Activities</div>
+                                <div class="landing-establishment-modal-info-value">${escapeHtml(valueOrNA(item.activities))}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="landing-establishment-modal-section">
+                        <h4>Products</h4>
+                        ${productMarkup}
+                    </section>
+
+                    ${promos.length || isCafe ? `
+                        <section class="landing-establishment-modal-section">
+                            <h4>Promo</h4>
+                            ${promoMarkup}
+                        </section>
+                    ` : ''}
+
+                    ${ratingMarkup}
+
+                    <section class="landing-establishment-modal-section">
+                        <h4>Coffee Varieties</h4>
+                        ${varietyMarkup}
+                    </section>
+
+                    ${reviewMarkup}
+                `;
+            };
+
+            const openModal = (id) => {
+                const item = establishmentDetails[String(id)];
+                if (!item) return;
+
+                modalTitle.textContent = item.name || 'Establishment Details';
+                modalSubtitle.textContent = typeLabel(item.type);
+                modalScroll.innerHTML = buildModalContent(item);
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                modalClose.focus();
+            };
+
+            const closeModal = () => {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            document.querySelectorAll('[data-establishment-view-more]').forEach((button) => {
+                button.addEventListener('click', () => openModal(button.dataset.establishmentViewMore));
+            });
+
+            modalClose.addEventListener('click', closeModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    closeModal();
+                }
             });
         });
     </script>

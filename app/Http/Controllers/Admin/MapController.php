@@ -297,7 +297,21 @@ class MapController extends Controller
                 'string',
                 'min:8',
                 'max:255',
-                Rule::requiredIf(fn () => $request->input('farm_owner_assignment', 'arnold') === 'individual'),
+                Rule::requiredIf(function () use ($request) {
+                    if ($request->input('farm_owner_assignment', 'arnold') !== 'individual') {
+                        return false;
+                    }
+
+                    $email = strtolower(trim((string) $request->input('email', '')));
+                    if ($email === '') {
+                        return false;
+                    }
+
+                    return !User::query()
+                        ->where('role', 'farm_owner')
+                        ->whereRaw('LOWER(email) = ?', [$email])
+                        ->exists();
+                }),
             ];
         }
 

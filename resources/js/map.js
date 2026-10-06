@@ -3350,6 +3350,13 @@ function setupStaticEventListeners() {
         if (!form) return;
 
         const isFarm = form.type?.value === 'farm';
+        const assignmentField = form.querySelector('[name="farm_owner_assignment"]');
+        const assignmentRow = document.getElementById('farm-owner-assignment-row');
+        const assignmentError = document.querySelector('[data-field-error="farm_owner_assignment"]');
+        const assignment = assignmentField?.value || 'arnold';
+        const isIndividualFarm = isFarm && assignment === 'individual';
+        const showOwnerAccountFields = !isFarm || isIndividualFarm;
+
         const emailField = form.querySelector('[name="email"]');
         const passwordField = form.querySelector('[name="owner_password"]');
         const emailLabel = document.querySelector('[data-field-label="email"]');
@@ -3357,61 +3364,72 @@ function setupStaticEventListeners() {
         const passwordLabel = document.querySelector('[data-field-label="owner_password"]');
         const passwordRequiredIndicator = document.querySelector('[data-required-indicator="owner_password"]');
 
+        if (assignmentRow) {
+            assignmentRow.classList.toggle('hidden', !isFarm);
+        }
+
+        if (assignmentError && !isFarm) {
+            assignmentError.classList.add('hidden');
+        }
+
         if (emailField) {
-            emailField.required = !isFarm;
-            emailField.setAttribute('aria-required', String(!isFarm));
-            emailField.closest('div')?.classList.toggle('opacity-60', isFarm);
+            emailField.required = showOwnerAccountFields;
+            emailField.setAttribute('aria-required', String(showOwnerAccountFields));
         }
 
         if (emailLabel) {
-            emailLabel.textContent = isFarm ? 'Email' : 'Email';
+            emailLabel.textContent = 'Email';
         }
 
         if (emailRequiredIndicator) {
-            emailRequiredIndicator.classList.toggle('hidden', isFarm);
+            emailRequiredIndicator.classList.toggle('hidden', !showOwnerAccountFields);
         }
 
         if (passwordField) {
-            passwordField.required = false;
-            passwordField.setAttribute('aria-required', 'false');
-            passwordField.closest('div')?.classList.toggle('opacity-60', isFarm);
+            passwordField.required = isIndividualFarm;
+            passwordField.setAttribute('aria-required', String(isIndividualFarm));
         }
 
         if (passwordLabel) {
-            passwordLabel.textContent = isFarm ? 'Owner Account Password' : 'Owner Account Password';
+            passwordLabel.textContent = 'Owner Account Password';
         }
 
         if (passwordRequiredIndicator) {
-            passwordRequiredIndicator.classList.add('hidden');
+            passwordRequiredIndicator.classList.toggle('hidden', !isIndividualFarm);
         }
 
         const ownerFields = form.querySelectorAll('[data-field="email"], [data-field="owner_password"]');
         ownerFields.forEach((field) => {
-            // Each owner-account field lives inside one direct child row of the
-            // add-establishment form. The previous implementation used
-            // field.closest('div').parentElement, which resolves to the form
-            // itself for these fields and hides the entire modal form when the
-            // establishment type changes.
             const fieldRow = field.closest('#add-establishment-form > div');
             if (!fieldRow) return;
 
-            const shouldHide = isFarm;
-            fieldRow.classList.toggle('hidden', shouldHide);
+            fieldRow.classList.toggle('hidden', !showOwnerAccountFields);
 
             if (field.name === 'email') {
                 const hint = fieldRow.querySelector('[data-field-hint="email"]');
                 const error = fieldRow.querySelector('[data-field-error="email"]');
-                if (hint) hint.classList.toggle('hidden', shouldHide);
-                if (error) error.classList.add('hidden');
+                if (hint) {
+                    hint.classList.toggle('hidden', !showOwnerAccountFields);
+                    hint.textContent = isFarm
+                        ? 'Used to create or link the individual farm owner account.'
+                        : 'For cafes and roasters, this email is also used to link the owner account.';
+                }
+                if (error && !showOwnerAccountFields) error.classList.add('hidden');
+            }
+
+            if (field.name === 'owner_password') {
+                const hint = fieldRow.querySelector('[data-field-hint="owner_password"]');
+                const error = fieldRow.querySelector('[data-field-error="owner_password"]');
+                if (hint) hint.classList.toggle('hidden', !showOwnerAccountFields);
+                if (error && !showOwnerAccountFields) error.classList.add('hidden');
             }
         });
 
-        if (isFarm) {
-            const emailHint = document.querySelector('[data-field-hint="email"]');
-            if (emailHint) emailHint.textContent = 'Optional for farm establishments.';
-        } else {
-            const emailHint = document.querySelector('[data-field-hint="email"]');
-            if (emailHint) emailHint.textContent = 'For cafes and roasters, this email is also used to link the owner account.';
+        if (!showOwnerAccountFields) {
+            if (emailField) emailField.value = '';
+            if (passwordField) passwordField.value = '';
+            clearFieldError?.('email');
+            clearFieldError?.('owner_password');
         }
     };
 
@@ -3467,6 +3485,13 @@ function setupStaticEventListeners() {
 
     if (form?.type) {
         form.type.addEventListener('change', setOwnerAccountFieldState);
+    }
+
+    if (form?.farm_owner_assignment) {
+        form.farm_owner_assignment.addEventListener('change', () => {
+            clearFieldError('farm_owner_assignment');
+            setOwnerAccountFieldState();
+        });
     }
 
     if (form) {
@@ -3669,10 +3694,18 @@ function setupStaticEventListeners() {
                 }
             });
 
-            if (typeValue !== 'farm' && !form.email.value.trim()) {
-                showFieldError('email', 'Email is required for cafe and roaster establishments.');
+            const farmOwnerAssignment = form.farm_owner_assignment?.value || 'arnold';
+            const needsIndividualFarmOwner = typeValue === 'farm' && farmOwnerAssignment === 'individual';
+
+            if ((typeValue !== 'farm' || needsIndividualFarmOwner) && !form.email.value.trim()) {
+                showFieldError(
+                    'email',
+                    needsIndividualFarmOwner
+                        ? 'Email is required for an individual farm owner.'
+                        : 'Email is required for cafe and roaster establishments.'
+                );
                 requiredFieldErrors.push('email');
-            } else if (typeValue !== 'farm') {
+            } else if (typeValue !== 'farm' || needsIndividualFarmOwner) {
                 const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.value.trim());
                 if (!emailValid) {
                     showFieldError('email', 'Enter a valid email address.');
@@ -3680,6 +3713,17 @@ function setupStaticEventListeners() {
                 } else {
                     clearFieldError('email');
                 }
+            } else {
+                clearFieldError('email');
+            }
+
+            if (needsIndividualFarmOwner && !form.owner_password.value.trim()) {
+                showFieldError('owner_password', 'Owner account password is required for an individual farm owner.');
+                requiredFieldErrors.push('owner_password');
+            } else if (needsIndividualFarmOwner) {
+                clearFieldError('owner_password');
+            } else {
+                clearFieldError('owner_password');
             }
 
             if (form.contact_number.value.trim() && !/^(?:\+63|0)?9\d{9}$/.test(form.contact_number.value.trim())) {
@@ -3735,6 +3779,9 @@ function setupStaticEventListeners() {
             formData.append('_token', window.CSRF_TOKEN);
             formData.append('name', form.name.value.trim());
             formData.append('type', form.type.value);
+            if (form.type.value === 'farm') {
+                formData.append('farm_owner_assignment', form.farm_owner_assignment?.value || 'arnold');
+            }
             formData.append('description', form.description.value.trim());
             formData.append('address', form.address.value.trim());
             formData.append('barangay', form.barangay.value.trim());

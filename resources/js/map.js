@@ -3386,8 +3386,8 @@ function setupStaticEventListeners() {
         }
 
         if (passwordField) {
-            passwordField.required = isIndividualFarm;
-            passwordField.setAttribute('aria-required', String(isIndividualFarm));
+            passwordField.required = false;
+            passwordField.setAttribute('aria-required', 'false');
         }
 
         if (passwordLabel) {
@@ -3395,7 +3395,7 @@ function setupStaticEventListeners() {
         }
 
         if (passwordRequiredIndicator) {
-            passwordRequiredIndicator.classList.toggle('hidden', !isIndividualFarm);
+            passwordRequiredIndicator.classList.add('hidden');
         }
 
         const ownerFields = form.querySelectorAll('[data-field="email"], [data-field="owner_password"]');
@@ -3717,14 +3717,7 @@ function setupStaticEventListeners() {
                 clearFieldError('email');
             }
 
-            if (needsIndividualFarmOwner && !form.owner_password.value.trim()) {
-                showFieldError('owner_password', 'Owner account password is required for an individual farm owner.');
-                requiredFieldErrors.push('owner_password');
-            } else if (needsIndividualFarmOwner) {
-                clearFieldError('owner_password');
-            } else {
-                clearFieldError('owner_password');
-            }
+            clearFieldError('owner_password');
 
             if (form.contact_number.value.trim() && !/^(?:\+63|0)?9\d{9}$/.test(form.contact_number.value.trim())) {
                 showFieldError('contact_number', 'Contact number must be a valid Philippine mobile number.');

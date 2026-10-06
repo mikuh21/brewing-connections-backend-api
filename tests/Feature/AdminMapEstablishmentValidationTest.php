@@ -74,6 +74,36 @@ class AdminMapEstablishmentValidationTest extends TestCase
         ]);
     }
 
+    public function test_individual_farm_can_link_to_an_existing_farm_owner_account(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $owner = User::factory()->create([
+            'role' => 'farm_owner',
+            'email' => 'existing.farmer@example.com',
+        ]);
+
+        $response = $this->actingAs($admin)->post('/admin/map', [
+            'name' => 'Existing Owner Farm',
+            'type' => 'farm',
+            'farm_owner_assignment' => 'individual',
+            'email' => 'EXISTING.FARMER@example.com',
+            'address' => '789 Farm Road',
+            'barangay' => 'Mataas na Lupa',
+            'latitude' => 13.97,
+            'longitude' => 121.14,
+            'varieties' => [1],
+            'primary_variety' => 1,
+        ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('establishments', [
+            'name' => 'Existing Owner Farm',
+            'owner_id' => $owner->id,
+        ]);
+
+        $this->assertDatabaseCount('users', 2);
+    }
+
     public function test_individual_farm_requires_owner_email_and_password(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

@@ -253,6 +253,16 @@
                                         <option value="roaster">Roaster</option>
                                     </select>
                                 </div>
+                                <div id="farm-owner-assignment-row" class="hidden">
+                                    <label class="block text-sm font-semibold" for="farm-owner-assignment">Farm Ownership</label>
+                                    <select id="farm-owner-assignment" name="farm_owner_assignment" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                                        <option value="arnold">Under Sir Arnold</option>
+                                        <option value="individual">Individual Farm Owner</option>
+                                    </select>
+                                    <p class="mt-1 text-xs text-[#6B3A2A]">Choose whether this farm belongs under Sir Arnold's account or has its own farm owner account.</p>
+                                    <p data-field-error="farm_owner_assignment" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
+                                </div>
+
                                 <div>
                                     <label class="block text-sm font-semibold">Contact Number</label>
                                     <input name="contact_number" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
@@ -292,7 +302,7 @@
                                             </svg>
                                         </button>
                                     </div>
-                                    <p data-field-hint="owner_password" class="mt-1 text-xs text-[#6B3A2A]">Required only when this cafe or roaster owner account does not exist yet.</p>
+                                    <p data-field-hint="owner_password" class="mt-1 text-xs text-[#6B3A2A]">For an individual farm owner, create or link the farm owner account here. For cafes and roasters, this is used when the owner account does not exist yet.</p>
                                     <p data-field-error="owner_password" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
                                 </div>
                                 <div>

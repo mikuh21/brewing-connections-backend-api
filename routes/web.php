@@ -59,6 +59,19 @@ Route::get('/', function () {
         ->take(3)
         ->get();
 
+    // Keep the existing featured selection intact, then load the remaining
+    // registered farms so the landing-page carousel can browse beyond the first 3.
+    $featuredFarmIds = $featuredFarms->pluck('id');
+
+    $additionalFeaturedFarms = Establishment::query()
+        ->whereNull('deleted_at')
+        ->where('type', 'farm')
+        ->when($featuredFarmIds->isNotEmpty(), function ($query) use ($featuredFarmIds) {
+            $query->whereNotIn('id', $featuredFarmIds);
+        })
+        ->latest('id')
+        ->get();
+
     $featuredCoffeeShops = Establishment::query()
         ->whereNull('deleted_at')
         ->where('type', 'cafe')
@@ -94,7 +107,32 @@ Route::get('/', function () {
         $featuredCoffeeShops = $featuredCoffeeShops->concat($recentUnratedCafes);
     }
 
-    return view('landing', compact('farmProducts', 'recentProductRatings', 'featuredFarms', 'featuredCoffeeShops'));
+    // Preserve the existing top-3 rating selection above. This separate query
+    // loads the remaining registered cafes for the landing-page carousel.
+    $featuredCoffeeShopIds = $featuredCoffeeShops->pluck('id');
+
+    $additionalFeaturedCoffeeShops = Establishment::query()
+        ->whereNull('deleted_at')
+        ->where('type', 'cafe')
+        ->when($featuredCoffeeShopIds->isNotEmpty(), function ($query) use ($featuredCoffeeShopIds) {
+            $query->whereNotIn('id', $featuredCoffeeShopIds);
+        })
+        ->withAvg('reviews', 'overall_rating')
+        ->with(['couponPromos' => function ($query) {
+            $query->active()->latest('valid_until');
+        }])
+        ->orderByDesc('reviews_avg_overall_rating')
+        ->latest('id')
+        ->get();
+
+    return view('landing', compact(
+        'farmProducts',
+        'recentProductRatings',
+        'featuredFarms',
+        'additionalFeaturedFarms',
+        'featuredCoffeeShops',
+        'additionalFeaturedCoffeeShops'
+    ));
 });
 
 Route::post('/reservations/orders', [LandingReservationController::class, 'store'])

@@ -90,11 +90,6 @@ Route::get('/', function () {
         ->withAvg('reviews', 'cleanliness_rating')
         ->withAvg('reviews', 'service_rating')
         ->withCount('reviews')
-        ->withAvg('reviews', 'taste_rating')
-        ->withAvg('reviews', 'environment_rating')
-        ->withAvg('reviews', 'cleanliness_rating')
-        ->withAvg('reviews', 'service_rating')
-        ->withCount('reviews')
         ->latest()
         ->take(3)
         ->get();
@@ -125,6 +120,11 @@ Route::get('/', function () {
         ->whereHas('reviews')
         ->with($landingEstablishmentRelations)
         ->withAvg('reviews', 'overall_rating')
+        ->withAvg('reviews', 'taste_rating')
+        ->withAvg('reviews', 'environment_rating')
+        ->withAvg('reviews', 'cleanliness_rating')
+        ->withAvg('reviews', 'service_rating')
+        ->withCount('reviews')
         ->with(['couponPromos' => function ($query) {
             $query->active()->latest('valid_until');
         }])
@@ -179,7 +179,6 @@ Route::get('/', function () {
         ->when($featuredCoffeeShopIds->isNotEmpty(), function ($query) use ($featuredCoffeeShopIds) {
             $query->whereNotIn('id', $featuredCoffeeShopIds);
         })
-        ->withAvg('reviews', 'overall_rating')
         ->with(['couponPromos' => function ($query) {
             $query->active()->latest('valid_until');
         }])

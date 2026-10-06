@@ -18,13 +18,18 @@ class AdminMapEstablishmentValidationTest extends TestCase
         $this->seed(CoffeeVarietySeeder::class);
     }
 
-    public function test_farm_establishment_can_be_created_without_owner_password(): void
+    public function test_farm_establishment_can_be_created_under_sir_arnold_without_owner_password(): void
     {
-        $user = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $arnold = User::factory()->create([
+            'role' => 'farm_owner',
+            'email' => 'abm.arnoldbm@gmail.com',
+        ]);
 
-        $response = $this->actingAs($user)->post('/admin/map', [
+        $response = $this->actingAs($admin)->post('/admin/map', [
             'name' => 'Sunrise Farm',
             'type' => 'farm',
+            'farm_owner_assignment' => 'arnold',
             'address' => '123 Farm Road',
             'barangay' => 'San Jose',
             'latitude' => 13.95,
@@ -34,7 +39,58 @@ class AdminMapEstablishmentValidationTest extends TestCase
         ]);
 
         $response->assertOk();
-        $this->assertDatabaseHas('establishments', ['name' => 'Sunrise Farm']);
+        $this->assertDatabaseHas('establishments', [
+            'name' => 'Sunrise Farm',
+            'owner_id' => $arnold->id,
+        ]);
+    }
+
+    public function test_farm_establishment_can_create_an_individual_farm_owner_account(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post('/admin/map', [
+            'name' => 'Independent Coffee Farm',
+            'type' => 'farm',
+            'farm_owner_assignment' => 'individual',
+            'email' => 'farmer@example.com',
+            'owner_password' => 'password123',
+            'address' => '456 Farm Road',
+            'barangay' => 'Banay-Banay',
+            'latitude' => 13.96,
+            'longitude' => 121.13,
+            'varieties' => [1],
+            'primary_variety' => 1,
+        ]);
+
+        $response->assertOk();
+
+        $owner = User::query()->where('email', 'farmer@example.com')->firstOrFail();
+
+        $this->assertSame('farm_owner', $owner->role);
+        $this->assertDatabaseHas('establishments', [
+            'name' => 'Independent Coffee Farm',
+            'owner_id' => $owner->id,
+        ]);
+    }
+
+    public function test_individual_farm_requires_owner_email_and_password(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post('/admin/map', [
+            'name' => 'Independent Coffee Farm',
+            'type' => 'farm',
+            'farm_owner_assignment' => 'individual',
+            'address' => '456 Farm Road',
+            'barangay' => 'Banay-Banay',
+            'latitude' => 13.96,
+            'longitude' => 121.13,
+            'varieties' => [1],
+            'primary_variety' => 1,
+        ]);
+
+        $response->assertSessionHasErrors(['email', 'owner_password']);
     }
 
     public function test_cafe_requires_email_and_password_for_new_owner_account(): void

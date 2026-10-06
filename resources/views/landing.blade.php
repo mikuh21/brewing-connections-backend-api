@@ -649,7 +649,7 @@
                                     <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farm->name }}</h3>
                                     <p class="text-[#946042]">{{ $farm->address ?? 'Lipa, Batangas' }}</p>
                                     @if(filled($farm->description))
-                                        <p class="text-[#3A2E22]">{{ IlluminateSupportStr::limit($farm->description, 120) }}</p>
+                                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farm->description, 120) }}</p>
                                     @endif
                                 </div>
                             </div>
@@ -734,11 +734,11 @@
                                     @endif
                                     @if($shopPromo)
                                         <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
-                                            Promo: {{ IlluminateSupportStr::limit($shopPromo->title, 42) }}
+                                            Promo: {{ \Illuminate\Support\Str::limit($shopPromo->title, 42) }}
                                         </div>
                                     @endif
                                     @if(filled($shop->description))
-                                        <p class="text-[#3A2E22]">{{ IlluminateSupportStr::limit($shop->description, 120) }}</p>
+                                        <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shop->description, 120) }}</p>
                                     @endif
                                 </div>
                             </div>
@@ -765,7 +765,7 @@
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <a href="#" class="landing-cta-primary inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md bg-[#2E5A3D] text-white font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M16.7 12.5c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8s-1.8-.8-2.9-.8c-1.5 0-2.8.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.2 2.8 2.1 1.1 0 1.6-.7 1.6-2.2.9-1.3 1.2-2.6 1.2-2.7 0 0-2.3-.9-2.3-3.5zM14.6 6.2c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"></path>
+                            <path d="M16.7 12.5c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8s-1.8-.8-2.9-.8c-1.5 0-2.8.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.2 2.8 2.1 1.1 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-1.1 2.7-2.2.9-1.3 1.2-2.6 1.2-2.7 0 0-2.3-.9-2.3-3.5zM14.6 6.2c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"></path>
                         </svg>
                         for iOS
                     </a>

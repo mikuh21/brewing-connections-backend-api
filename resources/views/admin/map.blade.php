@@ -302,7 +302,7 @@
                                             </svg>
                                         </button>
                                     </div>
-                                    <p data-field-hint="owner_password" class="mt-1 text-xs text-[#6B3A2A]">For an individual farm owner, create or link the farm owner account here. For cafes and roasters, this is used when the owner account does not exist yet.</p>
+                                    <p data-field-hint="owner_password" class="mt-1 text-xs text-[#6B3A2A]">Required only when creating a new individual farm owner account, or a new cafe/roaster owner account.</p>
                                     <p data-field-error="owner_password" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
                                 </div>
                                 <div>

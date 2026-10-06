@@ -4,6 +4,98 @@
 
 @push('styles')
 <style>
+
+    /* Featured establishment carousel */
+    .landing-carousel {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+    }
+
+    .landing-carousel-viewport {
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+    }
+
+    .landing-carousel-track {
+        display: flex;
+        align-items: stretch;
+        margin: 0 -0.5rem;
+        will-change: transform;
+    }
+
+    .landing-carousel-slide {
+        flex: 0 0 100%;
+        min-width: 0;
+        padding: 0 0.5rem;
+        box-sizing: border-box;
+    }
+
+    .landing-carousel-arrow {
+        display: inline-flex;
+        flex: 0 0 2.75rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #D7C9B1;
+        border-radius: 9999px;
+        background: #FFFFFF;
+        color: #3A2E22;
+        box-shadow: 0 6px 16px rgba(58, 46, 34, 0.10);
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .landing-carousel-arrow svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .landing-carousel-arrow:hover:not(:disabled) {
+        background: #2E5A3D;
+        border-color: #2E5A3D;
+        color: #FFFFFF;
+        box-shadow: 0 10px 22px rgba(46, 90, 61, 0.20);
+        transform: translateY(-1px);
+    }
+
+    .landing-carousel-arrow:focus-visible {
+        outline: 2px solid #2E5A3D;
+        outline-offset: 3px;
+    }
+
+    .landing-carousel-arrow:disabled {
+        cursor: not-allowed;
+        opacity: 0.38;
+        box-shadow: none;
+    }
+
+    @media (min-width: 768px) {
+        .landing-carousel-slide {
+            flex-basis: 50%;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .landing-carousel-slide {
+            flex-basis: 33.333333%;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .landing-carousel {
+            gap: 0.5rem;
+        }
+
+        .landing-carousel-arrow {
+            flex-basis: 2.5rem;
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+    }
+
     /* Smooth reveal animations */
     .reveal {
         opacity: 0;
@@ -516,35 +608,67 @@
             <p class="text-center text-[#3A2E22] mb-12 text-base md:text-lg font-body max-w-2xl mx-auto leading-relaxed reveal">Discover our curated selection of top-rated Coffee Farms</p>
             @php
                 $featuredFarms = $featuredFarms ?? collect();
+                $additionalFeaturedFarms = $additionalFeaturedFarms ?? collect();
+                $farmCarouselItems = $featuredFarms->concat($additionalFeaturedFarms);
             @endphp
-            <div class="flex flex-wrap justify-center gap-8">
-                @foreach($featuredFarms as $farm)
-                    @php
-                        $farmImage = $farm->image
-                            ? (str_starts_with($farm->image, 'http')
-                                ? $farm->image
-                                : asset(ltrim($farm->image, '/')))
-                            : null;
-                    @endphp
-                    <div class="w-full md:w-[calc((100%-4rem)/3)] bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ $loop->iteration }}">
-                        @if($farmImage)
-                            <img src="{{ $farmImage }}" alt="{{ $farm->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
-                            <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+
+            <div class="landing-carousel" data-landing-carousel data-carousel-count="{{ $farmCarouselItems->count() }}">
+                <button
+                    type="button"
+                    class="landing-carousel-arrow landing-carousel-arrow-prev"
+                    data-carousel-prev
+                    aria-label="Previous coffee farms"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+
+                <div class="landing-carousel-viewport">
+                    <div class="landing-carousel-track" data-carousel-track>
+                        @foreach($farmCarouselItems as $farm)
+                            @php
+                                $farmImage = $farm->image
+                                    ? (str_starts_with($farm->image, 'http')
+                                        ? $farm->image
+                                        : asset(ltrim($farm->image, '/')))
+                                    : null;
+                            @endphp
+                            <div class="landing-carousel-slide" data-carousel-slide>
+                                <div class="w-full bg-[#F3E9D7] p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ (($loop->index % 5) + 1) }}">
+                                    @if($farmImage)
+                                        <img src="{{ $farmImage }}" alt="{{ $farm->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden')">
+                                        <div class="hidden w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                                        </div>
+                                    @else
+                                        <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
+                                        </div>
+                                    @endif
+                                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farm->name }}</h3>
+                                    <p class="text-[#946042]">{{ $farm->address ?? 'Lipa, Batangas' }}</p>
+                                    @if(filled($farm->description))
+                                        <p class="text-[#3A2E22]">{{ IlluminateSupportStr::limit($farm->description, 120) }}</p>
+                                    @endif
+                                </div>
                             </div>
-                        @else
-                            <div class="w-full h-48 rounded-md mb-4 bg-[#E8D9BE] flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-[#946042] opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10.5" r="1.5" /><path d="M21 15l-5-5L5 19" /></svg>
-                            </div>
-                        @endif
-                        <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $farm->name }}</h3>
-                        <p class="text-[#946042]">{{ $farm->address ?? 'Lipa, Batangas' }}</p>
-                        @if(filled($farm->description))
-                            <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($farm->description, 120) }}</p>
-                        @endif
+                        @endforeach
                     </div>
-                @endforeach
+                </div>
+
+                <button
+                    type="button"
+                    class="landing-carousel-arrow landing-carousel-arrow-next"
+                    data-carousel-next
+                    aria-label="Next coffee farms"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
             </div>
+
             <div class="text-center mt-10">
                 <a href="#farm-products-list" class="inline-flex items-center gap-2 text-[#2E5A3D] font-body font-medium hover:gap-4 transition-all duration-300">
                     See All Products
@@ -563,45 +687,77 @@
             <p class="text-center text-[#3A2E22] mb-12 text-base md:text-lg font-body max-w-2xl mx-auto leading-relaxed reveal">Explore the best local cafés in Lipa, Batangas</p>
             @php
                 $featuredCoffeeShops = $featuredCoffeeShops ?? collect();
+                $additionalFeaturedCoffeeShops = $additionalFeaturedCoffeeShops ?? collect();
+                $coffeeShopCarouselItems = $featuredCoffeeShops->concat($additionalFeaturedCoffeeShops);
             @endphp
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                @foreach($featuredCoffeeShops as $shop)
-                    @php
-                        $shopImage = $shop->image
-                            ? (str_starts_with($shop->image, 'http')
-                                ? $shop->image
-                                : asset(ltrim($shop->image, '/')))
-                            : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
-                        $shopPromo = $shop->couponPromos?->first();
-                    @endphp
-                    <div class="bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ $loop->iteration }}">
-                        <img src="{{ $shopImage }}" alt="{{ $shop->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
-                        <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shop->name }}</h3>
-                        <p class="text-[#946042]">{{ $shop->address ?? 'Lipa, Batangas' }}</p>
-                        @if(is_numeric($shop->reviews_avg_overall_rating))
-                            <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
-                                <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
-                                    </svg>
-                                </span>
-                                <span class="font-semibold">{{ number_format((float) $shop->reviews_avg_overall_rating, 1) }}/5</span>
-                                <span class="text-[#3A2E22]/70">rating</span>
-                            </p>
-                        @else
-                            <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
-                        @endif
-                        @if($shopPromo)
-                            <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
-                                Promo: {{ \Illuminate\Support\Str::limit($shopPromo->title, 42) }}
+
+            <div class="landing-carousel" data-landing-carousel data-carousel-count="{{ $coffeeShopCarouselItems->count() }}">
+                <button
+                    type="button"
+                    class="landing-carousel-arrow landing-carousel-arrow-prev"
+                    data-carousel-prev
+                    aria-label="Previous coffee shops"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+
+                <div class="landing-carousel-viewport">
+                    <div class="landing-carousel-track" data-carousel-track>
+                        @foreach($coffeeShopCarouselItems as $shop)
+                            @php
+                                $shopImage = $shop->image
+                                    ? (str_starts_with($shop->image, 'http')
+                                        ? $shop->image
+                                        : asset(ltrim($shop->image, '/')))
+                                    : 'https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop';
+                                $shopPromo = $shop->couponPromos?->first();
+                            @endphp
+                            <div class="landing-carousel-slide" data-carousel-slide>
+                                <div class="w-full bg-white p-6 rounded-lg flex flex-col h-full card-hover reveal stagger-{{ (($loop->index % 5) + 1) }}">
+                                    <img src="{{ $shopImage }}" alt="{{ $shop->name }}" class="w-full h-48 object-cover rounded-md mb-4" onerror="this.src='https://placehold.co/300x200/F3E9D7/3A2E22?text=Coffee+Shop'">
+                                    <h3 class="text-xl font-semibold text-[#3A2E22] font-poppins">{{ $shop->name }}</h3>
+                                    <p class="text-[#946042]">{{ $shop->address ?? 'Lipa, Batangas' }}</p>
+                                    @if(is_numeric($shop->reviews_avg_overall_rating))
+                                        <p class="mt-1 inline-flex items-center gap-1.5 text-sm text-[#3A2E22] font-body">
+                                            <span class="inline-flex text-[#D19B3B]" aria-hidden="true">
+                                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2l2.83 6.63L22 9.24l-5.46 4.73L18.18 21 12 17.27 5.82 21l1.64-7.03L2 9.24l7.17-.61L12 2z"/>
+                                                </svg>
+                                            </span>
+                                            <span class="font-semibold">{{ number_format((float) $shop->reviews_avg_overall_rating, 1) }}/5</span>
+                                            <span class="text-[#3A2E22]/70">rating</span>
+                                        </p>
+                                    @else
+                                        <p class="text-sm text-[#3A2E22]/70 font-body mt-1">No ratings yet</p>
+                                    @endif
+                                    @if($shopPromo)
+                                        <div class="mt-2 inline-flex items-center rounded-full bg-[#2E5A3D]/10 text-[#2E5A3D] border border-[#2E5A3D]/30 px-2.5 py-1 text-xs font-semibold font-body">
+                                            Promo: {{ IlluminateSupportStr::limit($shopPromo->title, 42) }}
+                                        </div>
+                                    @endif
+                                    @if(filled($shop->description))
+                                        <p class="text-[#3A2E22]">{{ IlluminateSupportStr::limit($shop->description, 120) }}</p>
+                                    @endif
+                                </div>
                             </div>
-                        @endif
-                        @if(filled($shop->description))
-                            <p class="text-[#3A2E22]">{{ \Illuminate\Support\Str::limit($shop->description, 120) }}</p>
-                        @endif
+                        @endforeach
                     </div>
-                @endforeach
+                </div>
+
+                <button
+                    type="button"
+                    class="landing-carousel-arrow landing-carousel-arrow-next"
+                    data-carousel-next
+                    aria-label="Next coffee shops"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
             </div>
+
             <div class="text-center mt-10 reveal">
                 <p class="text-[#3A2E22] font-body text-base md:text-lg mb-4">
                     Download <em>BrewHub</em> to experience more quality coffee!
@@ -609,13 +765,13 @@
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
                     <a href="#" class="landing-cta-primary inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md bg-[#2E5A3D] text-white font-body font-medium hover:bg-[#1E3A2A] transition-colors duration-200">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M16.7 12.5c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8s-1.8-.8-2.9-.8c-1.5 0-2.8.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.2 2.8 2.1 1.1 0 1.6-.7 3-.7s1.8.7 3 .7c1.2 0 2-1.1 2.7-2.2.9-1.3 1.2-2.6 1.2-2.7 0 0-2.3-.9-2.3-3.5zM14.6 6.2c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"></path>
+                            <path d="M16.7 12.5c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8s-1.8-.8-2.9-.8c-1.5 0-2.8.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.2 2.8 2.1 1.1 0 1.6-.7 1.6-2.2.9-1.3 1.2-2.6 1.2-2.7 0 0-2.3-.9-2.3-3.5zM14.6 6.2c.6-.7 1-1.7.9-2.7-.9 0-2 .6-2.6 1.3-.6.6-1.1 1.7-.9 2.7 1 .1 2-.5 2.6-1.3z"></path>
                         </svg>
                         for iOS
                     </a>
                     <a href="https://drive.google.com/file/d/1hADOVn6fL5cvFkI5eGzQShrvAY5eaMqm/view?usp=drive_link" class="landing-cta-secondary inline-flex items-center justify-center gap-2 w-40 h-11 rounded-md border border-[#2E5A3D] text-[#2E5A3D] font-body font-medium hover:bg-[#2E5A3D] hover:text-white transition-colors duration-200">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M8 9h8a2 2 0 012 2v5a2 2 0 01-2 2H8a2 2 0 01-2-2v-5a2 2 0 012-2z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M8 9h8a2 2 0 012 2v5a2 2 0 01-2 2H8a2 2 0 01-2-2v-5a2 2 0 01-2-2z"></path>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M9.5 9l-1-2m6 2l1-2"></path>
                             <circle cx="10.5" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
                             <circle cx="13.5" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
@@ -2959,4 +3115,62 @@
     <!-- Include html2canvas library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-landing-carousel]').forEach((carousel) => {
+                const track = carousel.querySelector('[data-carousel-track]');
+                const slides = Array.from(carousel.querySelectorAll('[data-carousel-slide]'));
+                const previousButton = carousel.querySelector('[data-carousel-prev]');
+                const nextButton = carousel.querySelector('[data-carousel-next]');
+
+                if (!track || !slides.length || !previousButton || !nextButton) {
+                    return;
+                }
+
+                let currentIndex = 0;
+                let visibleCount = 1;
+
+                const getVisibleCount = () => {
+                    if (window.innerWidth >= 1024) return 3;
+                    if (window.innerWidth >= 768) return 2;
+                    return 1;
+                };
+
+                const updateCarousel = () => {
+                    visibleCount = getVisibleCount();
+                    const maxIndex = Math.max(0, slides.length - visibleCount);
+                    currentIndex = Math.min(currentIndex, maxIndex);
+
+                    track.style.transform = `translateX(-${currentIndex * (100 / visibleCount)}%)`;
+
+                    const hasOverflow = slides.length > 3;
+                    previousButton.classList.toggle('hidden', !hasOverflow);
+                    nextButton.classList.toggle('hidden', !hasOverflow);
+
+                    previousButton.disabled = currentIndex <= 0;
+                    nextButton.disabled = currentIndex >= maxIndex;
+                    previousButton.setAttribute('aria-disabled', previousButton.disabled ? 'true' : 'false');
+                    nextButton.setAttribute('aria-disabled', nextButton.disabled ? 'true' : 'false');
+                };
+
+                previousButton.addEventListener('click', () => {
+                    if (currentIndex <= 0) return;
+                    currentIndex -= 1;
+                    updateCarousel();
+                });
+
+                nextButton.addEventListener('click', () => {
+                    const maxIndex = Math.max(0, slides.length - visibleCount);
+                    if (currentIndex >= maxIndex) return;
+                    currentIndex += 1;
+                    updateCarousel();
+                });
+
+                window.addEventListener('resize', updateCarousel);
+                updateCarousel();
+            });
+        });
+    </script>
+
 @endsection

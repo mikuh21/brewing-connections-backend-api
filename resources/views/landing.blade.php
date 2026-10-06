@@ -3137,14 +3137,27 @@
                     return 1;
                 };
 
+                const getPageStep = () => visibleCount;
+
                 const updateCarousel = () => {
                     visibleCount = getVisibleCount();
-                    const maxIndex = Math.max(0, slides.length - visibleCount);
-                    currentIndex = Math.min(currentIndex, maxIndex);
+
+                    // Move by a complete visible group instead of one card at a time.
+                    // Desktop = 3 cards, tablet = 2 cards, mobile = 1 card.
+                    const maxIndex = Math.max(
+                        0,
+                        Math.floor((slides.length - 1) / visibleCount) * visibleCount
+                    );
+
+                    // Keep the current position aligned to the beginning of a group.
+                    currentIndex = Math.min(
+                        Math.floor(currentIndex / visibleCount) * visibleCount,
+                        maxIndex
+                    );
 
                     track.style.transform = `translateX(-${currentIndex * (100 / visibleCount)}%)`;
 
-                    const hasOverflow = slides.length > 3;
+                    const hasOverflow = slides.length > visibleCount;
                     previousButton.classList.toggle('hidden', !hasOverflow);
                     nextButton.classList.toggle('hidden', !hasOverflow);
 
@@ -3156,14 +3169,19 @@
 
                 previousButton.addEventListener('click', () => {
                     if (currentIndex <= 0) return;
-                    currentIndex -= 1;
+                    currentIndex = Math.max(0, currentIndex - getPageStep());
                     updateCarousel();
                 });
 
                 nextButton.addEventListener('click', () => {
-                    const maxIndex = Math.max(0, slides.length - visibleCount);
+                    visibleCount = getVisibleCount();
+                    const maxIndex = Math.max(
+                        0,
+                        Math.floor((slides.length - 1) / visibleCount) * visibleCount
+                    );
+
                     if (currentIndex >= maxIndex) return;
-                    currentIndex += 1;
+                    currentIndex = Math.min(maxIndex, currentIndex + getPageStep());
                     updateCarousel();
                 });
 

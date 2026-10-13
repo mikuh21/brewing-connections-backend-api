@@ -23,8 +23,32 @@
         overflow-x: hidden;
     }
     .registration-layout {
-        height: min(700px, calc(100svh - 3rem));
-        min-height: 590px;
+        height: 540px;
+        min-height: 0;
+    }
+    .slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+    }
+    .slide.active { opacity: 1; }
+    .dot.active { background: white; transform: scale(1.2); }
+    .registration-enter {
+        animation: registrationFadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes registrationFadeIn {
+        from { opacity: 0; transform: translateY(7px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .slide, .registration-enter { animation: none !important; transition: none !important; }
     }
     .registration-form-scroll {
         scrollbar-width: thin;
@@ -65,14 +89,11 @@
     .registration-field:focus { border-color: #2E5A3D; box-shadow: 0 0 0 3px rgba(46,90,61,.12); }
     @media (max-width: 767px) {
         .registration-shell { padding: 4.5rem .85rem 1rem; align-items: flex-start; }
-        .registration-layout { height: auto; min-height: 0; border-radius: 1.25rem; }
+        .registration-layout { height: auto; min-height: calc(100svh - 6rem); border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; }
         .registration-form-scroll { overflow: visible; }
         .registration-type-card { min-height: 112px; }
     }
-    @media (max-height: 760px) and (min-width: 768px) {
-        .registration-layout { height: calc(100svh - 2rem); min-height: 0; }
-    }
-</style>
+    </style>
 @endpush
 
 <div class="registration-shell flex w-screen items-center justify-center bg-[#E8DDD0] px-4 py-6 sm:px-6">
@@ -304,8 +325,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setStep = (step) => {
         currentStep = step;
-        stepOne.classList.toggle('hidden', step !== 1);
-        stepTwo.classList.toggle('hidden', step !== 2);
+        const outgoingStep = step === 1 ? stepTwo : stepOne;
+        const incomingStep = step === 1 ? stepOne : stepTwo;
+        outgoingStep.classList.add('hidden');
+        incomingStep.classList.remove('hidden');
+        incomingStep.classList.remove('registration-enter');
+        void incomingStep.offsetWidth;
+        incomingStep.classList.add('registration-enter');
         stepOneDot.classList.toggle('is-active', step === 1);
         stepOneDot.classList.toggle('is-complete', step === 2);
         stepTwoDot.classList.toggle('is-active', step === 2);
@@ -338,8 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         typeInput.value = type;
         establishmentTypeInput.value = ['farm', 'cafe', 'roaster'].includes(type) ? type : '';
         form.action = details.endpoint;
-        picker.classList.add('hidden');
-        formPanel.classList.remove('hidden');
+        showScreen(picker, formPanel);
         badge.textContent = details.label;
         heading.textContent = type === 'reseller' ? 'Create a Reseller Account' : 'Create an Owner Account';
         subheading.textContent = 'Start with your owner account details.';
@@ -354,6 +379,19 @@ document.addEventListener('DOMContentLoaded', () => {
         form.querySelectorAll('.registration-owner-only').forEach((element) => element.classList.toggle('hidden', type === 'reseller'));
         form.querySelectorAll('.registration-reseller-only').forEach((element) => element.classList.toggle('hidden', type !== 'reseller'));
         setStep(1);
+    };
+
+    const showScreen = (from, to) => {
+        if (from === to) return;
+        from.classList.add('registration-leaving');
+        window.setTimeout(() => {
+            from.classList.add('hidden');
+            from.classList.remove('registration-leaving');
+            to.classList.remove('hidden');
+            to.classList.remove('registration-enter');
+            void to.offsetWidth;
+            to.classList.add('registration-enter');
+        }, 120);
     };
 
     document.querySelectorAll('[data-registration-type]').forEach((button) => {
@@ -384,8 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     previousButton.addEventListener('click', () => setStep(1));
     backToTypes.addEventListener('click', () => {
-        formPanel.classList.add('hidden');
-        picker.classList.remove('hidden');
+        showScreen(formPanel, picker);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
@@ -406,6 +443,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialType = typeInput.value || '';
     if (typeDetails[initialType]) {
         chooseType(initialType);
+        picker.classList.add('hidden');
+        formPanel.classList.remove('hidden');
         @if($hasRegistrationErrors || $hasResellerErrors)
             setStep({{ $registrationStep }});
         @endif

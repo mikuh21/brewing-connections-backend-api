@@ -33,7 +33,7 @@
         transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
                     transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .auth-navigation-panel.auth-navigation-leaving {
+    .auth-navigation-panel.registration-leaving {
         opacity: 0;
         transform: translateY(10px) scale(0.985);
         pointer-events: none;
@@ -434,7 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            activePanel.classList.add('auth-navigation-panel', 'auth-navigation-leaving');
+            // Match the account-type chooser's right-panel exit transition exactly.
+            activePanel.classList.add('auth-navigation-panel', 'registration-leaving');
             window.setTimeout(() => window.location.assign(destination.href), 420);
         });
     });

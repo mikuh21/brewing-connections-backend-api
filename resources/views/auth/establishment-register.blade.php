@@ -494,26 +494,91 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => chooseType(button.dataset.registrationType));
     });
 
+    const validateVisibleRequiredFields = (section) => {
+        const fields = Array.from(section.querySelectorAll('input, select, textarea'))
+            .filter((field) => field.required && !field.disabled && !field.closest('.hidden'));
+        for (const field of fields) {
+            if (field.type === 'checkbox' && !field.checked) {
+                field.setCustomValidity('Please confirm this checkbox to continue.');
+            } else if (field.type !== 'checkbox' && !field.value.trim()) {
+                field.setCustomValidity('This field is required.');
+            } else {
+                field.setCustomValidity('');
+            }
+
+            if (!field.checkValidity()) {
+                field.reportValidity();
+                field.focus({ preventScroll: false });
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const validatePasswordFields = () => {
+        const password = form.querySelector('#registration_password');
+        const confirmation = form.querySelector('#registration_password_confirmation');
+        password.setCustomValidity('');
+        confirmation.setCustomValidity('');
+
+        if (password.value.length < 8 || password.value.length > 16) {
+            password.setCustomValidity('Password must be between 8 and 16 characters.');
+            password.reportValidity();
+            password.focus();
+            return false;
+        }
+        if (!/[@$!%*#?&]/.test(password.value)) {
+            password.setCustomValidity('Password must include at least one special character.');
+            password.reportValidity();
+            password.focus();
+            return false;
+        }
+        if (password.value !== confirmation.value) {
+            confirmation.setCustomValidity('Passwords do not match.');
+            confirmation.reportValidity();
+            confirmation.focus();
+            return false;
+        }
+        return true;
+    };
+
     nextButton.addEventListener('click', () => {
-        const requiredFields = Array.from(stepOne.querySelectorAll('input[required]'));
-        const invalidField = requiredFields.find((field) => !field.checkValidity());
-        if (invalidField) {
-            invalidField.reportValidity();
-            invalidField.focus();
+        if (!validateVisibleRequiredFields(stepOne)) return;
+        const email = form.querySelector('#registration_email');
+        email.setCustomValidity('');
+        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.value.trim())) {
+            email.setCustomValidity('Enter a valid email address.');
+            email.reportValidity();
+            email.focus();
             return;
         }
-        if (form.querySelector('#registration_password').value !== form.querySelector('#registration_password_confirmation').value) {
-            form.querySelector('#registration_password_confirmation').setCustomValidity('Passwords do not match.');
-            form.querySelector('#registration_password_confirmation').reportValidity();
-            form.querySelector('#registration_password_confirmation').focus();
-            return;
-        }
-        form.querySelector('#registration_password_confirmation').setCustomValidity('');
+        if (!validatePasswordFields()) return;
         setStep(2);
     });
 
+    form.querySelector('#registration_password').addEventListener('input', () => {
+        form.querySelector('#registration_password').setCustomValidity('');
+        form.querySelector('#registration_password_confirmation').setCustomValidity('');
+    });
     form.querySelector('#registration_password_confirmation').addEventListener('input', (event) => {
         event.currentTarget.setCustomValidity('');
+    });
+    form.querySelector('#registration_email').addEventListener('input', (event) => {
+        event.currentTarget.setCustomValidity('');
+    });
+
+    form.querySelectorAll('[data-toggle-password]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const input = document.getElementById(button.dataset.togglePassword);
+            if (!input) return;
+            const shouldShow = input.type === 'password';
+            input.type = shouldShow ? 'text' : 'password';
+            button.setAttribute('aria-pressed', shouldShow ? 'true' : 'false');
+            button.setAttribute('aria-label', shouldShow ? 'Hide password' : 'Show password');
+            button.innerHTML = shouldShow
+                ? '<svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.7M9.9 5.6A10.8 10.8 0 0112 5.5c6.1 0 9.5 6.5 9.5 6.5a16 16 0 01-3.2 4.1M6.2 6.3C3.8 8 2.5 12 2.5 12s3.4 6.5 9.5 6.5a10 10 0 003.2-.5"/></svg>'
+                : '<svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+        });
     });
 
     previousButton.addEventListener('click', () => setStep(1));
@@ -527,12 +592,24 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             return;
         }
-        const password = form.querySelector('#registration_password');
-        const confirmation = form.querySelector('#registration_password_confirmation');
-        confirmation.setCustomValidity(password.value === confirmation.value ? '' : 'Passwords do not match.');
-        if (!form.querySelector('#registration_terms').checked) {
+        if (!validateVisibleRequiredFields(stepTwo)) {
             event.preventDefault();
-            form.querySelector('#registration_terms').reportValidity();
+            return;
+        }
+        if (typeInput.value !== 'reseller' && form.querySelector('#registration_website').value.trim()) {
+            const website = form.querySelector('#registration_website');
+            website.setCustomValidity('');
+            if (!website.checkValidity()) {
+                event.preventDefault();
+                website.reportValidity();
+                website.focus();
+                return;
+            }
+        }
+        if (!validatePasswordFields()) {
+            event.preventDefault();
+            setStep(1);
+            return;
         }
     });
 

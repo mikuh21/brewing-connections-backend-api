@@ -227,7 +227,7 @@
                             <span class="mt-1 block text-xs leading-4 text-[#7B6A59]">Create an account to sell on BrewHub.</span>
                         </button>
                     </div>
-                    <p class="mt-5 text-center text-sm text-[#3A2E22]">Already have an account? <a href="{{ route('login') }}" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Log in here</a></p>
+                    <p class="mt-5 text-center text-sm text-[#3A2E22]">Already have an account? <a href="{{ route('login') }}" data-auth-transition class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Log in here</a></p>
                 </section>
 
                 <!-- Guided two-step registration form. -->
@@ -282,12 +282,22 @@
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <label for="registration_password" class="mb-1 block text-sm font-medium text-[#3A2E22]">Password *</label>
-                                    <input id="registration_password" name="password" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field" placeholder="8–16 characters">
-                                    <p class="mt-1 text-xs text-[#8C7A68]">Include at least one special character.</p>
+                                    <div class="relative">
+                                        <input id="registration_password" name="password" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field pr-12" placeholder="8–16 characters" required>
+                                        <button type="button" data-toggle-password="registration_password" aria-label="Show password" aria-pressed="false" class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center rounded-r-lg text-[#8C7A68] transition hover:text-[#2E5A3D] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#2E5A3D]">
+                                            <svg data-eye-icon viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </button>
+                                    </div>
+                                    <p class="mt-1 text-xs text-[#8C7A68]">Use 8–16 characters and at least one special character.</p>
                                 </div>
                                 <div>
                                     <label for="registration_password_confirmation" class="mb-1 block text-sm font-medium text-[#3A2E22]">Confirm password *</label>
-                                    <input id="registration_password_confirmation" name="password_confirmation" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field" placeholder="Re-enter password">
+                                    <div class="relative">
+                                        <input id="registration_password_confirmation" name="password_confirmation" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field pr-12" placeholder="Re-enter password" required>
+                                        <button type="button" data-toggle-password="registration_password_confirmation" aria-label="Show confirm password" aria-pressed="false" class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center rounded-r-lg text-[#8C7A68] transition hover:text-[#2E5A3D] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#2E5A3D]">
+                                            <svg data-eye-icon viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <button id="registration-next-step" type="button" class="w-full rounded-lg bg-[#2E5A3D] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40 focus:ring-offset-2">Continue to Step 2 <span aria-hidden="true">→</span></button>
@@ -335,7 +345,6 @@
                     </form>
                 </section>
 
-                <p class="mt-5 text-center text-sm text-[#3A2E22]"><a href="{{ route('login') }}" class="font-medium text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">← Back to Log In</a></p>
             </div>
         </main>
     </div>

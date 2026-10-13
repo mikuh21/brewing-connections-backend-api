@@ -3403,6 +3403,9 @@ function setupOwnerEstablishmentPinning() {
 function setupStaticEventListeners() {
     syncMapActionButtonsLayout();
     setupOwnerEstablishmentPinning();
+    if (window.OWNER_REGISTRATION_NOTICE) {
+        showToast(window.OWNER_REGISTRATION_NOTICE);
+    }
     bindEditBannerInteractions();
     refreshVerifiedResellers().finally(() => {
         updateResellerUnmappedCountBadge();

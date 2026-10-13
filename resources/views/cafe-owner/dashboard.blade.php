@@ -57,9 +57,6 @@
                     ? this.items.filter((item) => this.isUnread(item))
                     : this.items;
             },
-            orderItems() {
-                return this.visibleItems().filter((item) => item.type === 'order');
-            },
             chatItems() {
                 return this.visibleItems().filter((item) => item.type === 'chat');
             },
@@ -182,7 +179,7 @@
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>
-                        <p class="text-xs text-[#9E8C78]">Updates for orders and chats</p>
+                        <p class="text-xs text-[#9E8C78]">Updates for messages</p>
                     </div>
                     <div class="flex items-center gap-3">
                         <button type="button" @click="showUnreadOnly = !showUnreadOnly" class="text-xs font-semibold whitespace-nowrap" :class="showUnreadOnly ? 'text-[#3A2E22]' : 'text-[#4A6741] hover:text-[#3A2E22]'" x-text="showUnreadOnly ? 'Show all' : 'Unread only'"></button>
@@ -194,32 +191,6 @@
                     <template x-if="visibleItems().length === 0">
                         <div class="px-4 py-6 text-center">
                             <p class="text-sm text-gray-500">No new notifications</p>
-                        </div>
-                    </template>
-
-                    <template x-if="orderItems().length > 0">
-                        <div>
-                            <p class="px-4 pt-3 pb-1 text-[11px] uppercase tracking-wide font-semibold text-[#9E8C78]">Orders</p>
-                            <template x-for="item in orderItems()" :key="item.id">
-                                <a :href="item.url" @click="markItemAsRead(item.id); open = false" class="block px-4 py-3 border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
-                                    <div class="flex items-start gap-3">
-                                        <div class="mt-0.5 inline-flex w-6 h-6 rounded-full bg-amber-100 items-center justify-center">
-                                            <svg class="w-3.5 h-3.5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14l-1 12H6L5 8zM9 8V6a3 3 0 116 0v2"/>
-                                            </svg>
-                                        </div>
-
-                                        <div class="min-w-0 flex-1">
-                                            <div class="flex items-center gap-2">
-                                                <p class="text-sm font-medium text-[#3A2E22]" x-text="item.title"></p>
-                                                <span x-show="isUnread(item)" class="inline-flex w-2 h-2 rounded-full bg-red-500"></span>
-                                            </div>
-                                            <p class="text-xs text-[#9E8C78] truncate" x-text="item.subtitle"></p>
-                                            <p class="text-[11px] text-gray-400 mt-1" x-text="item.time"></p>
-                                        </div>
-                                    </div>
-                                </a>
-                            </template>
                         </div>
                     </template>
 
@@ -307,9 +278,9 @@
     <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] border-l-4 border-l-amber-500 p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-[#9E8C78] text-sm font-medium">Products Listed</p>
-                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $productsListed ?? 0 }}</p>
-                <p class="text-amber-600 text-sm font-medium mt-1">Coffee Beans & Ground Coffee</p>
+                <p class="text-[#9E8C78] text-sm font-medium">Menu Status</p>
+                <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ filled($establishment?->menu_image) ? 'Uploaded' : 'Pending' }}</p>
+                <p class="text-amber-600 text-sm font-medium mt-1">{{ filled($establishment?->menu_image) ? 'Visible on your coffee shop profile' : 'Upload your cafe menu' }}</p>
             </div>
             <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
                 <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,7 +397,7 @@
 
             <template x-for="activity in combinedActivities()" :key="activity.id">
                 <div class="flex items-start space-x-3">
-                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0" :class="activity.type === 'order' ? 'bg-blue-500' : 'bg-amber-500'"></div>
+                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0" :class="activity.type === 'menu' ? 'bg-green-500' : 'bg-amber-500'"></div>
                     <div class="flex-1">
                         <p class="text-[#3A2E22] text-sm font-medium" x-text="activity.title"></p>
                         <p class="text-[#9E8C78] text-xs" x-show="activity.subtitle" x-text="activity.subtitle"></p>

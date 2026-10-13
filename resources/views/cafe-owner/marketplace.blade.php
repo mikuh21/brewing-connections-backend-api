@@ -76,7 +76,6 @@
             category: 'Coffee Beans',
             roast_level: '',
             grind_type: '',
-            price_per_unit: '',
             stock_quantity: '',
             unit: 'kg',
             moq: '1',
@@ -87,7 +86,6 @@
             name: '',
             description: '',
             category: 'Coffee Beans',
-            price_per_unit: '',
             stock_quantity: '',
             unit: 'kg',
             moq: '1',
@@ -98,10 +96,8 @@
             name: '',
             description: '',
             category: '',
-            price_per_unit: '',
             stock_quantity: 0,
             unit: '',
-            moq: '',
             image_url: '',
             owner_label: '',
             owner_name: '',
@@ -113,7 +109,6 @@
                 name: product.name || '',
                 description: product.description || '',
                 category: product.category || '',
-                price_per_unit: product.price_per_unit || 0,
                 stock_quantity: Number(product.stock_quantity || 0),
                 unit: product.unit || 'unit',
                 moq: product.moq || 'N/A',
@@ -236,7 +231,7 @@
                     name: String(item.name || '').trim(),
                     description: String(item.description || '').trim(),
                     category: this.normalizeMenuCategory(item.category),
-                        confidence: typeof item.confidence === 'number' ? item.confidence : undefined,
+                    confidence: typeof item.confidence === 'number' ? item.confidence : undefined,
                 }));
             } catch (error) {
                 this.menuExtractionError = error?.message || 'Unable to extract items from this menu image.';
@@ -283,7 +278,6 @@
                 name: String(item.name || '').trim(),
                 description: String(item.description || '').trim(),
                 category: this.normalizeMenuCategory(item.category),
-                price_per_unit: Number(item.price_per_unit || 0),
             })).filter((item) => item.name !== '');
 
             if (normalizedItems.length === 0) {
@@ -324,7 +318,7 @@
                 '#my-listings': 'my-listings',
                 '#products': 'my-listings',
                 '#browse': 'browse',
-                };
+                    };
 
             const applyHashTab = () => {
                 const nextTab = hashToTab[String(window.location.hash || '').toLowerCase()];
@@ -499,8 +493,6 @@
         >
             Browse
         </button>
-
-
     </div>
 </div>
 
@@ -577,16 +569,9 @@
                     <p class="text-xs italic text-[#9E8C78] mb-1.5">{{ $displayType }}</p>
 
                     @if(!$isMenuProduct)
-                        <div class="flex items-center justify-between mb-2">
-                            <div>
-                                <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
-                            </div>
-                            <p class="text-xs text-[#9E8C78]">{{ $stock }} units</p>
-                        </div>
+                        <div class="mb-2"><p class="text-xs text-[#9E8C78]">{{ $stock }} units available</p></div>
                     @else
-                        <div class="mb-2">
-                            <p class="text-xs text-[#6B5B4A] truncate">{{ trim((string) ($product->description ?? '')) ?: 'No description provided.' }}</p>
-                        </div>
+                        <div class="mb-2"><p class="text-xs text-[#6B5B4A] truncate">{{ trim((string) ($product->description ?? '')) ?: 'No description provided.' }}</p></div>
                     @endif
 
                     <div class="flex justify-end gap-2 mt-2">
@@ -654,17 +639,10 @@
                         <p class="text-xs italic text-[#9E8C78] mb-1.5" x-text="displayType(product.category)"></p>
 
                         <template x-if="!isMenuCategory(product.category)">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <p class="text-xs text-[#9E8C78]">per <span x-text="product.unit || 'unit'"></span></p>
-                                </div>
-                                <p class="text-xs text-[#9E8C78]"><span x-text="stockMeta(product).qty"></span> units</p>
-                            </div>
+                            <div class="mb-2"><p class="text-xs text-[#9E8C78]"><span x-text="stockMeta(product).qty"></span> units available</p></div>
                         </template>
                         <template x-if="isMenuCategory(product.category)">
-                            <div class="mb-2">
-                                <p class="text-xs text-[#6B5B4A] truncate" x-text="(String(product.description || '').trim() || 'No description provided.')"></p>
-                            </div>
+                            <div class="mb-2"><p class="text-xs text-[#6B5B4A] truncate" x-text="(String(product.description || '').trim() || 'No description provided.')"></p></div>
                         </template>
 
                         <div class="flex justify-end gap-2 mt-2">
@@ -770,7 +748,6 @@
                                 "name" => $product->name,
                                 "description" => $product->description,
                                 "category" => $product->category,
-                                "price_per_unit" => $product->price_per_unit,
                                 "stock_quantity" => $product->stock_quantity,
                                 "unit" => $product->unit,
                                 "moq" => $product->moq,
@@ -798,6 +775,7 @@
 
                     <div class="flex items-center justify-between mb-2">
                         <div>
+                            
                             @if(!$isCafeOwnerSeller)
                             <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
                             @endif
@@ -821,7 +799,7 @@
 @endif
 </div>
 
-    <div
+<div
         x-show="showViewModal"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
@@ -859,8 +837,10 @@
                     </p>
 
                     <div class="pt-2 space-y-1">
+                        
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Stock:</span> <span x-text="Number(viewProduct.stock_quantity || 0)"></span> units</p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Unit:</span> <span x-text="viewProduct.unit || 'unit'"></span></p>
+                        
                     </div>
                 </div>
 
@@ -919,10 +899,7 @@
                 </template>
             </div>
 
-            <div>
-            </div>
-
-            <template x-if="!isMenuCategory(form.category)">
+<template x-if="!isMenuCategory(form.category)">
                 <div>
                     <label class="block text-[11px] font-semibold">Stock Quantity *</label>
                     <input x-model="form.stock_quantity" type="number" min="0" step="1" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
@@ -936,8 +913,7 @@
                 </div>
             </template>
 
-
-            <div class="md:col-span-3">
+<div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Product Image</label>
                 <input x-ref="editImageInput" type="file" name="image" accept="image/*" @change="handleEditImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 <div x-show="editImagePreview" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
@@ -977,7 +953,7 @@
             <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('cafe-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true;" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+        <form method="POST" action="{{ route('cafe-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
             @csrf
 
             <div class="md:col-span-3">
@@ -993,10 +969,7 @@
                 </select>
             </div>
 
-            <div>
-            </div>
-
-            <div>
+<div>
                 <label class="block text-[11px] font-semibold">Roast Level</label>
                 <input x-model="createForm.roast_level" name="roast_level" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Light, Medium, Dark" />
             </div>
@@ -1016,6 +989,10 @@
                 <input x-model="createForm.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
+            <div>
+                <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
+                <input x-model="createForm.moq" type="number" min="1" step="1" inputmode="numeric" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+            </div>
 
             <div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Product Image</label>
@@ -1173,7 +1150,7 @@
                 :disabled="isSavingExtractedMenuItems || extractedMenuItems.length === 0"
                 class="px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] disabled:opacity-60 disabled:cursor-not-allowed"
             >
-                <span x-show="!isSavingExtractedMenuItems">Save Menu Items</span>
+                <span x-show="!isSavingExtractedMenuItems">Save as Product Cards</span>
                 <span x-show="isSavingExtractedMenuItems" x-cloak>Saving...</span>
             </button>
         </div>

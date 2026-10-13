@@ -328,7 +328,7 @@
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <label for="registration_contact_number" class="mb-1 block text-sm font-medium text-[#3A2E22]">Contact number *</label>
-                                    <input id="registration_contact_number" name="contact_number" value="{{ old('contact_number') }}" maxlength="30" autocomplete="tel" class="registration-field" placeholder="09XX XXX XXXX">
+                                    <input id="registration_contact_number" name="contact_number" type="tel" value="{{ old('contact_number') }}" maxlength="30" autocomplete="tel" inputmode="tel" pattern="[0-9+() -]{7,30}" title="Enter a valid contact number using digits and optional +, spaces, hyphens, or parentheses." class="registration-field" placeholder="09XX XXX XXXX">
                                 </div>
                                 <div>
                                     <label for="registration_barangay" class="mb-1 block text-sm font-medium text-[#3A2E22]">Barangay *</label>
@@ -628,6 +628,17 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             return;
         }
+        const contactNumber = form.querySelector('#registration_contact_number');
+        const normalizedPhone = contactNumber.value.replace(/[\\s()+-]/g, '');
+        if (!/^\\d{7,15}$/.test(normalizedPhone)) {
+            event.preventDefault();
+            contactNumber.setCustomValidity('Enter a valid contact number containing 7 to 15 digits.');
+            contactNumber.reportValidity();
+            contactNumber.focus();
+            return;
+        }
+        contactNumber.setCustomValidity('');
+
         if (typeInput.value !== 'reseller' && form.querySelector('#registration_website').value.trim()) {
             const website = form.querySelector('#registration_website');
             website.setCustomValidity('');

@@ -629,8 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const contactNumber = form.querySelector('#registration_contact_number');
-        const normalizedPhone = contactNumber.value.replace(/[\\s()+-]/g, '');
-        if (!/^\\d{7,15}$/.test(normalizedPhone)) {
+        const normalizedPhone = contactNumber.value.replace(/[\s()+-]/g, '');
+        if (!/^\d{7,15}$/.test(normalizedPhone)) {
             event.preventDefault();
             contactNumber.setCustomValidity('Enter a valid contact number containing 7 to 15 digits.');
             contactNumber.reportValidity();

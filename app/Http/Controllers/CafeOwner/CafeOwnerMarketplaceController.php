@@ -265,7 +265,7 @@ class CafeOwnerMarketplaceController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'category' => $validated['category'],
-            'price_per_unit' => $validated['price_per_unit'],
+            'price_per_unit' => (float) ($validated['price_per_unit'] ?? 0),
             'stock_quantity' => $validated['stock_quantity'] ?? ($product->stock_quantity ?? ($isCoffeeProduct ? 0 : 10)),
             'unit' => $validated['unit'] ?? ($product->unit ?: ($isCoffeeProduct ? 'kg' : 'serving')),
             'moq' => $validated['moq'] ?? ($product->moq ?: 1),

@@ -54,7 +54,11 @@
     .slide.active { opacity: 1; }
     .dot.active { background: white; transform: scale(1.2); }
     .registration-enter {
-        animation: registrationFadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: registrationFadeIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .registration-step-leaving {
+        transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
     }
     #registration-type-picker, #registration-form-panel {
         transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -71,7 +75,7 @@
         to { opacity: 1; transform: translateY(0) scale(1); }
     }
     @media (prefers-reduced-motion: reduce) {
-        .slide, .registration-enter, #registration-type-picker, #registration-form-panel {
+        .slide, .registration-enter, .registration-step-leaving, #registration-type-picker, #registration-form-panel {
             animation: none !important;
             transition: none !important;
         }

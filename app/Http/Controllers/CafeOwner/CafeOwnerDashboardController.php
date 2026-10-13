@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CoffeeTrail;
 use App\Models\CoffeeTrailMarkerView;
 use App\Models\Establishment;
+use App\Models\Product;
 use App\Models\Recommendation;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -45,6 +46,7 @@ class CafeOwnerDashboardController extends Controller
         $clickTrend = $this->buildTrendMeta($cafeClicks, $previousCafeClicks);
         $popularityTrend = $this->buildTrendMeta($popularityScore, $previousPopularityScore);
 
+        $productsListed = $this->resolveProductsListed((int) $userId, $establishmentId);
         $recommendationTimestampColumn = Schema::hasColumn('recommendations', 'generated_at')
             ? 'generated_at'
             : 'created_at';
@@ -62,6 +64,7 @@ class CafeOwnerDashboardController extends Controller
             'cafeClicks',
             'popularityScore',
             'popularityWindow',
+            'productsListed',
             'recosThisWeek',
             'recentActivity',
             'trailTrend',
@@ -345,30 +348,72 @@ class CafeOwnerDashboardController extends Controller
         return 0;
     }
 
+    protected function resolveProductsListed(int $userId, ?int $establishmentId): int
+    {
+        if (!Schema::hasTable('products')) {
+            return 0;
+        }
+
+        $query = Product::query();
+
+        if (Schema::hasColumn('products', 'user_id')) {
+            return (int) $query->where('user_id', $userId)->count();
+        }
+
+        if (Schema::hasColumn('products', 'seller_id')) {
+            $query->where('seller_id', $userId);
+
+            if (Schema::hasColumn('products', 'seller_type')) {
+                $query->where('seller_type', 'cafe_owner');
+            }
+
+            return (int) $query->count();
+        }
+
+        if ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
+            return (int) $query->where('establishment_id', $establishmentId)->count();
+        }
+
+        return 0;
+    }
+
     protected function resolveRecentActivity(int $userId, ?int $establishmentId): Collection
     {
-        if (!$establishmentId || !Schema::hasColumn('establishments', 'menu_image')) {
-            return collect();
+        $latestProducts = collect();
+
+        if (Schema::hasTable('products')) {
+            $productQuery = Product::query();
+
+            if (Schema::hasColumn('products', 'seller_id')) {
+                $productQuery->where('seller_id', $userId);
+                if (Schema::hasColumn('products', 'seller_type')) {
+                    $productQuery->where('seller_type', 'cafe_owner');
+                }
+            } elseif (Schema::hasColumn('products', 'user_id')) {
+                $productQuery->where('user_id', $userId);
+            } elseif ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
+                $productQuery->where('establishment_id', $establishmentId);
+            }
+
+            $latestProducts = $productQuery
+                ->latest('updated_at')
+                ->limit(5)
+                ->get()
+                ->map(function (Product $product) {
+                    return [
+                        'type' => 'product',
+                        'title' => 'Updated product: ' . ($product->name ?: 'Untitled Product'),
+                        'meta' => $product->category,
+                        'occurred_at' => $product->updated_at ?? $product->created_at,
+                    ];
+                });
         }
 
-        $establishment = Establishment::query()->find($establishmentId);
-
-        if (!$establishment || blank($establishment->menu_image)) {
-            return collect();
-        }
-
-        $uploadedAt = $establishment->menu_uploaded_at ?? $establishment->updated_at;
-
-        if (!$uploadedAt) {
-            return collect();
-        }
-
-        return collect([[
-            'type' => 'menu',
-            'title' => 'Cafe menu uploaded',
-            'meta' => $establishment->name,
-            'occurred_at' => $uploadedAt,
-        ]]);
+        return $latestProducts
+            ->filter(fn ($activity) => !empty($activity['occurred_at']))
+            ->sortByDesc('occurred_at')
+            ->take(5)
+            ->values();
     }
 
     protected function resolvePerformanceOverview(?int $establishmentId): array

@@ -269,12 +269,14 @@
                     </h2>
                     <div class="flex flex-wrap gap-2 mt-3">
                         @foreach(['all' => 'All', 'this_week' => 'This Week', 'this_month' => 'This Month'] as $rangeKey => $rangeLabel)
-                            <a
-                                href="{{ route('admin.recommendations', array_merge(request()->except('page'), ['recent_reviews_range' => $rangeKey])) }}"
-                                class="filter-tab px-4 py-2 text-sm font-medium transition-colors rounded-lg {{ ($recentReviewsRange ?? 'all') === $rangeKey ? 'text-[#3B2F2F] border border-[#3B2F2F] bg-[#F5F0E8]' : 'text-[#9E8C78] border border-[#E7DCCF] bg-white hover:bg-[#F8F4EE]' }}"
+                            <button
+                                type="button"
+                                data-recent-reviews-range="{{ $rangeKey }}"
+                                class="recent-reviews-range-tab filter-tab px-4 py-2 text-sm font-medium transition-colors rounded-lg {{ ($recentReviewsRange ?? 'all') === $rangeKey ? 'text-[#3B2F2F] border border-[#3B2F2F] bg-[#F5F0E8]' : 'text-[#9E8C78] border border-[#E7DCCF] bg-white hover:bg-[#F8F4EE]' }}"
+                                aria-pressed="{{ ($recentReviewsRange ?? 'all') === $rangeKey ? 'true' : 'false' }}"
                             >
                                 {{ $rangeLabel }}
-                            </a>
+                            </button>
                         @endforeach
                     </div>
                 </div>
@@ -294,7 +296,7 @@
             </div>
             <div id="recent-ratings-slider" class="relative">
                 @forelse($recentReviews as $review)
-                <div class="recent-review-slide bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow {{ $loop->first ? '' : 'hidden' }}">
+                <div class="recent-review-slide bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow {{ $loop->first ? '' : 'hidden' }}" data-created-at="{{ \Carbon\Carbon::parse($review->created_at)->timestamp }}">
                     @php
                         $recentOverall = is_numeric($review->overall_rating ?? null)
                             ? (float) $review->overall_rating
@@ -943,61 +945,88 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const content = document.querySelector('.filter-content');
-        if (content) {
-            content.classList.add('tab-panel');
-        }
-
-        const slides = Array.from(document.querySelectorAll('.recent-review-slide'));
+        const allSlides = Array.from(document.querySelectorAll('.recent-review-slide'));
+        const rangeTabs = Array.from(document.querySelectorAll('.recent-reviews-range-tab'));
         const prevButton = document.getElementById('recent-ratings-prev');
         const nextButton = document.getElementById('recent-ratings-next');
         const counter = document.getElementById('recent-ratings-counter');
-
-        if (!prevButton || !nextButton || !counter) {
-            return;
-        }
-
-        if (slides.length === 0) {
-            counter.textContent = '0 / 0';
-            prevButton.disabled = true;
-            nextButton.disabled = true;
-            return;
-        }
-
-        let activeIndex = slides.findIndex(slide => !slide.classList.contains('hidden'));
-        if (activeIndex < 0) {
-            activeIndex = 0;
-        }
+        let filteredSlides = allSlides.slice();
+        let activeIndex = 0;
 
         function renderSlideState() {
-            slides.forEach((slide, index) => {
-                slide.classList.toggle('hidden', index !== activeIndex);
+            allSlides.forEach(slide => {
+                slide.classList.toggle('hidden', !filteredSlides.includes(slide) || filteredSlides[activeIndex] !== slide);
             });
 
-            counter.textContent = `${activeIndex + 1} / ${slides.length}`;
-            prevButton.disabled = activeIndex === 0;
-            nextButton.disabled = activeIndex === slides.length - 1;
+            if (counter) {
+                counter.textContent = filteredSlides.length ? `${activeIndex + 1} / ${filteredSlides.length}` : '0 / 0';
+            }
+            if (prevButton) prevButton.disabled = filteredSlides.length === 0 || activeIndex === 0;
+            if (nextButton) nextButton.disabled = filteredSlides.length === 0 || activeIndex >= filteredSlides.length - 1;
         }
 
-        prevButton.addEventListener('click', function () {
-            if (activeIndex <= 0) {
-                return;
+        function applyRecentReviewsRange(range) {
+            const now = new Date();
+            let start = null;
+            let end = null;
+
+            if (range === 'this_week') {
+                start = new Date(now);
+                const day = (now.getDay() + 6) % 7;
+                start.setDate(now.getDate() - day);
+                start.setHours(0, 0, 0, 0);
+                end = new Date(start);
+                end.setDate(start.getDate() + 7);
+            } else if (range === 'this_month') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+                end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
             }
 
-            activeIndex -= 1;
+            filteredSlides = allSlides.filter(slide => {
+                const date = new Date(Number(slide.dataset.createdAt || 0) * 1000);
+                return !start || (date >= start && date < end);
+            });
+            activeIndex = 0;
+
+            rangeTabs.forEach(tab => {
+                const active = tab.dataset.recentReviewsRange === range;
+                tab.classList.toggle('text-[#3B2F2F]', active);
+                tab.classList.toggle('border-[#3B2F2F]', active);
+                tab.classList.toggle('bg-[#F5F0E8]', active);
+                tab.classList.toggle('text-[#9E8C78]', !active);
+                tab.classList.toggle('border-[#E7DCCF]', !active);
+                tab.classList.toggle('bg-white', !active);
+                tab.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+
             renderSlideState();
+        }
+
+        rangeTabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                applyRecentReviewsRange(this.dataset.recentReviewsRange || 'all');
+            });
         });
 
-        nextButton.addEventListener('click', function () {
-            if (activeIndex >= slides.length - 1) {
-                return;
-            }
+        if (prevButton) {
+            prevButton.addEventListener('click', function () {
+                if (activeIndex > 0) {
+                    activeIndex -= 1;
+                    renderSlideState();
+                }
+            });
+        }
 
-            activeIndex += 1;
-            renderSlideState();
-        });
+        if (nextButton) {
+            nextButton.addEventListener('click', function () {
+                if (activeIndex < filteredSlides.length - 1) {
+                    activeIndex += 1;
+                    renderSlideState();
+                }
+            });
+        }
 
-        renderSlideState();
+        applyRecentReviewsRange(@json($recentReviewsRange ?? 'all'));
 
         function focusCafeInsightsCard(targetId) {
             if (!targetId) {

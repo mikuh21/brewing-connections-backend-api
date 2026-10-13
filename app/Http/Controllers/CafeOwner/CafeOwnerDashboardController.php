@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\CoffeeTrail;
 use App\Models\CoffeeTrailMarkerView;
 use App\Models\Establishment;
-use App\Models\Order;
-use App\Models\Product;
 use App\Models\Recommendation;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -47,7 +45,6 @@ class CafeOwnerDashboardController extends Controller
         $clickTrend = $this->buildTrendMeta($cafeClicks, $previousCafeClicks);
         $popularityTrend = $this->buildTrendMeta($popularityScore, $previousPopularityScore);
 
-        $productsListed = $this->resolveProductsListed((int) $userId, $establishmentId);
         $recommendationTimestampColumn = Schema::hasColumn('recommendations', 'generated_at')
             ? 'generated_at'
             : 'created_at';
@@ -65,7 +62,6 @@ class CafeOwnerDashboardController extends Controller
             'cafeClicks',
             'popularityScore',
             'popularityWindow',
-            'productsListed',
             'recosThisWeek',
             'recentActivity',
             'trailTrend',
@@ -95,59 +91,6 @@ class CafeOwnerDashboardController extends Controller
         $userId = (int) $user->id;
         $establishment = $this->resolveCafeEstablishment($userId);
         $establishmentId = $establishment?->id;
-
-        $orderNotifications = collect();
-        $pendingOrdersCount = 0;
-
-        if (Schema::hasTable('orders') && Schema::hasTable('products')) {
-            $orderQuery = Order::query()
-                ->with(['user:id,name', 'product:id,name,establishment_id,seller_id,seller_type'])
-                ->whereHas('product', function ($query) use ($userId, $establishmentId) {
-                    if ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
-                        $query->where('establishment_id', $establishmentId);
-                        return;
-                    }
-
-                    if (Schema::hasColumn('products', 'seller_id')) {
-                        $query->where('seller_id', $userId);
-
-                        if (Schema::hasColumn('products', 'seller_type')) {
-                            $query->where('seller_type', 'cafe_owner');
-                        }
-
-                        return;
-                    }
-
-                    if (Schema::hasColumn('products', 'user_id')) {
-                        $query->where('user_id', $userId);
-                    }
-                });
-
-            if (Schema::hasColumn('orders', 'status')) {
-                $pendingOrdersCount = (int) (clone $orderQuery)
-                    ->where('status', 'pending')
-                    ->count();
-            }
-
-            $orderNotifications = $orderQuery
-                ->latest()
-                ->limit(5)
-                ->get()
-                ->map(function (Order $order) {
-                    $status = strtolower((string) ($order->status ?? 'pending'));
-
-                    return [
-                        'id' => 'order-' . $order->id . '-' . $status,
-                        'type' => 'order',
-                        'title' => 'New order from ' . (optional($order->user)->name ?? 'Customer'),
-                        'subtitle' => (optional($order->product)->name ?? 'Product') . ' • Qty: ' . (int) ($order->quantity ?? 0),
-                        'status' => $status,
-                        'time' => optional($order->created_at)->diffForHumans(),
-                        'timestamp' => optional($order->created_at)?->timestamp ?? 0,
-                        'url' => route('cafe-owner.marketplace') . '#orders',
-                    ];
-                });
-        }
 
         $chatNotifications = collect();
         $unreadChatCount = 0;
@@ -208,17 +151,16 @@ class CafeOwnerDashboardController extends Controller
             ]);
         }
 
-        $items = collect($orderNotifications)
-            ->merge(collect($chatNotifications))
+        $items = collect($chatNotifications)
             ->sortByDesc('timestamp')
             ->take(8)
             ->values();
 
         return response()->json([
             'counts' => [
-                'pending_orders' => $pendingOrdersCount,
+                'pending_orders' => 0,
                 'unread_chats' => $unreadChatCount,
-                'total' => $pendingOrdersCount + $unreadChatCount,
+                'total' => $unreadChatCount,
             ],
             'items' => $items,
             'updated_at' => now()->toIso8601String(),
@@ -403,100 +345,30 @@ class CafeOwnerDashboardController extends Controller
         return 0;
     }
 
-    protected function resolveProductsListed(int $userId, ?int $establishmentId): int
-    {
-        if (!Schema::hasTable('products')) {
-            return 0;
-        }
-
-        $query = Product::query();
-
-        if (Schema::hasColumn('products', 'user_id')) {
-            return (int) $query->where('user_id', $userId)->count();
-        }
-
-        if (Schema::hasColumn('products', 'seller_id')) {
-            $query->where('seller_id', $userId);
-
-            if (Schema::hasColumn('products', 'seller_type')) {
-                $query->where('seller_type', 'cafe_owner');
-            }
-
-            return (int) $query->count();
-        }
-
-        if ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
-            return (int) $query->where('establishment_id', $establishmentId)->count();
-        }
-
-        return 0;
-    }
-
     protected function resolveRecentActivity(int $userId, ?int $establishmentId): Collection
     {
-        $latestProducts = collect();
-        $latestOrders = collect();
-
-        if (Schema::hasTable('products')) {
-            $productQuery = Product::query();
-
-            if (Schema::hasColumn('products', 'seller_id')) {
-                $productQuery->where('seller_id', $userId);
-                if (Schema::hasColumn('products', 'seller_type')) {
-                    $productQuery->where('seller_type', 'cafe_owner');
-                }
-            } elseif (Schema::hasColumn('products', 'user_id')) {
-                $productQuery->where('user_id', $userId);
-            } elseif ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
-                $productQuery->where('establishment_id', $establishmentId);
-            }
-
-            $latestProducts = $productQuery
-                ->latest('updated_at')
-                ->limit(5)
-                ->get()
-                ->map(function (Product $product) {
-                    return [
-                        'type' => 'product',
-                        'title' => 'Updated product: ' . ($product->name ?: 'Untitled Product'),
-                        'meta' => $product->category,
-                        'occurred_at' => $product->updated_at ?? $product->created_at,
-                    ];
-                });
+        if (!$establishmentId || !Schema::hasColumn('establishments', 'menu_image')) {
+            return collect();
         }
 
-        if (Schema::hasTable('orders') && Schema::hasTable('products')) {
-            $latestOrders = Order::query()
-                ->with('product:id,name,establishment_id,seller_id')
-                ->whereHas('product', function ($query) use ($userId, $establishmentId) {
-                    if ($establishmentId && Schema::hasColumn('products', 'establishment_id')) {
-                        $query->where('establishment_id', $establishmentId);
-                        return;
-                    }
+        $establishment = Establishment::query()->find($establishmentId);
 
-                    if (Schema::hasColumn('products', 'seller_id')) {
-                        $query->where('seller_id', $userId);
-                    }
-                })
-                ->latest('updated_at')
-                ->limit(5)
-                ->get()
-                ->map(function (Order $order) {
-                    return [
-                        'type' => 'order',
-                        'title' => 'Order #' . $order->id . ' (' . ucfirst((string) $order->status) . ')',
-                        'meta' => $order->product?->name,
-                        'occurred_at' => $order->updated_at ?? $order->created_at,
-                    ];
-                });
+        if (!$establishment || blank($establishment->menu_image)) {
+            return collect();
         }
 
-        return $latestProducts
-            ->merge($latestOrders)
-            ->filter(fn ($activity) => !empty($activity['occurred_at']))
-            ->sortByDesc('occurred_at')
-            ->take(5)
-            ->values();
+        $uploadedAt = $establishment->menu_uploaded_at ?? $establishment->updated_at;
+
+        if (!$uploadedAt) {
+            return collect();
+        }
+
+        return collect([[
+            'type' => 'menu',
+            'title' => 'Cafe menu uploaded',
+            'meta' => $establishment->name,
+            'occurred_at' => $uploadedAt,
+        ]]);
     }
 
     protected function resolvePerformanceOverview(?int $establishmentId): array

@@ -257,9 +257,12 @@
                                     <label class="block text-sm font-semibold" for="farm-owner-assignment">Farm Ownership</label>
                                     <select id="farm-owner-assignment" name="farm_owner_assignment" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                                         <option value="arnold">Under Sir Arnold</option>
-                                        <option value="individual">Individual Farm Owner</option>
+                                        @foreach(($farmOwners ?? collect()) as $farmOwner)
+                                            <option value="owner:{{ $farmOwner->id }}">{{ $farmOwner->name }} ({{ $farmOwner->email }})</option>
+                                        @endforeach
+                                        <option value="individual">Create Individual Farm Owner</option>
                                     </select>
-                                    <p class="mt-1 text-xs text-[#6B3A2A]">Choose whether this farm belongs under Sir Arnold's account or has its own farm owner account.</p>
+                                    <p class="mt-1 text-xs text-[#6B3A2A]">Assign this farm to Sir Arnold or an existing registered farm owner, or create a new farm owner account.</p>
                                     <p data-field-error="farm_owner_assignment" class="mt-1 hidden text-xs text-red-600" aria-live="polite"></p>
                                 </div>
 

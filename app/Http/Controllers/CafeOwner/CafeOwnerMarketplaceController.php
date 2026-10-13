@@ -151,15 +151,23 @@ class CafeOwnerMarketplaceController extends Controller
     {
         $userId = Auth::id();
 
+        $menuCategories = [
+            'Hot Drinks',
+            'Iced Drinks',
+            'Iced Blended Drinks',
+            'Tea',
+            'Rice Meals',
+            'Pastas',
+            'Appetizers',
+            'Sandwiches',
+            'Burgers',
+            'Pastries',
+        ];
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|in:Coffee Beans,Ground Coffee',
-            'roast_level' => 'nullable|string|max:100',
-            'grind_type' => 'nullable|string|max:100',
-            'unit' => 'nullable|string|max:50',
-            'moq' => 'nullable|integer|min:1',
-            'stock_quantity' => 'required|integer|min:1',
+            'category' => 'required|in:' . implode(',', $menuCategories),
             'image' => 'nullable|image|max:5120',
         ]);
 
@@ -175,12 +183,12 @@ class CafeOwnerMarketplaceController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'category' => $validated['category'],
-            'roast_level' => $validated['roast_level'] ?? null,
-            'grind_type' => $validated['grind_type'] ?? null,
+            'roast_level' => null,
+            'grind_type' => null,
             'price_per_unit' => 0,
-            'unit' => $validated['unit'] ?? 'kg',
-            'moq' => $validated['moq'] ?? 1,
-            'stock_quantity' => $validated['stock_quantity'],
+            'unit' => 'serving',
+            'moq' => 1,
+            'stock_quantity' => 10,
             'is_active' => true,
         ];
 

@@ -426,26 +426,48 @@ class RecommendationAnalyticsService
 
     public function getRecentReviews(string $range = 'all')
     {
-        $query = $this->baseCafeRatingsQuery()
-            ->join('users', 'rating.user_id', '=', 'users.id')
-            ->join('establishments', 'rating.establishment_id', '=', 'establishments.id')
-            ->select(
-                'users.name as user_name',
-                'establishments.name as establishment_name',
-                'rating.created_at',
-                'rating.image',
-                'rating.overall_rating',
-                'rating.taste_rating',
-                'rating.environment_rating',
-                'rating.cleanliness_rating',
-                'rating.service_rating',
-                'rating.owner_response'
-            );
+        $buildQuery = function () {
+            return $this->baseCafeRatingsQuery()
+                ->join('users', 'rating.user_id', '=', 'users.id')
+                ->join('establishments', 'rating.establishment_id', '=', 'establishments.id')
+                ->select(
+                    'rating.id as rating_id',
+                    'users.name as user_name',
+                    'establishments.name as establishment_name',
+                    'rating.created_at',
+                    'rating.image',
+                    'rating.overall_rating',
+                    'rating.taste_rating',
+                    'rating.environment_rating',
+                    'rating.cleanliness_rating',
+                    'rating.service_rating',
+                    'rating.owner_response'
+                );
+        };
 
-        // Return the recent review set once; the Recent Consumer Ratings tabs filter it client-side.
-        return $query
+        // Preload up to 12 reviews for each range so the client-side tabs can switch
+        // instantly while still showing the latest 12 for All, This Week, and This Month.
+        $allReviews = $buildQuery()
             ->orderBy('rating.created_at', 'desc')
             ->limit(12)
             ->get();
-    }
-}
+
+        $weekReviews = $buildQuery()
+            ->whereBetween('rating.created_at', [now()->startOfWeek(), now()->endOfWeek()])
+            ->orderBy('rating.created_at', 'desc')
+            ->limit(12)
+            ->get();
+
+        $monthReviews = $buildQuery()
+            ->whereBetween('rating.created_at', [now()->startOfMonth(), now()->endOfMonth()])
+            ->orderBy('rating.created_at', 'desc')
+            ->limit(12)
+            ->get();
+
+        return $allReviews
+            ->concat($weekReviews)
+            ->concat($monthReviews)
+            ->unique('rating_id')
+            ->sortByDesc('created_at')
+            ->values();
+    }}

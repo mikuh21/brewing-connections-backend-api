@@ -82,6 +82,25 @@ class MapController extends Controller
 
         $ownerAssignment = $request->input('farm_owner_assignment', 'arnold');
 
+        if (preg_match('/^owner:(\\d+)$/', (string) $ownerAssignment, $matches)) {
+            $selectedOwner = User::query()
+                ->where('role', 'farm_owner')
+                ->whereKey((int) $matches[1])
+                ->where(function ($query) {
+                    $query->whereNull('status')->orWhere('status', '!=', 'deactivated');
+                })
+                ->whereNull('deactivated_at')
+                ->first();
+
+            if (!$selectedOwner) {
+                throw ValidationException::withMessages([
+                    'farm_owner_assignment' => 'The selected farm owner is no longer available. Please refresh and choose another owner.',
+                ]);
+            }
+
+            return (int) $selectedOwner->id;
+        }
+
         if ($ownerAssignment === 'individual') {
             $normalizedEmail = strtolower(trim((string) $request->input('email', '')));
             $ownerPassword = trim((string) $request->input('owner_password', ''));
@@ -181,6 +200,15 @@ class MapController extends Controller
         $googleMapsKey = config('services.google_maps.key');
 
         $verifiedResellers = $this->getVerifiedResellersForMapping();
+        $farmOwners = User::query()
+            ->where('role', 'farm_owner')
+            ->whereRaw('LOWER(email) != ?', [strtolower(self::DEFAULT_FARM_OWNER_EMAIL)])
+            ->where(function ($query) {
+                $query->whereNull('status')->orWhere('status', '!=', 'deactivated');
+            })
+            ->whereNull('deactivated_at')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
 
         $establishments = Establishment::query()
             ->whereNull('deleted_at')
@@ -245,7 +273,7 @@ class MapController extends Controller
             ];
         });
 
-        return view('admin.map', compact('mapboxToken', 'googleMapsKey', 'establishments', 'verifiedResellers'));
+        return view('admin.map', compact('mapboxToken', 'googleMapsKey', 'establishments', 'verifiedResellers', 'farmOwners'));
     }
 
     /**
@@ -285,7 +313,20 @@ class MapController extends Controller
             $rules['email'] = ['required', 'email', 'max:255'];
             $rules['owner_password'] = ['nullable', 'string', 'min:8', 'max:255'];
         } else {
-            $rules['farm_owner_assignment'] = ['nullable', Rule::in(['arnold', 'individual'])];
+            $validFarmOwnerAssignments = User::query()
+                ->where('role', 'farm_owner')
+                ->where(function ($query) {
+                    $query->whereNull('status')->orWhere('status', '!=', 'deactivated');
+                })
+                ->whereNull('deactivated_at')
+                ->pluck('id')
+                ->map(fn ($id) => 'owner:' . $id)
+                ->all();
+
+            $rules['farm_owner_assignment'] = [
+                'nullable',
+                Rule::in(array_merge(['arnold', 'individual'], $validFarmOwnerAssignments)),
+            ];
             $rules['email'] = [
                 'nullable',
                 'email',

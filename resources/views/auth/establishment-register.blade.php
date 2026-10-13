@@ -297,6 +297,39 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    let autoSlideInterval;
+    const goToSlide = (index) => {
+        if (!slides.length || !dots.length) return;
+        slides[currentSlide]?.classList.remove('active');
+        dots[currentSlide]?.classList.remove('active');
+        currentSlide = (index + slides.length) % slides.length;
+        slides[currentSlide]?.classList.add('active');
+        dots[currentSlide]?.classList.add('active');
+    };
+    if (slides.length && dots.length) {
+        const startAutoSlide = () => {
+            window.clearInterval(autoSlideInterval);
+            autoSlideInterval = window.setInterval(() => goToSlide(currentSlide + 1), 4000);
+        };
+        dots.forEach((dot, index) => dot.addEventListener('click', () => {
+            goToSlide(index);
+            startAutoSlide();
+        }));
+        document.getElementById('prevBtn')?.addEventListener('click', () => {
+            goToSlide(currentSlide - 1);
+            startAutoSlide();
+        });
+        document.getElementById('nextBtn')?.addEventListener('click', () => {
+            goToSlide(currentSlide + 1);
+            startAutoSlide();
+        });
+        goToSlide(0);
+        startAutoSlide();
+    }
+
     const picker = document.getElementById('registration-type-picker');
     const formPanel = document.getElementById('registration-form-panel');
     const form = document.getElementById('guided-registration-form');

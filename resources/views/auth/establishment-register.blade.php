@@ -6,9 +6,14 @@
 @php
     $registrationType = old('registration_type', old('establishment_type', request('type', '')));
     $isResellerRegistration = $registrationType === 'reseller';
-    $hasRegistrationErrors = $errors->any();
     $resellerErrors = $errors->resellerRegistration ?? collect();
-    $hasResellerErrors = method_exists($resellerErrors, 'any') && $resellerErrors->any();
+    $registrationErrorMessages = collect($errors->getMessages())->except('email')->flatten()->all();
+    $resellerErrorMessages = collect($resellerErrors->getMessages())->except('email')->flatten()->all();
+    $hasRegistrationErrors = count($registrationErrorMessages) > 0;
+    $hasResellerErrors = count($resellerErrorMessages) > 0;
+    $emailRegistrationError = $isResellerRegistration
+        ? $resellerErrors->first('email')
+        : $errors->first('email');
     $stepTwoErrorKeys = ['establishment_name', 'contact_number', 'address', 'barangay', 'website', 'terms_agreed'];
     $registrationStep = $errors->hasAny($stepTwoErrorKeys)
         || ($hasResellerErrors && $resellerErrors->hasAny(['contact_number', 'barangay', 'terms_agreed']))
@@ -346,12 +351,12 @@
                         <p class="font-semibold">Please check the following details:</p>
                         <ul class="mt-1 list-disc pl-5">
                             @if($hasRegistrationErrors)
-                                @foreach ($errors->all() as $error)
+                                @foreach ($registrationErrorMessages as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             @endif
                             @if($hasResellerErrors)
-                                @foreach ($resellerErrors->all() as $error)
+                                @foreach ($resellerErrorMessages as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
                             @endif
@@ -436,7 +441,8 @@
                             </div>
                             <div>
                                 <label for="registration_email" class="mb-1 block text-sm font-medium text-[#3A2E22]">Email address *</label>
-                                <input id="registration_email" name="email" type="email" value="{{ old('email') }}" maxlength="255" autocomplete="email" class="registration-field" placeholder="you@example.com">
+                                <input id="registration_email" name="email" type="email" value="{{ old('email') }}" maxlength="255" autocomplete="email" data-email-check-url="{{ route('register.email-check') }}" aria-describedby="registration-email-feedback" aria-invalid="{{ $emailRegistrationError ? 'true' : 'false' }}" class="registration-field" placeholder="you@example.com">
+                                <p id="registration-email-feedback" class="mt-1 text-xs {{ $emailRegistrationError ? 'text-red-600' : 'hidden' }}" role="status" aria-live="polite">{{ $emailRegistrationError }}</p>
                             </div>
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
@@ -598,6 +604,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const setRequired = (selector, required) => {
         form.querySelectorAll(selector).forEach((field) => { field.required = required; });
     };
+
+    const emailInput = form.querySelector('#registration_email');
+    const emailFeedback = document.getElementById('registration-email-feedback');
+    let emailCheckTimer = null;
+    let emailCheckController = null;
+    let emailAvailability = emailInput?.getAttribute('aria-invalid') === 'true' ? 'taken' : 'idle';
+    let checkedEmail = emailAvailability === 'taken' ? emailInput.value.trim().toLowerCase() : '';
+
+    const setEmailFeedback = (message = '', state = 'idle') => {
+        if (!emailInput || !emailFeedback) return;
+        emailAvailability = state;
+        emailFeedback.textContent = message;
+        emailFeedback.classList.toggle('hidden', !message);
+        emailFeedback.classList.toggle('text-red-600', state === 'taken' || state === 'invalid');
+        emailFeedback.classList.toggle('text-[#8C7A68]', state === 'checking');
+        emailInput.setAttribute('aria-invalid', state === 'taken' || state === 'invalid' ? 'true' : 'false');
+        emailInput.setCustomValidity(state === 'taken' ? message : '');
+    };
+
+    const checkEmailAvailability = async (rawEmail) => {
+        const email = rawEmail.trim().toLowerCase();
+        if (!emailInput || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) {
+            setEmailFeedback('', 'idle');
+            checkedEmail = '';
+            return null;
+        }
+
+        if (emailCheckController) emailCheckController.abort();
+        emailCheckController = new AbortController();
+        const requestController = emailCheckController;
+        checkedEmail = email;
+        setEmailFeedback('Checking email...', 'checking');
+
+        try {
+            const response = await fetch(emailInput.dataset.emailCheckUrl + '?email=' + encodeURIComponent(email), {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+                signal: requestController.signal
+            });
+            const result = await response.json();
+            if (requestController !== emailCheckController || emailInput.value.trim().toLowerCase() !== email) return null;
+
+            if (result.available === false) {
+                setEmailFeedback('This email is registered. Try another email.', 'taken');
+                return false;
+            }
+
+            setEmailFeedback('', 'available');
+            return true;
+        } catch (error) {
+            if (error.name === 'AbortError') return null;
+            // The registration endpoint still enforces uniqueness if this check is unavailable.
+            setEmailFeedback('', 'idle');
+            return null;
+        }
+    };
+
+    emailInput?.addEventListener('input', () => {
+        window.clearTimeout(emailCheckTimer);
+        if (emailCheckController) emailCheckController.abort();
+        checkedEmail = '';
+        setEmailFeedback('', 'idle');
+
+        const email = emailInput.value.trim();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) return;
+
+        emailCheckTimer = window.setTimeout(() => {
+            checkEmailAvailability(email);
+        }, 400);
+    });
+
+    emailInput?.addEventListener('blur', () => {
+        window.clearTimeout(emailCheckTimer);
+        const email = emailInput.value.trim();
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 255
+            && checkedEmail !== email.toLowerCase()) {
+            checkEmailAvailability(email);
+        }
+    });
 
     const setStep = (step) => {
         currentStep = step;

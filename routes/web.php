@@ -306,8 +306,10 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', function () {
     return view('auth.establishment-register');
-})->name('register');
-Route::post('/register', [EstablishmentRegistrationController::class, 'store'])->name('establishment.register');
+})->middleware('guest')->name('register');
+Route::post('/register', [EstablishmentRegistrationController::class, 'store'])
+    ->middleware('guest')
+    ->name('establishment.register');
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset.form');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.reset.submit');
 Route::post('/reseller/register', [ResellerRegistrationController::class, 'store'])->name('reseller.register');

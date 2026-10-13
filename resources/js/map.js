@@ -3450,6 +3450,35 @@ function setupOwnerEstablishmentPinning() {
     const cancelButton = document.getElementById('owner-pin-cancel-btn');
     const confirmPanel = document.getElementById('owner-pin-confirm');
 
+    const addFarmButton = document.getElementById('add-farm-location-btn');
+    const addFarmModal = document.getElementById('add-farm-location-modal');
+    const closeAddFarmModalButton = document.getElementById('close-add-farm-location-modal');
+    const cancelAddFarmModalButton = document.getElementById('cancel-add-farm-location-modal');
+
+    const openAddFarmModal = () => {
+        if (!addFarmModal) return;
+        addFarmModal.classList.remove('hidden');
+        addFarmModal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        addFarmModal.querySelector('input[name="name"]')?.focus();
+    };
+    const closeAddFarmModal = () => {
+        if (!addFarmModal) return;
+        addFarmModal.classList.add('hidden');
+        addFarmModal.classList.remove('flex');
+        document.body.style.overflow = '';
+    };
+
+    addFarmButton?.addEventListener('click', openAddFarmModal);
+    closeAddFarmModalButton?.addEventListener('click', closeAddFarmModal);
+    cancelAddFarmModalButton?.addEventListener('click', closeAddFarmModal);
+    addFarmModal?.addEventListener('click', (event) => {
+        if (event.target === addFarmModal) closeAddFarmModal();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeAddFarmModal();
+    });
+
     if (!pinButton || !saveButton || !cancelButton || !confirmPanel) return;
 
     pinButton.addEventListener('click', () => {

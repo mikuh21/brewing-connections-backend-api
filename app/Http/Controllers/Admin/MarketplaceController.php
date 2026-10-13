@@ -16,19 +16,8 @@ class MarketplaceController extends Controller
         $products = Product::with(['seller', 'establishment'])->paginate(12);
         $resellerProducts = ResellerProduct::with(['product', 'reseller'])->paginate(12);
 
-        $orderStatus = strtolower($request->query('status', 'all'));
-        $ordersQuery = Order::with(['user', 'product'])->orderBy('created_at', 'desc');
-
-        if ($orderStatus !== 'all') {
-            if ($orderStatus === 'cancelled' || $orderStatus === 'canceled') {
-                $ordersQuery->whereIn('status', ['cancelled', 'canceled']);
-            } else {
-                $ordersQuery->where('status', $orderStatus);
-            }
-        }
-
-        $orders = $ordersQuery->paginate(15);
-        $bulkOrders = BulkOrder::with(['reseller', 'product'])->orderBy('created_at', 'desc')->paginate(15);
+        $orders = Order::with(['user', 'product'])->orderBy('created_at', 'desc')->get();
+        $bulkOrders = BulkOrder::with(['reseller', 'product'])->orderBy('created_at', 'desc')->get();
 
         $stats = [
             'total_products' => Product::count(),

@@ -160,6 +160,19 @@
             top: 1.25rem;
             left: 1.25rem;
             letter-spacing: -0.02em;
+            isolation: isolate;
+        }
+
+        .registration-shell > a.mobile-auth-logo::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5.25rem;
+            background: linear-gradient(180deg, #e8ddd0 0%, #efe6d8 45%, #e8ddd0 100%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .registration-layout {

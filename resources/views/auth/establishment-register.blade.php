@@ -43,6 +43,13 @@
     .registration-enter {
         animation: registrationFadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
     }
+    #registration-type-picker, #registration-form-panel {
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+    #registration-type-picker.registration-leaving, #registration-form-panel.registration-leaving {
+        opacity: 0;
+        transform: translateY(5px);
+    }
     @keyframes registrationFadeIn {
         from { opacity: 0; transform: translateY(7px); }
         to { opacity: 1; transform: translateY(0); }

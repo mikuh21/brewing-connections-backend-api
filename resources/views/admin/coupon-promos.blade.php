@@ -217,13 +217,13 @@
             <!-- Filter Tabs -->
             <div class="mb-6 border-b border-gray-200 pb-4">
                 <div class="flex gap-2">
-                    <button class="filter-tab {{ $currentFilter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="all" type="button"" style="color: {{ $currentFilter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'all' ? '#3B2F2F' : 'transparent' }};">
+                    <button class="filter-tab {{ $currentFilter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="all" type="button" style="color: {{ $currentFilter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'all' ? '#3B2F2F' : 'transparent' }};">
                         All
                     </button>
-                    <button class="filter-tab {{ $currentFilter === 'active' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="active" type="button"" style="color: {{ $currentFilter === 'active' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'active' ? '#3B2F2F' : 'transparent' }};">
+                    <button class="filter-tab {{ $currentFilter === 'active' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="active" type="button" style="color: {{ $currentFilter === 'active' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'active' ? '#3B2F2F' : 'transparent' }};">
                         Active
                     </button>
-                    <button class="filter-tab {{ $currentFilter === 'expired' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="expired" type="button"" style="color: {{ $currentFilter === 'expired' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'expired' ? '#3B2F2F' : 'transparent' }};">
+                    <button class="filter-tab {{ $currentFilter === 'expired' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="expired" type="button" style="color: {{ $currentFilter === 'expired' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'expired' ? '#3B2F2F' : 'transparent' }};">
                         Expired
                     </button>
                 </div>

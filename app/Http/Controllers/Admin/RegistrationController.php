@@ -25,42 +25,17 @@ class RegistrationController extends Controller
         $activeConsumers = (clone $baseQuery)->where('status', 'active')->count();
         $deactivatedConsumers = (clone $baseQuery)->where('status', 'deactivated')->count();
 
-        $query = clone $baseQuery;
-
-        if ($accountType === 'farm_owners') {
-            $query->where('role', 'farm_owner');
-        } elseif ($accountType === 'coffee_shop_owners') {
-            $query->where('role', 'cafe_owner')
-                ->whereHas('establishment', fn ($q) => $q->where('type', 'cafe'));
-        } elseif ($accountType === 'consumers') {
-            $query->where('role', 'consumer');
-        } elseif ($accountType === 'roasters') {
-            // Roasters are stored as cafe_owner accounts; establishment type distinguishes them.
-            $query->where('role', 'cafe_owner')
-                ->whereHas('establishment', fn ($q) => $q->where('type', 'roaster'));
-        }
-
-        if ($filter === 'active') {
-            $query->where('status', 'active');
-        } elseif ($filter === 'deactivated') {
-            $query->where('status', 'deactivated');
-        } elseif ($filter === 'last_30_days') {
-            $query->where('created_at', '>=', now()->subDays(30));
-        }
-
-        if ($search !== '') {
-            $term = '%' . addcslashes($search, '%_\\\\') . '%';
-            $query->where(function ($q) use ($term) {
-                $q->where('name', 'ILIKE', $term)
-                    ->orWhere('email', 'ILIKE', $term)
-                    ->orWhere('contact_number', 'ILIKE', $term);
-            });
-        }
-
-        $consumers = $query->with('establishment')
+        // Load the complete registrations dataset once so status tabs and account-type
+        // dropdown can filter instantly on the client without reloading or missing other roles.
+        // Resellers and administrators remain excluded by $baseQuery above.
+        $consumers = (clone $baseQuery)
+            ->with('establishment')
             ->orderByDesc('created_at')
-            ->paginate(15)
-            ->withQueryString();
+            ->get();
+
+        $filter = in_array($filter, ['all', 'active', 'deactivated', 'last_30_days'], true) ? $filter : 'all';
+        $accountType = in_array($accountType, ['all', 'farm_owners', 'coffee_shop_owners', 'consumers', 'roasters'], true) ? $accountType : 'all';
+        $search = trim((string) $search);
 
         return view('admin.registrations', compact(
             'consumers',

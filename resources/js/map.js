@@ -3470,6 +3470,7 @@ function setupOwnerEstablishmentPinning() {
     };
 
     addFarmButton?.addEventListener('click', openAddFarmModal);
+    if (addFarmModal?.dataset.openOnLoad === 'true') openAddFarmModal();
     closeAddFarmModalButton?.addEventListener('click', closeAddFarmModal);
     cancelAddFarmModalButton?.addEventListener('click', closeAddFarmModal);
     addFarmModal?.addEventListener('click', (event) => {

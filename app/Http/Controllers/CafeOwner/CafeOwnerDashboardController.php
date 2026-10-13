@@ -380,6 +380,7 @@ class CafeOwnerDashboardController extends Controller
     protected function resolveRecentActivity(int $userId, ?int $establishmentId): Collection
     {
         $latestProducts = collect();
+        $latestProducts = collect();
 
         if (Schema::hasTable('products')) {
             $productQuery = Product::query();
@@ -414,87 +415,5 @@ class CafeOwnerDashboardController extends Controller
             ->sortByDesc('occurred_at')
             ->take(5)
             ->values();
-    }
-
-    protected function resolvePerformanceOverview(?int $establishmentId): array
-    {
-        $months = collect(range(5, 1))->map(function (int $offset) {
-            return now()->startOfMonth()->subMonths($offset);
-        })->push(now()->startOfMonth());
-
-        $labels = $months->map(fn (Carbon $month) => $month->format('M Y'))->values()->all();
-        $countsByMonth = [];
-
-        if ($establishmentId && Schema::hasTable('establishments')) {
-            $establishment = Establishment::query()->find($establishmentId);
-
-            if ($establishment) {
-                $metricColumn = null;
-
-                if (Schema::hasColumn('establishments', 'clicks')) {
-                    $metricColumn = 'clicks';
-                } elseif (Schema::hasColumn('establishments', 'visits')) {
-                    $metricColumn = 'visits';
-                }
-
-                if ($metricColumn) {
-                    $currentMonthKey = now()->format('Y-m');
-
-                    foreach ($months as $month) {
-                        $monthKey = $month->format('Y-m');
-                        $countsByMonth[$monthKey] = $monthKey === $currentMonthKey
-                            ? (int) ($establishment->{$metricColumn} ?? 0)
-                            : 0;
-                    }
-                }
-            }
-        }
-
-        if (empty($countsByMonth) && $establishmentId && Schema::hasTable('coffee_trails')) {
-            $trailQuery = DB::table('coffee_trails');
-
-            if (Schema::hasColumn('coffee_trails', 'establishment_id')) {
-                $trailQuery->where('establishment_id', $establishmentId);
-            } elseif (Schema::hasColumn('coffee_trails', 'establishment_ids')) {
-                $trailQuery->whereJsonContains('establishment_ids', $establishmentId);
-            } elseif (Schema::hasColumn('coffee_trails', 'trail_data')) {
-                $trailQuery->where(function ($query) use ($establishmentId) {
-                    $query->whereJsonContains('trail_data->establishment_ids', $establishmentId)
-                        ->orWhereJsonContains('trail_data->establishments', $establishmentId);
-                });
-            }
-
-            if (Schema::hasColumn('coffee_trails', 'created_at')) {
-                $from = now()->startOfMonth()->subMonths(5);
-                $rows = $trailQuery
-                    ->where('created_at', '>=', $from)
-                    ->get(['created_at'])
-                    ->groupBy(function ($row) {
-                        return Carbon::parse($row->created_at)->format('Y-m');
-                    })
-                    ->map(fn (Collection $group) => $group->count())
-                    ->toArray();
-
-                foreach ($months as $month) {
-                    $monthKey = $month->format('Y-m');
-                    $countsByMonth[$monthKey] = (int) ($rows[$monthKey] ?? 0);
-                }
-            }
-        }
-
-        if (empty($countsByMonth)) {
-            foreach ($months as $month) {
-                $countsByMonth[$month->format('Y-m')] = 0;
-            }
-        }
-
-        $series = $months->map(fn (Carbon $month) => (int) ($countsByMonth[$month->format('Y-m')] ?? 0))
-            ->values()
-            ->all();
-
-        return [
-            'labels' => $labels,
-            'series' => $series,
-        ];
     }
 }

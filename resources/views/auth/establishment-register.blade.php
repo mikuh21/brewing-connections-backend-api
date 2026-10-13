@@ -28,7 +28,7 @@
                 <img src="{{ asset('images/brewhublogo.png') }}" alt="" class="h-7 w-7 object-contain"> BrewHub
             </a>
             <h2 class="text-3xl font-bold italic font-display text-[#3A2E22]">Create your account</h2>
-            <p class="mt-2 text-sm text-[#7B6A59]">Register your coffee farm or coffee shop, then pin its location on the map.</p>
+            <p class="mt-2 text-sm text-[#7B6A59]">Register your coffee farm, coffee shop, or roastery, then pin its location on the map.</p>
 
             @if ($errors->any())
                 <div class="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
@@ -56,6 +56,7 @@
                                 <option value="">Choose a type</option>
                                 <option value="farm" @selected(old('establishment_type') === 'farm')>Coffee Farm</option>
                                 <option value="cafe" @selected(old('establishment_type') === 'cafe')>Coffee Shop</option>
+                                <option value="roaster" @selected(old('establishment_type') === 'roaster')>Coffee Roaster</option>
                             </select>
                         </div>
                         <div>

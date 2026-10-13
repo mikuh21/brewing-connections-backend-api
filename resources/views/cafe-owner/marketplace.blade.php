@@ -73,11 +73,7 @@
         createForm: {
             name: '',
             description: '',
-            category: 'Coffee Beans',
-            roast_level: '',
-            grind_type: '',
-            stock_quantity: '',
-            unit: 'kg',
+            category: 'Hot Drinks',
             image_url: ''
         },
         form: {
@@ -864,7 +860,7 @@
     x-transition:leave-end="opacity-0"
     class="cafe-edit-product-modal fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
+    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Edit Product</h2>
             <button type="button" @click="showEditModal = false" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
@@ -944,7 +940,7 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
+    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
             <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
@@ -961,29 +957,10 @@
             <div>
                 <label class="block text-[11px] font-semibold">Type *</label>
                 <select x-model="createForm.category" name="category" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
-                    <option value="Coffee Beans">Coffee Beans</option>
-                    <option value="Ground Coffee">Ground Coffee</option>
+                    <template x-for="category in menuImportCategories" :key="`create-menu-cat-${category}`">
+                        <option :value="category" x-text="category"></option>
+                    </template>
                 </select>
-            </div>
-
-<div>
-                <label class="block text-[11px] font-semibold">Roast Level</label>
-                <input x-model="createForm.roast_level" name="roast_level" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Light, Medium, Dark" />
-            </div>
-
-            <div>
-                <label class="block text-[11px] font-semibold">Grind Type</label>
-                <input x-model="createForm.grind_type" name="grind_type" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Whole Bean / Fine / Coarse" />
-            </div>
-
-            <div>
-                <label class="block text-[11px] font-semibold">Stock Quantity *</label>
-                <input x-model="createForm.stock_quantity" type="number" min="1" step="1" inputmode="numeric" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-            </div>
-
-            <div>
-                <label class="block text-[11px] font-semibold">Unit</label>
-                <input x-model="createForm.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
 <div class="md:col-span-3">

@@ -397,7 +397,7 @@
 
             <template x-for="activity in combinedActivities()" :key="activity.id">
                 <div class="flex items-start space-x-3">
-                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0" :class="activity.type === 'order' ? 'bg-blue-500' : 'bg-amber-500'"></div>
+                    <div class="w-2 h-2 rounded-full mt-2 flex-shrink-0" :class="activity.type === 'product' ? 'bg-green-500' : 'bg-amber-500'"></div>
                     <div class="flex-1">
                         <p class="text-[#3A2E22] text-sm font-medium" x-text="activity.title"></p>
                         <p class="text-[#9E8C78] text-xs" x-show="activity.subtitle" x-text="activity.subtitle"></p>

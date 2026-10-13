@@ -17,7 +17,17 @@ class ResellerRegistrationController extends Controller
     {
         $validated = $request->validateWithBag('resellerRegistration', [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $normalizedEmail = strtolower(trim((string) $value));
+                    if (User::query()->whereRaw('LOWER(email) = ?', [$normalizedEmail])->exists()) {
+                        $fail('This email is registered. Try another email.');
+                    }
+                },
+            ],
             'password' => ['required', 'min:8', 'max:16', 'regex:/[@$!%*#?&]/', 'confirmed'],
             'password_confirmation' => ['required'],
             'contact_number' => ['required', 'string', 'max:30', 'regex:/^[0-9+() -]{7,30}$/', 'regex:/^(?=(?:.*\\d){7,15}$)[0-9+() -]+$/'],

@@ -265,7 +265,7 @@
                                     data-created-at="{{ $consumer->created_at->timestamp }}"
                                     data-type="{{ $consumer->role === 'consumer' ? 'consumers' : ($consumer->role === 'farm_owner' ? 'farm_owners' : (($consumer->establishment?->type ?? '') === 'roaster' ? 'roasters' : 'coffee_shop_owners')) }}"
                                     style="background-color: {{ $index % 2 === 1 ? '#FAF7F2' : '#FFFFFF' }};">
-                                    <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $index + 1 }}</td>
+                                    <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ (int) $index + 1 }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $consumer->name }}</td>
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $consumer->email }}</td>
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $consumer->role === 'consumer' ? 'Consumer' : ($consumer->role === 'farm_owner' ? 'Farm Owner' : (($consumer->establishment?->type ?? '') === 'roaster' ? 'Roaster' : 'Coffee Shop Owner')) }}</td>

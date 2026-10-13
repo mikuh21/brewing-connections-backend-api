@@ -579,14 +579,12 @@
                     @if(!$isMenuProduct)
                         <div class="flex items-center justify-between mb-2">
                             <div>
-                                <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
                                 <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
                             </div>
                             <p class="text-xs text-[#9E8C78]">{{ $stock }} units</p>
                         </div>
                     @else
                         <div class="mb-2">
-                            <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
                             <p class="text-xs text-[#6B5B4A] truncate">{{ trim((string) ($product->description ?? '')) ?: 'No description provided.' }}</p>
                         </div>
                     @endif
@@ -658,7 +656,6 @@
                         <template x-if="!isMenuCategory(product.category)">
                             <div class="flex items-center justify-between mb-2">
                                 <div>
-                                    <p class="font-bold text-sm text-[#2C1A0E]">PHP <span x-text="Number(product.price_per_unit || 0).toFixed(2)"></span></p>
                                     <p class="text-xs text-[#9E8C78]">per <span x-text="product.unit || 'unit'"></span></p>
                                 </div>
                                 <p class="text-xs text-[#9E8C78]"><span x-text="stockMeta(product).qty"></span> units</p>
@@ -666,7 +663,6 @@
                         </template>
                         <template x-if="isMenuCategory(product.category)">
                             <div class="mb-2">
-                                <p class="font-bold text-sm text-[#2C1A0E]">PHP <span x-text="Number(product.price_per_unit || 0).toFixed(2)"></span></p>
                                 <p class="text-xs text-[#6B5B4A] truncate" x-text="(String(product.description || '').trim() || 'No description provided.')"></p>
                             </div>
                         </template>
@@ -802,7 +798,6 @@
 
                     <div class="flex items-center justify-between mb-2">
                         <div>
-                            <p class="font-bold text-sm text-[#2C1A0E]">PHP {{ number_format($product->price_per_unit, 2) }}</p>
                             @if(!$isCafeOwnerSeller)
                             <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
                             @endif
@@ -864,10 +859,8 @@
                     </p>
 
                     <div class="pt-2 space-y-1">
-                        <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Price:</span> PHP <span x-text="Number(viewProduct.price_per_unit || 0).toFixed(2)"></span></p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Stock:</span> <span x-text="Number(viewProduct.stock_quantity || 0)"></span> units</p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Unit:</span> <span x-text="viewProduct.unit || 'unit'"></span></p>
-                        <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Minimum Order Quantity:</span> <span x-text="viewProduct.moq || 'N/A'"></span></p>
                     </div>
                 </div>
 

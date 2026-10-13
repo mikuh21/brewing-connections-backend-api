@@ -57,18 +57,24 @@
         animation: registrationFadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
     }
     #registration-type-picker, #registration-form-panel {
-        transition: opacity 120ms ease, transform 120ms ease;
+        transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                    visibility 420ms linear;
     }
-    #registration-type-picker.registration-leaving, #registration-form-panel.registration-leaving {
+    #registration-type-picker.registration-leaving, #registration-form-panel.registration-leaving,
+    .registration-step-leaving {
         opacity: 0;
-        transform: translateY(5px);
+        transform: translateY(10px) scale(.985);
     }
     @keyframes registrationFadeIn {
-        from { opacity: 0; transform: translateY(7px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; transform: translateY(10px) scale(.985); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
     }
     @media (prefers-reduced-motion: reduce) {
-        .slide, .registration-enter { animation: none !important; transition: none !important; }
+        .slide, .registration-enter, #registration-type-picker, #registration-form-panel {
+            animation: none !important;
+            transition: none !important;
+        }
     }
     .registration-form-scroll {
         scrollbar-width: thin;
@@ -268,7 +274,7 @@
                         </div>
                     </div>
 
-                    <form id="guided-registration-form" method="POST" action="{{ $isResellerRegistration ? route('reseller.register') : route('establishment.register') }}" class="mt-5">
+                    <form id="guided-registration-form" method="POST" action="{{ $isResellerRegistration ? route('reseller.register') : route('establishment.register') }}" class="mt-5" novalidate>
                         @csrf
                         <input type="hidden" name="registration_type" id="registration_type" value="{{ $registrationType }}">
                         <input type="hidden" name="establishment_type" id="establishment_type" value="{{ in_array($registrationType, ['farm','cafe','roaster'], true) ? $registrationType : '' }}">
@@ -340,8 +346,8 @@
                                 <input id="registration_address" name="address" value="{{ old('address') }}" maxlength="255" autocomplete="street-address" class="registration-field" placeholder="Street and area">
                             </div>
                             <div class="registration-establishment-only">
-                                <label for="registration_website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website <span class="font-normal text-[#8C7A68]">(optional)</span></label>
-                                <input id="registration_website" name="website" type="url" value="{{ old('website') }}" maxlength="255" class="registration-field" placeholder="https://">
+                                <label for="registration_website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website *</label>
+                                <input id="registration_website" name="website" type="url" value="{{ old('website') }}" maxlength="255" autocomplete="url" class="registration-field" placeholder="https://">
                             </div>
 
                             <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
@@ -452,11 +458,15 @@ document.addEventListener('DOMContentLoaded', () => {
         currentStep = step;
         const outgoingStep = step === 1 ? stepTwo : stepOne;
         const incomingStep = step === 1 ? stepOne : stepTwo;
-        outgoingStep.classList.add('hidden');
-        incomingStep.classList.remove('hidden');
-        incomingStep.classList.remove('registration-enter');
-        void incomingStep.offsetWidth;
-        incomingStep.classList.add('registration-enter');
+        outgoingStep.classList.add('registration-step-leaving');
+        window.setTimeout(() => {
+            outgoingStep.classList.add('hidden');
+            outgoingStep.classList.remove('registration-step-leaving');
+            incomingStep.classList.remove('hidden');
+            incomingStep.classList.remove('registration-enter');
+            void incomingStep.offsetWidth;
+            incomingStep.classList.add('registration-enter');
+        }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180);
         stepOneDot.classList.toggle('is-active', step === 1);
         stepOneDot.classList.toggle('is-complete', step === 2);
         stepTwoDot.classList.toggle('is-active', step === 2);
@@ -467,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         stepLine.classList.toggle('is-complete', step === 2);
 
         setRequired('#owner_name, #reseller_name, #registration_email, #registration_password, #registration_password_confirmation', step === 1);
-        setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address', step === 2);
+        setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address, #registration_website', step === 2);
         setRequired('#registration_terms', step === 2);
 
         if (typeInput.value === 'reseller') {
@@ -508,6 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showScreen = (from, to) => {
         if (from === to) return;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         from.classList.add('registration-leaving');
         window.setTimeout(() => {
             from.classList.add('hidden');
@@ -516,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
             to.classList.remove('registration-enter');
             void to.offsetWidth;
             to.classList.add('registration-enter');
-        }, 120);
+        }, reducedMotion ? 0 : 210);
     };
 
     document.querySelectorAll('[data-registration-type]').forEach((button) => {
@@ -525,16 +536,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const validateVisibleRequiredFields = (section) => {
         const fields = Array.from(section.querySelectorAll('input, select, textarea'))
-            .filter((field) => field.required && !field.disabled && !field.closest('.hidden'));
+            .filter((field) => !field.disabled && !field.closest('.hidden'));
         for (const field of fields) {
-            if (field.type === 'checkbox' && !field.checked) {
-                field.setCustomValidity('Please confirm this checkbox to continue.');
-            } else if (field.type !== 'checkbox' && !field.value.trim()) {
+            const isOptional = field.dataset.optional === 'true';
+            if (isOptional && !field.value.trim()) {
+                field.setCustomValidity('');
+                continue;
+            }
+            if (field.type === 'checkbox') {
+                field.setCustomValidity(field.checked ? '' : 'Please accept the Terms & Conditions to continue.');
+            } else if (!field.value.trim()) {
                 field.setCustomValidity('This field is required.');
             } else {
                 field.setCustomValidity('');
             }
-
             if (!field.checkValidity()) {
                 field.reportValidity();
                 field.focus({ preventScroll: false });

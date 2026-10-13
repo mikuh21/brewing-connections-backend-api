@@ -958,8 +958,45 @@ class FarmOwnerController extends Controller
         return back()->with('status', 'Product visibility updated successfully.');
     }
 
-    public function map()
+    public function addFarmLocation(Request $request)
     {
+        $user = Auth::user();
+        /** @var \\App\\Models\\User $user */
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
+        ]);
+
+        $farm = new Establishment();
+        $farm->owner_id = $user->id;
+        if ($this->hasEstablishmentColumn('user_id')) {
+            $farm->user_id = $user->id;
+        }
+        $farm->name = trim($validated['name']);
+        $farm->type = 'farm';
+        $farm->address = trim($validated['address']);
+        $farm->barangay = trim($validated['barangay']);
+        $farm->contact_number = $user->contact_number;
+        $farm->email = $user->email;
+        $farm->latitude = null;
+        $farm->longitude = null;
+        $farm->save();
+
+        return redirect()
+            ->route('farm-owner.map', ['farm_id' => $farm->id])
+            ->with('success', 'Farm location added. Pin it on the map to make it discoverable.');
+    }
+
+    public function map(Request $request)
+    {
+        $user = Auth::user();
+        /** @var \\App\\Models\\User $user */
+        $activeFarm = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest($request), true);
+
+        abort_unless($activeFarm && $this->isFarmManagedByUser($activeFarm, $user), 403);
+
         $mapboxToken = config('services.mapbox.api_key');
         $googleMapsKey = config('services.google_maps.key');
         $verifiedResellers = $this->getVerifiedResellersForMap();
@@ -1027,7 +1064,7 @@ class FarmOwnerController extends Controller
             ];
         });
 
-        return view('farm-owner.map', compact('mapboxToken', 'googleMapsKey', 'establishments', 'verifiedResellers'));
+        return view('farm-owner.map', compact('mapboxToken', 'googleMapsKey', 'establishments', 'verifiedResellers', 'activeFarm'));
     }
 
     public function messages(?Conversation $conversation = null)

@@ -405,12 +405,8 @@ Route::prefix('cafe-owner')
         Route::patch('/coupon-promos/{id}', [CafeOwnerCouponPromoController::class, 'update'])->name('coupon-promos.update');
         Route::delete('/coupon-promos/{id}', [CafeOwnerCouponPromoController::class, 'destroy'])->name('coupon-promos.destroy');
         Route::get('/marketplace', [CafeOwnerMarketplaceController::class, 'index'])->name('marketplace');
-        Route::post('/marketplace/products', [CafeOwnerMarketplaceController::class, 'store'])->name('marketplace.products.store');
-        Route::post('/marketplace/products/menu/extract', [CafeOwnerMarketplaceController::class, 'extractMenuItems'])->name('marketplace.products.menu.extract');
-        Route::post('/marketplace/products/menu/confirm', [CafeOwnerMarketplaceController::class, 'confirmExtractedMenuItems'])->name('marketplace.products.menu.confirm');
-        Route::patch('/marketplace/products/{product}', [CafeOwnerMarketplaceController::class, 'updateProduct'])->name('marketplace.products.update');
-        Route::patch('/marketplace/products/{product}/visibility', [CafeOwnerMarketplaceController::class, 'updateProductVisibility'])->name('marketplace.products.visibility');
-        Route::patch('/marketplace/orders/{order}', [CafeOwnerMarketplaceController::class, 'updateOrder'])->name('marketplace.orders.update');
+        Route::post('/marketplace/menu', [CafeOwnerMarketplaceController::class, 'uploadMenu'])->name('marketplace.menu.store');
+        Route::delete('/marketplace/menu', [CafeOwnerMarketplaceController::class, 'deleteMenu'])->name('marketplace.menu.destroy');
         Route::get('/recommendations', [CafeOwnerRecommendationsController::class, 'index'])->name('recommendations');
         Route::patch('/recommendations/reviews/{rating}/owner-response', [CafeOwnerRecommendationsController::class, 'updateOwnerResponse'])->name('recommendations.reviews.owner-response');
         Route::get('/map', [CafeOwnerMapController::class, 'index'])->name('map');

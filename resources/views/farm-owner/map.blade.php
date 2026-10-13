@@ -322,7 +322,7 @@
     window.IS_FARM_OWNER_MAP = true;
     window.IS_ESTABLISHMENT_OWNER_MAP = true;
     window.ESTABLISHMENT_OWNER_PIN_URL = '{{ route('my-establishment.location.update') }}';
-    window.OWNER_ESTABLISHMENT_ID = @json(\App\Models\Establishment::query()->where('owner_id', auth()->id())->whereIn('type', ['farm', 'cafe'])->whereNull('deleted_at')->value('id'));
+    window.OWNER_ESTABLISHMENT_ID = @json(auth()->user()->establishment?->id);
     window.MAPBOX_TOKEN = '{{ $mapboxToken }}';
     window.GOOGLE_MAPS_KEY = '{{ $googleMapsKey }}';
     window.JWT_TOKEN = '{{ auth()->user()->api_token ?? '' }}';

@@ -3291,7 +3291,7 @@ function resetOwnerPinPlacement() {
     confirmPanel?.classList.add('hidden');
     if (pinButton) {
         pinButton.disabled = false;
-        pinButton.innerHTML = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg> Pin My Establishment';
+        pinButton.innerHTML = '<svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg><span id="pin-my-establishment-label">' + (window.OWNER_ESTABLISHMENT_PINNED ? 'Edit Pinned Location' : 'Pin My Establishment') + '</span>';
     }
     if (saveButton) {
         saveButton.disabled = false;
@@ -3328,9 +3328,32 @@ function handleOwnerPinMapClick(event) {
     const text = document.getElementById('owner-pin-confirm-text');
     const panel = document.getElementById('owner-pin-confirm');
     if (text) {
-        text.textContent = `Save this location? ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        const action = window.OWNER_ESTABLISHMENT_PINNED ? 'Update your pinned location?' : 'Use this location for your establishment?';
+        text.textContent = `${action} ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
     }
     panel?.classList.remove('hidden');
+}
+
+function startOwnerPinPlacement() {
+    const pinButton = document.getElementById('pin-my-establishment-btn');
+    if (!window.OWNER_ESTABLISHMENT_ID || !window.ESTABLISHMENT_OWNER_PIN_URL) {
+        showToast('No establishment is linked to this account. Please contact support.', true);
+        return;
+    }
+
+    resetOwnerPinPlacement();
+    closeDetailsPanel();
+    ownerPinPlacementMode = true;
+    if (pinButton) {
+        pinButton.disabled = true;
+        const label = pinButton.querySelector('#pin-my-establishment-label');
+        if (label) label.textContent = 'Click the map to place your pin';
+    }
+    map.getContainer().style.cursor = 'crosshair';
+    map.on('click', handleOwnerPinMapClick);
+    showToast(window.OWNER_ESTABLISHMENT_PINNED
+        ? 'Click the map to choose the new location for your establishment.'
+        : 'Click the map to choose your establishment location.');
 }
 
 function setupOwnerEstablishmentPinning() {
@@ -3342,18 +3365,7 @@ function setupOwnerEstablishmentPinning() {
     if (!pinButton || !saveButton || !cancelButton || !confirmPanel) return;
 
     pinButton.addEventListener('click', () => {
-        if (!window.OWNER_ESTABLISHMENT_ID || !window.ESTABLISHMENT_OWNER_PIN_URL) {
-            showToast('No establishment is linked to this account. Please contact support.', true);
-            return;
-        }
-
-        resetOwnerPinPlacement();
-        ownerPinPlacementMode = true;
-        pinButton.disabled = true;
-        pinButton.textContent = 'Click the map to place your pin';
-        map.getContainer().style.cursor = 'crosshair';
-        map.on('click', handleOwnerPinMapClick);
-        showToast('Click the map to choose your establishment location.');
+        startOwnerPinPlacement();
     });
 
     cancelButton.addEventListener('click', () => {
@@ -3378,6 +3390,7 @@ function setupOwnerEstablishmentPinning() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
+                    establishment_id: window.OWNER_ESTABLISHMENT_ID,
                     latitude: ownerPinLatLng.lat.toFixed(8),
                     longitude: ownerPinLatLng.lng.toFixed(8),
                 }),
@@ -3389,6 +3402,7 @@ function setupOwnerEstablishmentPinning() {
                 throw new Error(errors || payload?.message || 'Could not save your establishment location.');
             }
 
+            window.OWNER_ESTABLISHMENT_PINNED = true;
             resetOwnerPinPlacement();
             showToast(payload.message || 'Establishment location saved.');
             window.setTimeout(() => window.location.reload(), 700);
@@ -3422,6 +3436,17 @@ function setupStaticEventListeners() {
         if (e.target.closest('#navigate-btn')) {
             e.preventDefault();
             handleNavigate();
+            return;
+        }
+
+        if (e.target.closest('#edit-owner-pinned-location-btn')) {
+            e.preventDefault();
+            const featureId = e.target.closest('#edit-owner-pinned-location-btn').getAttribute('data-feature-id');
+            if (String(featureId) === String(window.OWNER_ESTABLISHMENT_ID) && window.OWNER_ESTABLISHMENT_PINNED) {
+                startOwnerPinPlacement();
+            } else {
+                showToast('You can only edit the location of your own establishment.', true);
+            }
             return;
         }
 
@@ -4340,6 +4365,11 @@ function renderDetailsPanel(feature) {
       <button class="action-btn primary" id="navigate-btn" type="button">
         Navigate
       </button>
+            ${isFarmOwnerMapPage() && window.OWNER_ESTABLISHMENT_PINNED && String(id) === String(window.OWNER_ESTABLISHMENT_ID) ? `
+            <button class="action-btn" id="edit-owner-pinned-location-btn" type="button" data-feature-id="${id}">
+                Edit Pinned Location
+            </button>
+            ` : ''}
             ${isFarmOwnerMapPage() ? '' : `
             <button class="action-btn" id="edit-location-btn" type="button" data-feature-id="${id}">
                 Edit Location

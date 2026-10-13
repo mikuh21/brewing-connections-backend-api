@@ -1,4 +1,3 @@
-                <!-- ...existing code... -->
 @extends('layouts.app')
 
 @section('title', 'Map - BrewHub')
@@ -679,3 +678,4 @@
     window.VERIFIED_RESELLERS = @json($verifiedResellers ?? []);
 </script>
 @vite('resources/js/map.js')
+@endpush

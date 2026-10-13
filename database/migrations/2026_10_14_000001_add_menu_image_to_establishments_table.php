@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::table('establishments', function (Blueprint $table) {
             $table->string('menu_image')->nullable();
+            $table->timestamp('menu_uploaded_at')->nullable();
         });
     }
 
     public function down(): void
     {
         Schema::table('establishments', function (Blueprint $table) {
-            $table->dropColumn('menu_image');
+            $table->dropColumn(['menu_image', 'menu_uploaded_at']);
         });
     }
 };

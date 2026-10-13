@@ -139,13 +139,13 @@
                 <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
                     Registrations
                 </h1>
-                <p class="text-[#9E8C78] text-sm font-medium">View and manage consumer accounts</p>
+                <p class="text-[#9E8C78] text-sm font-medium">View and manage registered accounts</p>
             </div>
         </div>
 
         <!-- Overview Cards Section -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Total Consumers Card -->
+            <!-- Total Registrations Card -->
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-green-500 p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div>
@@ -198,10 +198,10 @@
             <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
                 All <span class="italic text-[#4A6741]">Registrations</span>
             </h2>
-            <p class="text-[#9E8C78] text-sm mb-6">Complete list of registered consumers</p>
+            <p class="text-[#9E8C78] text-sm mb-6">Complete list of registered consumers and establishment owners</p>
 
-            @if($consumers->count() > 0)
-                <!-- Filter Tabs and Search Bar -->
+            @if($consumers->count() > 0 || request()->hasAny(['search', 'account_type']))
+                <!-- Status Tabs, Account Type Filter, and Search -->
                 <div class="registrations-toolbar mb-6 flex items-center justify-between gap-4 border-b border-gray-200 pb-4">
                     <!-- Filter Tabs -->
                     <div class="registrations-filter-tabs flex gap-2">
@@ -219,12 +219,25 @@
                         </button>
                     </div>
 
-                    <!-- Search Input -->
-                    <div class="registrations-search relative">
+                    <!-- Account type filter and search -->
+                    <div class="registrations-search-controls flex items-center gap-3">
+                        <select id="account-type-filter" aria-label="Filter by account type" class="account-type-filter px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                            <option value="all" {{ ($accountType ?? 'all') === 'all' ? 'selected' : '' }}>All Account Types</option>
+                            <option value="farm_owners" {{ ($accountType ?? '') === 'farm_owners' ? 'selected' : '' }}>Farm Owners</option>
+                            <option value="coffee_shop_owners" {{ ($accountType ?? '') === 'coffee_shop_owners' ? 'selected' : '' }}>Coffee Shop Owners</option>
+                            <option value="consumers" {{ ($accountType ?? '') === 'consumers' ? 'selected' : '' }}>Consumers</option>
+                            <option value="roasters" {{ ($accountType ?? '') === 'roasters' ? 'selected' : '' }}>Roasters</option>
+                        </select>
+                        <div class="registrations-search relative">
                         <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                        <input type="text" id="search-input" placeholder="Search by name, email..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent md:w-64" />
+                        <form method="GET" action="{{ route('admin.registrations.index') }}" class="relative">
+                            <input type="hidden" name="filter" value="{{ $filter }}">
+                            <input type="hidden" name="account_type" value="{{ $accountType ?? 'all' }}">
+                            <input type="search" id="search-input" name="search" value="{{ $search ?? '' }}" placeholder="Search by name, email, phone..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent md:w-64" />
+                        </form>
+                        </div>
                     </div>
                 </div>
 
@@ -236,6 +249,7 @@
                                 <th class="px-6 py-3 text-left text-sm font-medium text-white">#</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium text-white">Name</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium text-white">Email</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-white">Account Type</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium text-white">Phone</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium text-white">Status</th>
                                 <th class="px-6 py-3 text-left text-sm font-medium text-white">Registered</th>
@@ -248,11 +262,13 @@
                                     data-name="{{ strtolower($consumer->name) }}"
                                     data-email="{{ strtolower($consumer->email) }}"
                                     data-status="{{ $consumer->status }}"
+                                    data-type="{{ $consumer->role === 'consumer' ? 'consumers' : ($consumer->role === 'farm_owner' ? 'farm_owners' : (($consumer->establishment?->type ?? '') === 'roaster' ? 'roasters' : 'coffee_shop_owners')) }}"
                                     style="background-color: {{ $index % 2 === 1 ? '#FAF7F2' : '#FFFFFF' }};">
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $consumers->firstItem() + $index }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $consumer->name }}</td>
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $consumer->email }}</td>
-                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $consumer->phone ?? 'N/A' }}</td>
+                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $consumer->role === 'consumer' ? 'Consumer' : ($consumer->role === 'farm_owner' ? 'Farm Owner' : (($consumer->establishment?->type ?? '') === 'roaster' ? 'Roaster' : 'Coffee Shop Owner')) }}</td>
+                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $consumer->contact_number ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 text-sm">
                                         @if($consumer->status === 'active')
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" style="background-color: rgba(212, 175, 55, 0.15); color: #D4AF37;">Active</span>
@@ -287,8 +303,8 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                     </svg>
-                    <h3 class="text-gray-400 font-medium mb-2">No consumers yet</h3>
-                    <p class="text-gray-400 text-sm text-center">Consumer registrations will appear here once users sign up through the mobile app.</p>
+                    <h3 class="text-gray-400 font-medium mb-2">No registrations yet</h3>
+                    <p class="text-gray-400 text-sm text-center">Consumer and establishment-owner registrations will appear here once users sign up.</p>
                 </div>
             @endif
         </div>
@@ -302,10 +318,10 @@
             <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full" @click.stop>
                 <div class="p-6">
                     <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-4">
-                        Deactivate Consumer?
+                        Deactivate Account?
                     </h2>
                     <p class="text-[#3A2E22] mb-6">
-                        Are you sure you want to deactivate <span class="font-semibold" x-text="deactivateModal.consumerName"></span>? They will lose access to the mobile app.
+                        Are you sure you want to deactivate <span class="font-semibold" x-text="deactivateModal.consumerName"></span>? They will lose access to BrewHub.
                     </p>
                     <div class="flex gap-3">
                         <button @click="deactivateModal.closeModal()" class="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
@@ -361,7 +377,16 @@
         const searchInput = document.getElementById('search-input');
         const consumerRows = document.querySelectorAll('.consumer-row');
         const tbody = document.getElementById('consumers-tbody');
-        let currentFilter = 'all';
+        const accountTypeFilter = document.getElementById('account-type-filter');
+        if (accountTypeFilter) {
+            accountTypeFilter.addEventListener('change', function () {
+                const url = new URL(window.location.href);
+                url.searchParams.set('account_type', this.value);
+                url.searchParams.delete('page');
+                window.location.href = url.toString();
+            });
+        }
+        let currentFilter = @json($filter);
         let currentSearch = '';
 
         // Handle filter tab clicks
@@ -424,7 +449,7 @@
                 if (!noResultsRow) {
                     noResultsRow = document.createElement('tr');
                     noResultsRow.id = 'no-results-row';
-                    noResultsRow.innerHTML = '<td colspan="7" class="px-6 py-8 text-center"><p class="text-gray-400">No consumers found matching your search.</p></td>';
+                    noResultsRow.innerHTML = '<td colspan="8" class="px-6 py-8 text-center"><p class="text-gray-400">No registrations found matching your filters.</p></td>';
                     tbody.appendChild(noResultsRow);
                 }
                 noResultsRow.style.display = '';
@@ -481,6 +506,20 @@
         .registrations-filter-tabs .filter-tab[style*='#3B2F2F'] {
             background: #3B2F2F;
             color: #FFFFFF !important;
+        }
+
+        .registrations-search-controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .account-type-filter {
+            width: 100%;
+            min-height: 2.7rem;
+            border-radius: 14px;
+            background: #FCFAF7;
         }
 
         .registrations-search {

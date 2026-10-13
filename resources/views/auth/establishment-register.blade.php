@@ -29,6 +29,9 @@
     @keyframes authPageLeave {
         to { opacity: 0; transform: translateY(5px); }
     }
+    #registrationTermsModalBody { scrollbar-width: thin; scrollbar-color: rgba(120, 120, 120, 0.55) transparent; }
+    #registrationTermsModalBody::-webkit-scrollbar { width: 6px; }
+    #registrationTermsModalBody::-webkit-scrollbar-thumb { background: rgba(120, 120, 120, 0.5); border-radius: 999px; }
     .auth-layout { animation: authPageEnter 180ms ease-out both; }
     .auth-layout.auth-page-leaving { animation: authPageLeave 140ms ease-in both; }
     @media (prefers-reduced-motion: reduce) {
@@ -499,7 +502,7 @@
 
                             <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
                                 <input id="registration_terms" type="checkbox" name="terms_agreed" value="1" @checked(old('terms_agreed')) class="mt-1 h-4 w-4 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
-                                <span>I confirm the information is accurate and agree to BrewHub's <a href="{{ url('/') }}#terms" class="font-semibold text-[#2E5A3D] underline underline-offset-2">Terms &amp; Conditions</a>.</span>
+                                <span>I confirm the information is accurate and agree to BrewHub's <button type="button" id="openRegistrationTermsModal" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Terms &amp; Conditions</button>.</span>
                             </label>
 
                             <div class="flex gap-3">
@@ -516,8 +519,88 @@
     </div>
 </div>
 
+<div id="registrationTermsModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-[#2E5A3D]/40 px-4 py-4" role="dialog" aria-modal="true" aria-labelledby="registrationTermsTitle">
+    <div class="flex max-h-[min(88svh,720px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#D9CDBA] bg-[#F3E9D7] shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#D9CDBA] px-5 py-4 sm:px-6">
+            <h3 id="registrationTermsTitle" class="font-display text-lg font-bold text-[#3A2E22]">Terms &amp; Conditions — BrewHub User Agreement</h3>
+            <button type="button" id="closeRegistrationTermsModal" class="text-2xl leading-none text-[#3A2E22] hover:text-[#1E3A2A]" aria-label="Close Terms and Conditions">&times;</button>
+        </div>
+        <div id="registrationTermsModalBody" class="overflow-y-auto px-5 py-5 text-sm leading-relaxed text-[#3A2E22] sm:px-6">
+            <p class="mb-4">Welcome to BrewHub. By creating an account or using BrewHub as a coffee farm, coffee shop, roaster, or reseller, you agree to these Terms &amp; Conditions.</p>
+            <p class="mb-2"><strong>1. Accurate Account Information</strong></p>
+            <p class="mb-4">You must provide accurate, complete, and current account and business information. Keep your login credentials confidential and notify BrewHub if you believe your account has been accessed without permission. You are responsible for activity performed through your account.</p>
+            <p class="mb-2"><strong>2. Establishment Profiles and Map Locations</strong></p>
+            <p class="mb-4">Farm, coffee shop, and roaster owners are responsible for the accuracy of their establishment details, contact information, and map location. Only submit a location you are authorized to represent. Update your details when they change, and do not deliberately misrepresent an establishment or its products.</p>
+            <p class="mb-2"><strong>3. Products, Listings, and Promotions</strong></p>
+            <p class="mb-4">Where available, resellers are responsible for accurate product listings, descriptions, prices, stock information, and promotional claims. Listings and promotions must be coffee-related where required by BrewHub and must not be misleading, fraudulent, unlawful, or infringe another person's rights.</p>
+            <p class="mb-2"><strong>4. Orders and Transactions</strong></p>
+            <p class="mb-4">If you use BrewHub features for orders, sales, or transactions, you must provide truthful information and handle your responsibilities promptly and professionally. Business owners and resellers are responsible for fulfilling commitments made to customers and communicating material changes or issues.</p>
+            <p class="mb-2"><strong>5. Respectful Use of the Platform</strong></p>
+            <p class="mb-4">Use BrewHub lawfully and respectfully. Do not harass other users, manipulate ratings or reviews, submit false information, interfere with platform operation, attempt unauthorized access, or misuse messaging, map, store, or promotional features.</p>
+            <p class="mb-2"><strong>6. Privacy and Information</strong></p>
+            <p class="mb-4">BrewHub uses account and establishment information to operate its features, support discovery, and facilitate interactions on the platform. Do not submit information you are not authorized to share. Information displayed in a public establishment profile may be visible to other users.</p>
+            <p class="mb-2"><strong>7. Content and Platform Availability</strong></p>
+            <p class="mb-4">You are responsible for the content you submit and must have the rights or permission needed to use it. BrewHub may modify, suspend, or discontinue features to maintain, improve, or protect the platform.</p>
+            <p class="mb-2"><strong>8. Suspension and Termination</strong></p>
+            <p class="mb-4">BrewHub may restrict, suspend, or terminate accounts or remove content when reasonably necessary to address violations of these terms, suspected fraud, security risks, unlawful activity, or harm to users or the platform.</p>
+            <p class="mb-2"><strong>9. Changes to These Terms</strong></p>
+            <p class="mb-4">BrewHub may update these Terms &amp; Conditions as its services or requirements change. The current version will be made available through the platform. Continued use after an update constitutes acceptance of the revised terms where permitted by applicable law.</p>
+            <p>By selecting “I Agree,” you confirm that you have read and understood these Terms &amp; Conditions and agree to follow them.</p>
+        </div>
+        <div class="flex justify-end gap-3 border-t border-[#D9CDBA] px-5 py-4 sm:px-6">
+            <button type="button" id="cancelRegistrationTermsModal" class="rounded-lg border border-[#CBBCA7] px-4 py-2 text-[#3A2E22] transition-colors hover:bg-[#ECE1CF]">Cancel</button>
+            <button type="button" id="agreeRegistrationTermsButton" disabled class="cursor-not-allowed rounded-lg bg-[#8C8C8C] px-4 py-2 text-white">I Agree</button>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    const registrationTermsModal = document.getElementById('registrationTermsModal');
+    const registrationTermsModalBody = document.getElementById('registrationTermsModalBody');
+    const registrationTermsAgreeButton = document.getElementById('agreeRegistrationTermsButton');
+    const registrationTermsCheckbox = document.getElementById('registration_terms');
+    const openRegistrationTermsButton = document.getElementById('openRegistrationTermsModal');
+    const closeRegistrationTermsButton = document.getElementById('closeRegistrationTermsModal');
+    const cancelRegistrationTermsButton = document.getElementById('cancelRegistrationTermsModal');
+
+    const setRegistrationTermsAgreeEnabled = (enabled) => {
+        if (!registrationTermsAgreeButton) return;
+        registrationTermsAgreeButton.disabled = !enabled;
+        registrationTermsAgreeButton.classList.toggle('bg-[#8C8C8C]', !enabled);
+        registrationTermsAgreeButton.classList.toggle('cursor-not-allowed', !enabled);
+        registrationTermsAgreeButton.classList.toggle('bg-[#2E5A3D]', enabled);
+        registrationTermsAgreeButton.classList.toggle('hover:bg-[#1E3A2A]', enabled);
+    };
+    const openRegistrationTerms = () => {
+        if (!registrationTermsModal || !registrationTermsModalBody) return;
+        registrationTermsModal.classList.remove('hidden');
+        registrationTermsModal.classList.add('flex');
+        registrationTermsModalBody.scrollTop = 0;
+        setRegistrationTermsAgreeEnabled(false);
+    };
+    const closeRegistrationTerms = () => {
+        registrationTermsModal?.classList.add('hidden');
+        registrationTermsModal?.classList.remove('flex');
+    };
+    openRegistrationTermsButton?.addEventListener('click', openRegistrationTerms);
+    closeRegistrationTermsButton?.addEventListener('click', closeRegistrationTerms);
+    cancelRegistrationTermsButton?.addEventListener('click', closeRegistrationTerms);
+    registrationTermsModal?.addEventListener('click', (event) => {
+        if (event.target === registrationTermsModal) closeRegistrationTerms();
+    });
+    registrationTermsModalBody?.addEventListener('scroll', () => {
+        if (registrationTermsModalBody.scrollTop + registrationTermsModalBody.clientHeight >= registrationTermsModalBody.scrollHeight - 5) {
+            setRegistrationTermsAgreeEnabled(true);
+        }
+    });
+    registrationTermsAgreeButton?.addEventListener('click', () => {
+        if (!registrationTermsCheckbox) return;
+        registrationTermsCheckbox.checked = true;
+        registrationTermsCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+        closeRegistrationTerms();
+    });
+
     let currentSlide = 0;
     const slides = document.querySelectorAll('.slide');
     const dots = document.querySelectorAll('.dot');
@@ -594,10 +677,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const sideTitle = document.getElementById('registration-side-title');
     const sideDescription = document.getElementById('registration-side-description');
     const typeDetails = {
-        farm: { label: 'Coffee Farm', icon: '🌱', sideTitle: 'Grow your coffee story.', sideDescription: 'Register your farm, share its location, and help coffee lovers discover what you grow.', endpoint: '{{ route('establishment.register') }}' },
-        cafe: { label: 'Coffee Shop', icon: '☕', sideTitle: 'Bring coffee lovers to your café.', sideDescription: 'Create your owner account and put your coffee shop on the BrewHub map.', endpoint: '{{ route('establishment.register') }}' },
-        roaster: { label: 'Roaster', icon: '🫘', sideTitle: 'Showcase your roast.', sideDescription: 'Make your roasting business easier for coffee lovers to find.', endpoint: '{{ route('establishment.register') }}' },
-        reseller: { label: 'Reseller', icon: '🛍️', sideTitle: 'Grow your coffee business.', sideDescription: 'Create a BrewHub reseller account and get started with the marketplace.', endpoint: '{{ route('reseller.register') }}' }
+        farm: { label: 'Coffee Farm', icon: '🌱', establishmentPlaceholder: 'e.g. Lipa Coffee Farm', sideTitle: 'Grow your coffee story.', sideDescription: 'Register your farm, share its location, and help coffee lovers discover what you grow.', endpoint: '{{ route('establishment.register') }}' },
+        cafe: { label: 'Coffee Shop', icon: '☕', establishmentPlaceholder: 'e.g. Lipa Cafe', sideTitle: 'Bring coffee lovers to your café.', sideDescription: 'Create your owner account and put your coffee shop on the BrewHub map.', endpoint: '{{ route('establishment.register') }}' },
+        roaster: { label: 'Roaster', icon: '🫘', establishmentPlaceholder: 'e.g. Lipa Roaster', sideTitle: 'Showcase your roast.', sideDescription: 'Make your roasting business easier for coffee lovers to find.', endpoint: '{{ route('establishment.register') }}' },
+        reseller: { label: 'Reseller', icon: '🛍️', establishmentPlaceholder: 'e.g. Lipa Reseller', sideTitle: 'Grow your coffee business.', sideDescription: 'Create a BrewHub reseller account and get started with the marketplace.', endpoint: '{{ route('reseller.register') }}' }
     };
     let currentStep = 1;
 
@@ -735,6 +818,8 @@ document.addEventListener('DOMContentLoaded', () => {
         form.action = details.endpoint;
         showScreen(picker, formPanel);
         badge.textContent = details.label;
+        const establishmentNameInput = form.querySelector('#establishment_name');
+        if (establishmentNameInput) establishmentNameInput.placeholder = details.establishmentPlaceholder;
         heading.textContent = type === 'reseller' ? 'Create a Reseller Account' : 'Create an Owner Account';
         subheading.textContent = 'Start with your owner account details.';
         sideIcon.textContent = details.icon;

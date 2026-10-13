@@ -23,13 +23,15 @@ class EstablishmentRegistrationController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:16', 'regex:/[@$!%*#?&]/', 'confirmed'],
             'password_confirmation' => ['required', 'string'],
-            'contact_number' => ['required', 'string', 'max:30'],
+            'contact_number' => ['required', 'string', 'max:30', 'regex:/^[0-9+() -]{7,30}$/', 'regex:/^(?=(?:.*\\d){7,15}$)[0-9+() -]+$/'],
             'address' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
-            'website' => ['nullable', 'url', 'max:255'],
+            'website' => ['required', 'url', 'max:255'],
             'terms_agreed' => ['accepted'],
         ], [
             'password.regex' => 'Password must contain at least one special character.',
+            'contact_number.regex' => 'Enter a valid contact number containing 7 to 15 digits, with optional spaces, +, hyphens, or parentheses.',
+            'website.required' => 'Website is required.',
             'terms_agreed.accepted' => 'You must agree to the Terms & Conditions to continue.',
         ]);
 

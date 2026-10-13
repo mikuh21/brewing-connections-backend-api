@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ResellerRegistrationController;
+use App\Http\Controllers\Auth\EstablishmentRegistrationController;
+use App\Http\Controllers\Owner\EstablishmentLocationController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\DashboardController;

@@ -209,7 +209,7 @@
         </div>
 
         <!-- Tabs -->
-        <div x-data="{ 
+        <div x-cloak x-data="{ 
           tab: '{{ request()->query('tab', 'products') }}', 
           statusFilter: '{{ request()->query('status', 'all') }}', 
           orderSearch: '', 
@@ -1224,8 +1224,6 @@ function marketplaceState() {
     const bulkOrders = Array.from(document.querySelectorAll('.bulk-order-row'));
     const ordersPagination = document.querySelector('[data-store-pagination="orders"]');
     const bulkPagination = document.querySelector('[data-store-pagination="bulk-orders"]');
-    const stateRoot = document.querySelector('[x-data*="bulkOrderSearch"]');
-
     let statusFilter = '{{ request()->query('status', 'all') }}';
     let orderSearch = '';
     let bulkOrderSearch = '';

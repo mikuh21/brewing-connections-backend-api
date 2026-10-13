@@ -327,7 +327,7 @@
                                 <div>
                                     <label for="registration_password_confirmation" class="mb-1 block text-sm font-medium text-[#3A2E22]">Confirm password *</label>
                                     <div class="relative">
-                                        <input id="registration_password_confirmation" name="password_confirmation" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field pr-12" placeholder="Re-enter password" required>
+                                        <input id="registration_password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" class="registration-field pr-12" placeholder="Re-enter password" required>
                                         <button type="button" data-toggle-password="registration_password_confirmation" aria-label="Show confirm password" aria-pressed="false" class="absolute inset-y-0 right-0 inline-flex w-11 items-center justify-center rounded-r-lg text-[#8C7A68] transition hover:text-[#2E5A3D] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#2E5A3D]">
                                             <svg data-eye-icon viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>
                                         </button>

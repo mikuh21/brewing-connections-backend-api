@@ -70,7 +70,8 @@ class CafeOwnerDashboardController extends Controller
             'recentActivity',
             'trailTrend',
             'clickTrend',
-            'popularityTrend'
+            'popularityTrend',
+            'establishment'
         ));
     }
 

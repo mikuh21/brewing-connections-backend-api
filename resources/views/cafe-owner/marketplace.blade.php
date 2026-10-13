@@ -424,7 +424,7 @@
     <div class="marketplace-header mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
             <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
-                My <span class="italic text-[#4A6741]">Menu</span>
+                My <span class="italic text-[#4A6741]">Products</span>
             </h1>
             <p class="text-[#9E8C78] text-sm font-medium">
                 {{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }} in your catalog
@@ -445,7 +445,7 @@
                 @click="showCreateModal = true; createImagePreview = ''; isCreatingProduct = false"
                 class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
             >
-                <span class="mr-1.5">+</span>Add Menu Item
+                <span class="mr-1.5">+</span>Add Product
             </button>
         </div>
 </div>
@@ -594,7 +594,7 @@
                             type="button"
                             @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'price_per_unit' => $product->price_per_unit, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'moq' => $product->moq, 'image_url' => $product->image_url]) }})"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
-                            title="Edit menu item"
+                            title="Edit product"
                             aria-label="Edit product"
                         >
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -889,7 +889,7 @@
 >
     <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-display font-bold text-[#3A2E22]">Edit Menu Item</h2>
+            <h2 class="text-base font-display font-bold text-[#3A2E22]">Edit Product</h2>
             <button type="button" @click="showEditModal = false" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
         </div>
 
@@ -936,15 +936,9 @@
                 </div>
             </template>
 
-            <template x-if="!isMenuCategory(form.category)">
-                <div>
-                    <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
-                    <input x-model="form.moq" type="number" min="1" step="1" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                </div>
-            </template>
 
             <div class="md:col-span-3">
-                <label class="block text-[11px] font-semibold">Menu Item Image</label>
+                <label class="block text-[11px] font-semibold">Product Image</label>
                 <input x-ref="editImageInput" type="file" name="image" accept="image/*" @change="handleEditImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 <div x-show="editImagePreview" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
                     <button type="button" @click="clearEditImage()" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/95 border border-gray-300 text-gray-600 text-xs leading-none hover:bg-red-50 hover:text-red-600" aria-label="Remove selected image">&times;</button>
@@ -979,7 +973,7 @@
 >
     <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Menu Item</h2>
+            <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
             <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
         </div>
 
@@ -1022,10 +1016,6 @@
                 <input x-model="createForm.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
-            <div>
-                <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
-                <input x-model="createForm.moq" type="number" min="1" step="1" inputmode="numeric" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-            </div>
 
             <div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Product Image</label>
@@ -1049,7 +1039,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
                     </svg>
-                    <span x-text="isCreatingProduct ? 'Creating product...' : 'Create Menu Item'"></span>
+                    <span x-text="isCreatingProduct ? 'Creating product...' : 'Create Product'"></span>
                 </button>
             </div>
         </form>

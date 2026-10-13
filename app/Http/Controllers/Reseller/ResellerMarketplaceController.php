@@ -95,6 +95,20 @@ class ResellerMarketplaceController extends Controller
 
         $marketplaceQuery = Product::query();
 
+        // Coffee shop menus are published as menu files, not priced marketplace products.
+        if (Schema::hasColumn('products', 'seller_type')) {
+            $marketplaceQuery->where(function ($builder) {
+                $builder->whereNull('products.seller_type')
+                    ->orWhere('products.seller_type', '!=', 'cafe_owner');
+            });
+        }
+
+        if (Schema::hasColumn('products', 'establishment_id') && Schema::hasColumn('establishments', 'type')) {
+            $marketplaceQuery->whereDoesntHave('establishment', function ($establishmentQuery) {
+                $establishmentQuery->where('type', 'cafe');
+            });
+        }
+
         if (Schema::hasTable('users') && Schema::hasColumn('products', 'seller_id')) {
             $marketplaceQuery->leftJoin('users as sellers', 'sellers.id', '=', 'products.seller_id');
         }
@@ -147,7 +161,7 @@ class ResellerMarketplaceController extends Controller
         }
 
         $sellerTypeFilter = request('seller_type_filter');
-        if (Schema::hasColumn('products', 'seller_type') && in_array($sellerTypeFilter, ['farm_owner', 'cafe_owner', 'reseller'], true)) {
+        if (Schema::hasColumn('products', 'seller_type') && in_array($sellerTypeFilter, ['farm_owner', 'reseller'], true)) {
             $marketplaceQuery->where('products.seller_type', $sellerTypeFilter);
         }
 

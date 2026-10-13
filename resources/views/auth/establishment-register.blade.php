@@ -493,8 +493,8 @@
                                 <input id="registration_address" name="address" value="{{ old('address') }}" maxlength="255" autocomplete="street-address" class="registration-field" placeholder="Street and area">
                             </div>
                             <div class="registration-establishment-only">
-                                <label for="registration_website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website *</label>
-                                <input id="registration_website" name="website" type="url" value="{{ old('website') }}" maxlength="255" autocomplete="url" class="registration-field" placeholder="https://">
+                                <label for="registration_website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website <span class="text-xs font-normal text-[#8C7A68]">(Optional)</span></label>
+                                <input id="registration_website" name="website" type="url" data-optional="true" value="{{ old('website') }}" maxlength="255" autocomplete="url" class="registration-field" placeholder="https://">
                             </div>
 
                             <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
@@ -708,7 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
         stepLine.classList.toggle('is-complete', step === 2);
 
         setRequired('#owner_name, #reseller_name, #registration_email, #registration_password, #registration_password_confirmation', step === 1);
-        setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address, #registration_website', step === 2);
+        setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address', step === 2);
+        setRequired('#registration_website', false);
         setRequired('#registration_terms', step === 2);
 
         if (typeInput.value === 'reseller') {

@@ -24,7 +24,7 @@ class EstablishmentLocationController extends Controller
 
         $establishment = Establishment::query()
             ->whereNull('deleted_at')
-            ->whereIn('type', ['farm', 'cafe'])
+            ->whereIn('type', ['farm', 'cafe', 'roaster'])
             ->where(function ($ownedByUser) use ($user) {
                 $ownedByUser->where('owner_id', $user->id);
 

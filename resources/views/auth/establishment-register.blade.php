@@ -110,24 +110,69 @@
     </a>
 
     <div class="registration-layout auth-layout flex w-full max-w-5xl overflow-hidden rounded-3xl bg-[#F3E9D7] shadow-2xl">
-        <!-- Registration-specific left panel; the overall two-column auth layout follows Log In. -->
-        <aside class="relative hidden w-2/5 flex-col overflow-hidden rounded-l-3xl bg-gradient-to-b from-[#3A2E22] to-[#2E5A3D] p-7 text-white md:flex lg:p-8">
-            <a href="{{ url('/') }}" class="relative z-10 inline-flex items-center gap-2 text-white transition-colors hover:text-[#F3E9D7]" aria-label="Go to BrewHub home">
-                <img src="{{ asset('images/brewhublogo2.png') }}" alt="BrewHub logo" class="h-7 w-7 shrink-0 object-contain">
-                <span class="text-xl font-bold italic">BrewHub</span>
-            </a>
-            <div class="my-auto pb-4">
-                <div id="registration-side-icon" class="mb-5 text-5xl" aria-hidden="true">📍</div>
-                <h1 id="registration-side-title" class="font-display text-3xl font-bold leading-tight">Put your establishment on the map.</h1>
-                <p id="registration-side-description" class="mt-4 max-w-sm text-sm leading-6 text-[#F3E9D7]">Create your owner account, pin your location in Lipa, and help coffee lovers discover your establishment.</p>
-                <div class="mt-6 space-y-3 text-sm text-white/90">
-                    <p class="flex items-start gap-2"><span aria-hidden="true">✓</span><span>Quick, guided registration</span></p>
-                    <p class="flex items-start gap-2"><span aria-hidden="true">✓</span><span>Your account is linked to your own business</span></p>
-                    <p class="flex items-start gap-2"><span aria-hidden="true">✓</span><span>Pin or update your map location after registration</span></p>
+        <!-- Left Panel: Onboarding Slider -->
+        <div class="w-full md:w-2/5 bg-gradient-to-b from-[#3A2E22] to-[#2E5A3D] hidden md:flex flex-col relative overflow-hidden rounded-l-3xl">
+            <!-- Logo -->
+            <div class="absolute top-6 left-6 z-20">
+                <a href="{{ url('/') }}" class="inline-flex items-center text-white hover:text-[#F3E9D7] transition-colors" aria-label="Go to landing page">
+                    <span class="inline-flex items-center gap-2">
+                        <img src="{{ asset('images/brewhublogo2.png') }}" alt="BrewHub logo" class="w-7 h-7 object-contain shrink-0">
+                        <span class="brand-wordmark text-xl"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Carousel -->
+            <div class="flex-1 relative overflow-hidden">
+                <!-- Slides -->
+                <div class="slide active">
+                    <div class="text-6xl mb-4">🗺️</div>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">GIS Mapping</h3>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Interactive maps to view, register and manage coffee establishments with precise location data</p>
+                </div>
+                <div class="slide">
+                    <div class="text-6xl mb-4">☕</div>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">Coffee Trail</h3>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Generate personalized coffee routes based on your location and taste preferences</p>
+                </div>
+                <div class="slide">
+                    <div class="text-6xl mb-4">🎟️</div>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">Smart Coupon Promo Generator</h3>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Create and distribute smart promotional coupons to attract more customers to your establishment</p>
+                </div>
+                <div class="slide">
+                    <div class="text-6xl mb-4">📊</div>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">Recommendation Insights</h3>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Prescriptive insights for cafe owners</p>
+                </div>
+                <div class="slide">
+                    <div class="text-6xl mb-4">🛒</div>
+                    <h3 class="text-2xl font-bold text-white font-display mb-2">Store</h3>
+                    <p class="text-sm text-[#F3E9D7] max-w-xs mx-auto">Order premium coffee directly from local farms to your doorstep</p>
+                </div>
+
+                <!-- Navigation Arrows -->
+                <button id="prevBtn" class="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-200 border border-white/30">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                <button id="nextBtn" class="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all duration-200 border border-white/30">
+                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+
+                <!-- Dot Indicators -->
+                <div class="flex gap-2 justify-center mt-6 absolute bottom-12 left-0 right-0">
+                    <button class="dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" data-index="0"></button>
+                    <button class="dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" data-index="1"></button>
+                    <button class="dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" data-index="2"></button>
+                    <button class="dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" data-index="3"></button>
+                    <button class="dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all duration-300" data-index="4"></button>
                 </div>
             </div>
-            <p class="text-xs text-white/60">BrewHub · Coffee connections in Lipa</p>
-        </aside>
+        </div>
 
         <main class="flex w-full min-w-0 flex-col bg-[#F3E9D7] md:w-3/5">
             <div class="registration-form-scroll min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-7 lg:px-10">

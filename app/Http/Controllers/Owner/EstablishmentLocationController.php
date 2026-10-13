@@ -22,18 +22,17 @@ class EstablishmentLocationController extends Controller
 
         $user = $request->user();
 
-        $query = Establishment::query()
-            ->where('owner_id', $user->id)
-            ->whereIn('type', ['farm', 'cafe']);
+        $establishment = Establishment::query()
+            ->whereNull('deleted_at')
+            ->whereIn('type', ['farm', 'cafe'])
+            ->where(function ($ownedByUser) use ($user) {
+                $ownedByUser->where('owner_id', $user->id);
 
-        if (Schema::hasColumn('establishments', 'user_id')) {
-            $query->orWhere(function ($ownedByUser) use ($user) {
-                $ownedByUser->where('user_id', $user->id)
-                    ->whereIn('type', ['farm', 'cafe']);
-            });
-        }
-
-        $establishment = $query->whereNull('deleted_at')->first();
+                if (Schema::hasColumn('establishments', 'user_id')) {
+                    $ownedByUser->orWhere('user_id', $user->id);
+                }
+            })
+            ->first();
 
         if (!$establishment) {
             return response()->json([

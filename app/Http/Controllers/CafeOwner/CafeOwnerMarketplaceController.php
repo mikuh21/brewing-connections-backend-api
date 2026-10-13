@@ -44,6 +44,9 @@ class CafeOwnerMarketplaceController extends Controller
 
         $path = $validated['menu_file']->store('establishment-menus', 'supabase');
         $establishment->menu_image = $path;
+        if (Schema::hasColumn('establishments', 'menu_uploaded_at')) {
+            $establishment->menu_uploaded_at = now();
+        }
         $establishment->save();
 
         return redirect()
@@ -70,6 +73,9 @@ class CafeOwnerMarketplaceController extends Controller
         }
 
         $establishment->menu_image = null;
+        if (Schema::hasColumn('establishments', 'menu_uploaded_at')) {
+            $establishment->menu_uploaded_at = null;
+        }
         $establishment->save();
 
         return redirect()

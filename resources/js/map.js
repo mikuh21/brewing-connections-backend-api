@@ -173,6 +173,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     buildFilterPanel();
     filterMarkers([], ['farm', 'cafe', 'roaster', 'reseller']);
 
+    // Keep Leaflet synchronized with the final, dynamically populated admin layout.
+    const mapElement = document.getElementById('map');
+    const refreshMapSize = () => {
+        if (map && mapElement && mapElement.clientWidth > 0 && mapElement.clientHeight > 0) {
+            map.invalidateSize({ pan: false, animate: false });
+        }
+    };
+    requestAnimationFrame(refreshMapSize);
+    window.addEventListener('resize', refreshMapSize, { passive: true });
+
+    if (mapElement && 'ResizeObserver' in window) {
+        let resizeFrame = null;
+        const mapResizeObserver = new ResizeObserver(() => {
+            if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(() => {
+                resizeFrame = null;
+                refreshMapSize();
+            });
+        });
+        mapResizeObserver.observe(mapElement);
+    }
+
     setupStaticEventListeners();
 });
 

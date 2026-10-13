@@ -388,6 +388,7 @@
                 <div class="rating-filter-empty text-center py-8" hidden>
                     <p class="text-gray-400 text-lg">No cafe ratings found for the selected period.</p>
                 </div>
+                <div class="rating-pagination mt-6" data-rating-pagination></div>
             </div>
 
             <div x-show="activeTab === 'farm-products'" x-cloak class="filter-content bg-white rounded-xl shadow-sm p-4">
@@ -509,6 +510,7 @@
                 <div class="rating-filter-empty text-center py-8" hidden>
                     <p class="text-gray-400 text-lg">No farm product ratings found for the selected period.</p>
                 </div>
+                <div class="rating-pagination mt-6" data-rating-pagination></div>
             </div>
         </div>
     </main>
@@ -691,40 +693,95 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const periodTabs = Array.from(document.querySelectorAll('.rating-period-tab'));
-    const ratingCards = Array.from(document.querySelectorAll('.rating-card[data-created-at]'));
+    const panels = Array.from(document.querySelectorAll('.filter-content'));
+    const pageSize = 3;
+    const panelState = new Map();
 
-    function applyRatingPeriod(period) {
+    function getPeriodBounds(period) {
         const now = new Date();
-        let start = null;
-        let end = null;
-
         if (period === 'this_week') {
-            start = new Date(now);
-            const day = (now.getDay() + 6) % 7;
-            start.setDate(now.getDate() - day);
+            const start = new Date(now);
+            const day = (start.getDay() + 6) % 7;
+            start.setDate(start.getDate() - day);
             start.setHours(0, 0, 0, 0);
-            end = new Date(start);
-            end.setDate(start.getDate() + 7);
-        } else if (period === 'this_month') {
-            start = new Date(now.getFullYear(), now.getMonth(), 1);
-            end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 7);
+            return { start, end };
         }
+        if (period === 'this_month') {
+            return {
+                start: new Date(now.getFullYear(), now.getMonth(), 1),
+                end: new Date(now.getFullYear(), now.getMonth() + 1, 1)
+            };
+        }
+        return null;
+    }
 
-        ratingCards.forEach(card => {
-            const timestamp = Number(card.dataset.createdAt || 0) * 1000;
-            const date = new Date(timestamp);
-            card.style.display = (!start || (date >= start && date < end)) ? '' : 'none';
+    function renderPanel(panel, period) {
+        const cards = Array.from(panel.querySelectorAll('.rating-card[data-created-at]'));
+        const emptyState = panel.querySelector('.rating-filter-empty');
+        const serverEmptyState = panel.querySelector('.rating-server-empty');
+        const pagination = panel.querySelector('[data-rating-pagination]');
+        const bounds = getPeriodBounds(period);
+        const matching = cards.filter(card => {
+            if (!bounds) return true;
+            const date = new Date(Number(card.dataset.createdAt || 0) * 1000);
+            return date >= bounds.start && date < bounds.end;
         });
 
-        document.querySelectorAll('.filter-content').forEach(panel => {
-            const cards = Array.from(panel.querySelectorAll('.rating-card[data-created-at]'));
-            const emptyState = panel.querySelector('.rating-filter-empty');
-            const serverEmptyState = panel.querySelector('.rating-server-empty');
-            const hasAnyCards = cards.length > 0;
-            const hasVisibleCards = cards.some(card => card.style.display !== 'none');
+        const state = panelState.get(panel) || { page: 1 };
+        const totalPages = Math.max(1, Math.ceil(matching.length / pageSize));
+        state.page = Math.min(Math.max(1, state.page), totalPages);
+        panelState.set(panel, state);
 
-            if (serverEmptyState) serverEmptyState.hidden = hasAnyCards;
-            if (emptyState) emptyState.hidden = !hasAnyCards || hasVisibleCards;
+        const visibleSet = new Set(matching.slice((state.page - 1) * pageSize, state.page * pageSize));
+        cards.forEach(card => {
+            card.style.display = visibleSet.has(card) ? '' : 'none';
+        });
+
+        if (serverEmptyState) serverEmptyState.hidden = cards.length > 0;
+        if (emptyState) emptyState.hidden = matching.length > 0;
+        if (pagination) {
+            pagination.innerHTML = '';
+            pagination.style.display = matching.length > pageSize ? 'flex' : 'none';
+            pagination.style.alignItems = 'center';
+            pagination.style.justifyContent = 'space-between';
+            pagination.style.gap = '12px';
+
+            if (matching.length > pageSize) {
+                const previous = document.createElement('button');
+                previous.type = 'button';
+                previous.textContent = 'Previous';
+                previous.disabled = state.page === 1;
+                previous.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+                previous.addEventListener('click', () => {
+                    state.page--;
+                    renderPanel(panel, period);
+                });
+
+                const status = document.createElement('span');
+                status.className = 'text-sm text-[#9E8C78]';
+                status.textContent = 'Page ' + state.page + ' of ' + totalPages;
+
+                const next = document.createElement('button');
+                next.type = 'button';
+                next.textContent = 'Next';
+                next.disabled = state.page === totalPages;
+                next.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+                next.addEventListener('click', () => {
+                    state.page++;
+                    renderPanel(panel, period);
+                });
+
+                pagination.append(previous, status, next);
+            }
+        }
+    }
+
+    function applyRatingPeriod(period) {
+        panels.forEach(panel => {
+            panelState.set(panel, { page: 1 });
+            renderPanel(panel, period);
         });
 
         periodTabs.forEach(tab => {
@@ -736,16 +793,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    periodTabs.forEach(tab => tab.addEventListener('click', () => applyRatingPeriod(tab.dataset.filter || 'all')));
+    periodTabs.forEach(tab => {
+        tab.addEventListener('click', () => applyRatingPeriod(tab.dataset.filter || 'all'));
+    });
+
     applyRatingPeriod(@json($filter));
 });
-</script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const content = document.querySelector('.filter-content');
-        if (content) {
-            content.classList.add('tab-panel');
-        }
-    });
 </script>
 @endpush
 

@@ -15,7 +15,7 @@ class CafeOwnerMarketplaceController extends Controller
     {
         $establishment = $this->resolveOwnedEstablishment((int) Auth::id());
 
-        return view('cafe-owner.menu', compact('establishment'));
+        return view('cafe-owner.marketplace', compact('establishment'));
     }
 
     public function uploadMenu(Request $request)

@@ -17,7 +17,11 @@ class MarketplaceController extends Controller
         $productsQuery = Product::with(['seller', 'establishment']);
         $this->excludeCafeMenuProducts($productsQuery);
         $products = $productsQuery->paginate(12);
-        $resellerProducts = ResellerProduct::with(['product', 'reseller'])->paginate(12);
+        $resellerProductsQuery = ResellerProduct::with(['product', 'reseller']);
+        $resellerProductsQuery->whereHas('product', function ($productQuery) {
+            $this->excludeCafeMenuProducts($productQuery);
+        });
+        $resellerProducts = $resellerProductsQuery->paginate(12);
 
         $ordersQuery = Order::with(['user', 'product'])->orderBy('created_at', 'desc');
         $this->excludeCafeMenuOrders($ordersQuery);
@@ -29,6 +33,9 @@ class MarketplaceController extends Controller
 
         $productCountQuery = Product::query();
         $this->excludeCafeMenuProducts($productCountQuery);
+        $resellerProductCountQuery = ResellerProduct::query()->whereHas('product', function ($productQuery) {
+            $this->excludeCafeMenuProducts($productQuery);
+        });
         $orderCountQuery = Order::query();
         $this->excludeCafeMenuOrders($orderCountQuery);
         $bulkOrderCountQuery = BulkOrder::query();
@@ -36,7 +43,7 @@ class MarketplaceController extends Controller
 
         $stats = [
             'total_products' => $productCountQuery->count(),
-            'total_reseller_products' => ResellerProduct::count(),
+            'total_reseller_products' => $resellerProductCountQuery->count(),
             'total_orders' => $orderCountQuery->count(),
             'total_bulk_orders' => $bulkOrderCountQuery->count(),
         ];

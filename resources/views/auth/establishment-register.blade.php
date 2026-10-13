@@ -343,6 +343,7 @@
                             </div>
                         </section>
                     </form>
+                    <p class="mt-4 text-center text-sm text-[#3A2E22]"><a href="{{ route('login') }}" data-auth-transition class="font-medium text-[#2E5A3D] underline underline-offset-2 transition-colors hover:text-[#1E3A2A]">← Back to Log In</a></p>
                 </section>
 
             </div>

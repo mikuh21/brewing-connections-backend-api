@@ -459,46 +459,46 @@
 
 @push('styles')
 <style>
-    /* Keep account-type filter and search aligned and equal-sized on desktop. */
+    /* Match the original compact search input dimensions for both controls. */
     .registrations-search-controls {
         display: flex;
-        align-items: stretch;
+        align-items: center;
         gap: 0.75rem;
-        width: 436px;
+        width: auto;
         max-width: 100%;
     }
 
     .account-type-filter,
     .registrations-search {
         box-sizing: border-box;
-        flex: 1 1 0;
-        width: 0;
+        flex: 0 0 16rem;
+        width: 16rem;
         min-width: 0;
-        height: 2.7rem;
+        height: 30px;
     }
 
     .account-type-filter {
         padding: 0 0.75rem;
-        border-radius: 14px;
-        background: #FCFAF7;
-        font-size: 0.85rem;
+        border-radius: 8px;
+        background: #FFFFFF;
+        font-size: 12px;
     }
 
     .registrations-search-form {
         position: relative;
         width: 100%;
-        height: 100%;
+        height: 30px;
     }
 
     .registrations-search input {
         box-sizing: border-box;
         width: 100% !important;
         min-width: 0;
-        height: 2.7rem;
-        padding-left: 2.25rem;
-        font-size: 0.85rem;
-        border-radius: 14px;
-        background: #FCFAF7;
+        height: 30px;
+        padding: 0.375rem 0.75rem 0.375rem 2.25rem;
+        font-size: 12px;
+        border-radius: 8px;
+        background: #FFFFFF;
     }
 
     .registrations-search-icon {
@@ -522,6 +522,14 @@
 
         .registrations-search-controls {
             width: 100%;
+            gap: 0.5rem;
+        }
+
+        .account-type-filter,
+        .registrations-search {
+            flex: 1 1 0;
+            width: 0;
+            min-width: 0;
         }
 
         .registrations-filter-tabs {

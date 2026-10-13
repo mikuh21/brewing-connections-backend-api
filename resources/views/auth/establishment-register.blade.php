@@ -9,6 +9,10 @@
     $hasRegistrationErrors = $errors->any();
     $resellerErrors = $errors->resellerRegistration ?? collect();
     $hasResellerErrors = method_exists($resellerErrors, 'any') && $resellerErrors->any();
+    $stepTwoErrorKeys = ['establishment_name', 'contact_number', 'address', 'barangay', 'website', 'terms_agreed'];
+    $registrationStep = $errors->hasAny($stepTwoErrorKeys)
+        || ($hasResellerErrors && $resellerErrors->hasAny(['contact_number', 'barangay', 'terms_agreed']))
+        ? 2 : 1;
 @endphp
 
 @push('styles')
@@ -317,7 +321,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (typeInput.value === 'reseller') {
             setRequired('#owner_name, #establishment_name, #registration_address', false);
-            setRequired('#reseller_name, #registration_contact_number, #registration_barangay', step === 1 || step === 2);
+            setRequired('#reseller_name', step === 1);
+            setRequired('#registration_contact_number, #registration_barangay', step === 2);
         } else {
             setRequired('#reseller_name', false);
         }
@@ -402,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeDetails[initialType]) {
         chooseType(initialType);
         @if($hasRegistrationErrors || $hasResellerErrors)
-            setStep(2);
+            setStep({{ $registrationStep }});
         @endif
     }
 });

@@ -3306,6 +3306,7 @@ function resetOwnerPinPlacement({ restoreEditedMarker = false } = {}) {
     confirmPanel?.classList.add('hidden');
     if (pinButton) {
         pinButton.disabled = false;
+        pinButton.classList.remove('hidden');
         pinButton.innerHTML = '<svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg><span id="pin-my-establishment-label">' + (window.OWNER_ESTABLISHMENT_PINNED ? 'Edit Pinned Location' : 'Pin My Establishment') + '</span>';
     }
     if (saveButton) {
@@ -3388,6 +3389,8 @@ function startOwnerExistingMarkerEdit(establishmentId) {
     }
     if (saveButton) saveButton.disabled = true;
     confirmPanel?.classList.remove('hidden');
+    const pinButton = document.getElementById('pin-my-establishment-btn');
+    if (pinButton) pinButton.classList.add('hidden');
     showToast('Drag your establishment marker to reposition it, then save.');
 }
 
@@ -3428,6 +3431,7 @@ function startOwnerPinPlacement() {
     ownerPinPlacementMode = true;
     if (pinButton) {
         pinButton.disabled = true;
+        pinButton.classList.add('hidden');
         const label = pinButton.querySelector('#pin-my-establishment-label');
         if (label) label.textContent = 'Click the map to place your pin';
     }

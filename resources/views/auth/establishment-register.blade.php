@@ -180,7 +180,7 @@
             padding: 0 1.05rem 1rem !important;
         }
 
-        .registration-form-scroll > .mb-5.md\\:hidden {
+        .registration-form-scroll > div.mb-5 {
             display: none !important;
         }
 

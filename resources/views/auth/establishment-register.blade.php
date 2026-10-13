@@ -603,7 +603,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const shouldShow = input.type === 'password';
             input.type = shouldShow ? 'text' : 'password';
             button.setAttribute('aria-pressed', shouldShow ? 'true' : 'false');
-            button.setAttribute('aria-label', shouldShow ? 'Hide password' : 'Show password');
+            const isConfirmation = input.id === 'registration_password_confirmation';
+            button.setAttribute('aria-label', shouldShow
+                ? (isConfirmation ? 'Hide confirm password' : 'Hide password')
+                : (isConfirmation ? 'Show confirm password' : 'Show password'));
             button.innerHTML = shouldShow
                 ? '<svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.6 10.7a2 2 0 002.7 2.7M9.9 5.6A10.8 10.8 0 0112 5.5c6.1 0 9.5 6.5 9.5 6.5a16 16 0 01-3.2 4.1M6.2 6.3C3.8 8 2.5 12 2.5 12s3.4 6.5 9.5 6.5a10 10 0 003.2-.5"/></svg>'
                 : '<svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12s3.4-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.4 6.5-9.5 6.5S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>';

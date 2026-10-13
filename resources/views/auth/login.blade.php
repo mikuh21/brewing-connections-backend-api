@@ -349,10 +349,17 @@
     transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
                 transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
-.auth-navigation-panel.registration-leaving {
+.auth-navigation-panel.registration-leaving,
+#loginFormPanel.registration-leaving,
+#registerFormPanel.registration-leaving {
     opacity: 0;
     transform: translateY(10px) scale(0.985);
     pointer-events: none;
+}
+#loginFormPanel,
+#registerFormPanel {
+    transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
     .auth-navigation-panel { transition: none !important; }

@@ -111,6 +111,7 @@
             </form>
 
             <p class="mt-5 text-center text-sm text-[#3A2E22]">Already have an account? <a href="{{ route('login') }}" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Log in here</a></p>
+            <p class="mt-3 text-center text-xs text-[#7B6A59]">Registering as a reseller instead? <a href="{{ route('login', ['register' => 'reseller']) }}" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Use reseller registration</a></p>
         </main>
     </div>
 </div>

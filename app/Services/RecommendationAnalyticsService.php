@@ -470,4 +470,5 @@ class RecommendationAnalyticsService
             ->unique('rating_id')
             ->sortByDesc('created_at')
             ->values();
-    }}
+    }
+}

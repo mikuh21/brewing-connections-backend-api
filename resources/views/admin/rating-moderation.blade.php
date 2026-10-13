@@ -380,7 +380,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="text-center py-8">
+                    <div class="rating-server-empty text-center py-8">
                         <p class="text-gray-400 text-lg">No cafe ratings found for the selected period.</p>
                     </div>
                 @endforelse
@@ -501,7 +501,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="text-center py-8">
+                    <div class="rating-server-empty text-center py-8">
                         <p class="text-gray-400 text-lg">No farm product ratings found for the selected period.</p>
                     </div>
                 @endforelse
@@ -719,9 +719,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.filter-content').forEach(panel => {
             const cards = Array.from(panel.querySelectorAll('.rating-card[data-created-at]'));
             const emptyState = panel.querySelector('.rating-filter-empty');
-            if (emptyState) {
-                emptyState.hidden = cards.filter(card => card.style.display !== 'none').length > 0;
-            }
+            const serverEmptyState = panel.querySelector('.rating-server-empty');
+            const hasAnyCards = cards.length > 0;
+            const hasVisibleCards = cards.some(card => card.style.display !== 'none');
+
+            if (serverEmptyState) serverEmptyState.hidden = hasAnyCards;
+            if (emptyState) emptyState.hidden = !hasAnyCards || hasVisibleCards;
         });
 
         periodTabs.forEach(tab => {

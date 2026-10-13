@@ -18,12 +18,8 @@ class CouponPromoController extends Controller
 
         $currentFilter = $request->get('filter', 'all');
 
-        if ($currentFilter === 'active') {
-            $query->active();
-        } elseif ($currentFilter === 'expired') {
-            $query->expired();
-        }
-        // For 'all', no additional filter needed as SoftDeletes excludes soft-deleted
+        // Load all non-deleted coupons so status tabs can filter instantly in the browser.
+        // The current filter is retained only to initialize the selected tab.
 
         $coupons = $query
             ->orderByRaw(

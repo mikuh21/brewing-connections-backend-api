@@ -130,18 +130,143 @@
     }
     .registration-field:focus { border-color: #2E5A3D; box-shadow: 0 0 0 3px rgba(46,90,61,.12); }
     @media (max-width: 767px) {
-        .registration-shell { padding: 4.5rem .85rem 1rem; align-items: flex-start; }
-        .registration-layout { height: auto; min-height: calc(100svh - 6rem); border-radius: 0 !important; box-shadow: none !important; overflow: visible !important; }
-        .registration-form-scroll { overflow: visible; }
-        .registration-type-card { min-height: 112px; }
+        html,
+        body {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: 100vh !important;
+        }
+
+        .registration-shell {
+            min-height: 100svh;
+            height: auto !important;
+            overflow: visible !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 4.5rem 0 1.5rem !important;
+            background: linear-gradient(180deg, #e8ddd0 0%, #efe6d8 45%, #e8ddd0 100%) !important;
+        }
+
+        .registration-shell > a.mobile-auth-logo {
+            top: 1.25rem;
+            left: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .registration-layout {
+            max-width: none !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: calc(100svh - 6rem);
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            background: transparent !important;
+        }
+
+        .registration-layout > main {
+            min-height: calc(100svh - 6rem);
+            background: transparent !important;
+        }
+
+        .registration-form-scroll {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            justify-content: center;
+            min-height: calc(100svh - 6rem);
+            overflow: visible !important;
+            padding: 0 1.05rem 1rem !important;
+        }
+
+        .registration-form-scroll > .mb-5.md\\:hidden {
+            display: none !important;
+        }
+
+        #registration-type-picker {
+            width: 100%;
+            margin-block: auto;
+        }
+
+        .registration-form-scroll:has(#registration-form-panel:not(.hidden)) {
+            justify-content: flex-start;
+            padding-top: 0.8rem !important;
+        }
+
+        #registration-form-panel {
+            width: 100%;
+            padding-bottom: 0.9rem;
+        }
+
+        #registration-type-picker > h2 {
+            font-size: 1.85rem !important;
+            line-height: 1.05 !important;
+        }
+
+        #registration-type-picker > p {
+            font-size: 0.95rem;
+            line-height: 1.4rem;
+        }
+
+        .registration-type-card {
+            min-height: 112px;
+            padding: 0.9rem !important;
+        }
+
+        .registration-type-card > span:first-child {
+            width: 2.5rem;
+            height: 2.5rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .registration-type-card > span:nth-child(2) {
+            font-size: 0.95rem;
+            line-height: 1.25rem;
+        }
+
+        .registration-type-card > span:nth-child(3) {
+            font-size: 0.72rem;
+            line-height: 1rem;
+        }
+
+        #registration-form-panel #registration-heading {
+            font-size: 1.85rem !important;
+            line-height: 1.05 !important;
+        }
+
+        #registration-form-panel #registration-subheading {
+            font-size: 0.85rem;
+            line-height: 1.25rem;
+        }
+
+        #registration-form-panel [aria-label="Registration progress"] {
+            gap: 0.5rem;
+        }
+
+        #registration-form-panel [aria-label="Registration progress"] span:not(.registration-step-dot) {
+            font-size: 0.72rem;
+            line-height: 1rem;
+        }
+
+        #guided-registration-form {
+            margin-top: 1rem !important;
+        }
+
+        #guided-registration-form .registration-field {
+            min-height: 44px;
+            font-size: 0.875rem;
+        }
     }
     </style>
 @endpush
 
 <div class="registration-shell flex w-screen items-center justify-center bg-[#E8DDD0] px-4 py-6 sm:px-6">
-    <a href="{{ url('/') }}" class="md:hidden fixed top-4 left-4 z-30 inline-flex items-center gap-2 text-[#3A2E22]">
-        <img src="{{ asset('images/brewhublogo.png') }}" alt="BrewHub logo" class="h-7 w-7 object-contain">
-        <span class="text-xl font-bold italic">BrewHub</span>
+    <a href="{{ url('/') }}" class="mobile-auth-logo md:hidden fixed top-5 left-5 z-30 inline-flex items-center text-[#3A2E22] hover:text-[#2E5A3D] transition-colors" aria-label="Go to landing page">
+        <span class="inline-flex items-center gap-2">
+            <img src="{{ asset('images/brewhublogo.png') }}" alt="BrewHub logo" class="w-7 h-7 object-contain shrink-0">
+            <span class="brand-wordmark text-xl"><span class="brand-brew">Brew</span><span class="brand-hub">Hub</span></span>
+        </span>
     </a>
 
     <div class="registration-layout auth-layout flex w-full max-w-5xl overflow-hidden rounded-3xl bg-[#F3E9D7] shadow-2xl">

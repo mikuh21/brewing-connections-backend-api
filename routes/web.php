@@ -302,6 +302,10 @@ Route::post('/reservations/orders/{order}/rate', [LandingReservationController::
 // Auth routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/register', function () {
+    return view('auth.establishment-register');
+})->name('register');
+Route::post('/register', [EstablishmentRegistrationController::class, 'store'])->name('establishment.register');
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset.form');
 Route::post('/reset-password', [PasswordResetController::class, 'reset'])->name('password.reset.submit');
 Route::post('/reseller/register', [ResellerRegistrationController::class, 'store'])->name('reseller.register');
@@ -313,6 +317,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
     Route::post('/chat/{conversation}/messages', [ChatController::class, 'sendMessage'])
         ->name('chat.messages.store');
+});
+
+// Shared map endpoint for admin and owner/reseller roles
+Route::middleware(['auth', 'role:farm_owner,cafe_owner'])->group(function () {
+    Route::post('/api/my-establishment/location', [EstablishmentLocationController::class, 'update'])
+        ->name('my-establishment.location.update');
 });
 
 // Shared map endpoint for admin and owner/reseller roles

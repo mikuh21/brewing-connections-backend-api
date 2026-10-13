@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
         link.addEventListener('click', (event) => {
             if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
             const destination = new URL(link.href, window.location.href);
-            const path = destination.pathname.replace(/\\/$/, '') || '/';
+            const path = destination.pathname.replace(/\/$/, '') || '/';
             if (destination.origin !== window.location.origin || !['/login', '/register'].includes(path)) return;
             event.preventDefault();
             const layout = document.querySelector('.auth-layout');
@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!validateVisibleRequiredFields(stepOne)) return;
         const email = form.querySelector('#registration_email');
         email.setCustomValidity('');
-        if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email.value.trim())) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
             email.setCustomValidity('Enter a valid email address.');
             email.reportValidity();
             email.focus();

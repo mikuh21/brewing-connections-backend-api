@@ -123,7 +123,7 @@
                             <!-- Email Field -->
                             <div class="mb-4">
                                 <label for="email" class="block text-sm text-[#3A2E22] font-body mb-1">Email</label>
-                                <input type="email" id="email" name="email" value="{{ old('email') }}" class="bg-white border border-gray-300 rounded-lg w-full px-4 py-2.5 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" placeholder="Enter your email" required>
+                                <input type="email" id="email" name="email" value="{{ old('email') }}" class="bg-white border border-gray-300 rounded-lg w-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" placeholder="Enter your email" required>
                             </div>
 
                             <!-- Password Field -->

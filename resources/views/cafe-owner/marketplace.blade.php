@@ -124,7 +124,6 @@
             this.form.name = product.name || '';
             this.form.description = product.description || '';
             this.form.category = product.category || 'Coffee Beans';
-            this.form.price_per_unit = product.price_per_unit || '';
             this.form.stock_quantity = product.stock_quantity ?? 0;
             this.form.unit = product.unit || 'kg';
             this.form.moq = product.moq || 1;
@@ -577,7 +576,7 @@
                     <div class="flex justify-end gap-2 mt-2">
                         <button
                             type="button"
-                            @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'price_per_unit' => $product->price_per_unit, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'moq' => $product->moq, 'image_url' => $product->image_url]) }})"
+                            @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'moq' => $product->moq, 'image_url' => $product->image_url]) }})"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
                             title="Edit product"
                             aria-label="Edit product"

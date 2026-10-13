@@ -18,6 +18,7 @@
 @push('styles')
 <style>
     .registration-shell {
+        box-sizing: border-box;
         min-height: 100svh;
         overflow-y: auto;
         overflow-x: hidden;

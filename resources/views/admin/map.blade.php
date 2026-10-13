@@ -119,8 +119,8 @@
     </aside>
 
     <!-- Main content -->
-    <main class="admin-main flex-1 ml-0 md:ml-64 h-screen overflow-hidden p-6">
-        <div class="max-w-full h-full flex flex-col gap-6">
+    <main class="admin-main flex-1 min-h-0 min-w-0 ml-0 md:ml-64 h-screen overflow-hidden p-6">
+        <div class="max-w-full h-full min-h-0 min-w-0 flex flex-col gap-6">
             <header class="bg-white rounded-[20px] shadow-sm p-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">Map</h1>
@@ -159,13 +159,13 @@
 
             <!-- Filter Panel -->
 
-            <section class="map-wrapper flex-1 rounded-[20px] shadow-lg bg-white p-4 relative overflow-hidden flex flex-col">
+            <section class="map-wrapper flex-1 min-h-0 min-w-0 rounded-[20px] shadow-lg bg-white p-4 relative overflow-hidden flex flex-col">
                 <!-- Filter Panel Inside Map Wrapper -->
                 <div id="filter-panel" class="filter-panel-container w-full bg-white rounded-[20px] shadow-sm mb-4">
                     <!-- Content will be populated by JS -->
                 </div>
 
-                <div id="map" class="h-full w-full rounded-xl overflow-hidden relative" style="opacity: 0; transition: opacity 0.2s; position: relative; overflow: hidden;">
+                <div id="map" class="flex-1 min-h-0 min-w-0 w-full rounded-xl overflow-hidden relative" style="opacity: 1; position: relative; overflow: hidden;">
                     <div id="details-panel" style="
                       position: absolute;
                       top: 0;

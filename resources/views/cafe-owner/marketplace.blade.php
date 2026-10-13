@@ -40,7 +40,7 @@
         showMenuImportModal: false,
         showViewModal: false,
         isCreatingProduct: false,
-        isFilteringBrowse: false,
+        browseSellerTypeFilter: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller'], true) ? request('seller_type_filter') : 'all'),
         editImagePreview: '',
         createImagePreview: '',
         menuImportImagePreview: '',
@@ -405,51 +405,16 @@
                 return this.isHidden(product.id) && haystack.includes(term);
             });
         },
-        async filterBrowseSellerType(event) {
-            const link = event.currentTarget;
-            const targetUrl = new URL(link.href, window.location.href);
-            const currentContent = document.getElementById('browseMarketplaceContent');
-
-            if (!currentContent || this.isFilteringBrowse) {
-                return;
+        setBrowseSellerType(filter) {
+            this.browseSellerTypeFilter = filter;
+            const url = new URL(window.location.href);
+            if (filter === 'all') {
+                url.searchParams.delete('seller_type_filter');
+            } else {
+                url.searchParams.set('seller_type_filter', filter);
             }
-
-            this.isFilteringBrowse = true;
-            currentContent.setAttribute('aria-busy', 'true');
-            currentContent.classList.add('opacity-70', 'pointer-events-none');
-
-            try {
-                const response = await fetch(targetUrl.toString(), {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'text/html',
-                    },
-                    credentials: 'same-origin',
-                });
-
-                if (!response.ok) {
-                    throw new Error('Unable to load marketplace products.');
-                }
-
-                const html = await response.text();
-                const parsedDocument = new DOMParser().parseFromString(html, 'text/html');
-                const updatedContent = parsedDocument.getElementById('browseMarketplaceContent');
-
-                if (!updatedContent) {
-                    throw new Error('Marketplace content was not found in the response.');
-                }
-
-                currentContent.innerHTML = updatedContent.innerHTML;
-                window.history.pushState({}, '', targetUrl.pathname + targetUrl.search + '#browse');
-            } catch (error) {
-                console.error('Marketplace filter failed:', error);
-                alert('Unable to update marketplace products right now. Please try again.');
-            } finally {
-                this.isFilteringBrowse = false;
-                currentContent.removeAttribute('aria-busy');
-                currentContent.classList.remove('opacity-70', 'pointer-events-none');
-            }
+            url.hash = 'browse';
+            window.history.replaceState({}, '', url.toString());
         },
         formAction() {
             return this.updateUrlTemplate.replace('__PRODUCT_ID__', this.form.id);
@@ -747,13 +712,15 @@
 <div id="browseMarketplaceContent">
 <div class="mb-5 flex flex-wrap gap-2">
     @foreach($browseSellerTypeOptions as $filterKey => $filterLabel)
-        <a
-            @click.prevent="filterBrowseSellerType($event)"
-            href="{{ route('cafe-owner.marketplace', array_merge(request()->query(), ['seller_type_filter' => $filterKey === 'all' ? null : $filterKey])) }}#browse"
-            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors {{ $browseSellerTypeFilter === $filterKey || ($filterKey === 'all' && !in_array($browseSellerTypeFilter, ['farm_owner', 'reseller'], true)) ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]' }}"
+        <button
+            type="button"
+            @click="setBrowseSellerType('{{ $filterKey }}')"
+            :class="browseSellerTypeFilter === '{{ $filterKey }}' ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]'"
+            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors"
+            :aria-pressed="browseSellerTypeFilter === '{{ $filterKey }}' ? 'true' : 'false'"
         >
             {{ $filterLabel }}
-        </a>
+        </button>
     @endforeach
 </div>
 
@@ -769,7 +736,8 @@
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
                 data-search="{{ strtolower(($product->name ?? '') . ' ' . ($product->category ?? '')) }}"
-                x-show="($el.dataset.search || '').includes(searchTerm.toLowerCase().trim())">
+                data-seller-type="{{ strtolower((string) ($product->seller_type ?? '')) }}"
+                x-show="(($el.dataset.search || '').includes(searchTerm.toLowerCase().trim())) && (browseSellerTypeFilter === 'all' || ($el.dataset.sellerType || '') === browseSellerTypeFilter)">
                 <div class="relative">
                     @if($product->image_url)
                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-36 object-cover" />
@@ -831,9 +799,6 @@
         @endforeach
     </div>
 
-    <div class="mt-8">
-        {{ $marketplaceProducts->links() }}
-    </div>
 @else
     <div class="bg-white rounded-xl shadow-sm p-10 text-center">
         <p class="text-sm text-gray-400">No marketplace products from other sellers found.</p>

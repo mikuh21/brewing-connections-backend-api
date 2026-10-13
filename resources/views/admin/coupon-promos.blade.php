@@ -217,13 +217,13 @@
             <!-- Filter Tabs -->
             <div class="mb-6 border-b border-gray-200 pb-4">
                 <div class="flex gap-2">
-                    <button class="filter-tab {{ $currentFilter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="all" onclick="window.location.href='{{ route('admin.coupon-promos.index', ['filter' => 'all']) }}'" style="color: {{ $currentFilter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'all' ? '#3B2F2F' : 'transparent' }};">
+                    <button class="filter-tab {{ $currentFilter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="all" type="button"" style="color: {{ $currentFilter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'all' ? '#3B2F2F' : 'transparent' }};">
                         All
                     </button>
-                    <button class="filter-tab {{ $currentFilter === 'active' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="active" onclick="window.location.href='{{ route('admin.coupon-promos.index', ['filter' => 'active']) }}'" style="color: {{ $currentFilter === 'active' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'active' ? '#3B2F2F' : 'transparent' }};">
+                    <button class="filter-tab {{ $currentFilter === 'active' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="active" type="button"" style="color: {{ $currentFilter === 'active' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'active' ? '#3B2F2F' : 'transparent' }};">
                         Active
                     </button>
-                    <button class="filter-tab {{ $currentFilter === 'expired' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="expired" onclick="window.location.href='{{ route('admin.coupon-promos.index', ['filter' => 'expired']) }}'" style="color: {{ $currentFilter === 'expired' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'expired' ? '#3B2F2F' : 'transparent' }};">
+                    <button class="filter-tab {{ $currentFilter === 'expired' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="expired" type="button"" style="color: {{ $currentFilter === 'expired' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $currentFilter === 'expired' ? '#3B2F2F' : 'transparent' }};">
                         Expired
                     </button>
                 </div>
@@ -246,7 +246,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @forelse($coupons as $index => $coupon)
-                                <tr class="hover:bg-gray-50 coupon-row">
+                                <tr class="hover:bg-gray-50 coupon-row" data-status="{{ $coupon->display_status }}">
                                     <td class="px-3 py-2 whitespace-nowrap text-xs text-[#3A2E22]">{{ $index + 1 }}</td>
                                     <td class="px-3 py-2 whitespace-nowrap text-xs text-[#3A2E22]">{{ $coupon->title }}</td>
                                     <td class="px-3 py-2 text-xs text-[#9E8C78]">{{ $coupon->description }}</td>
@@ -540,9 +540,14 @@
 
     function refreshNoResultsRow() {
         const tbody = document.querySelector('#coupon-promos-table tbody');
-        const noResultsRow = document.getElementById('no-results-row');
-        if (!tbody || !noResultsRow) {
-            return;
+        if (!tbody) return;
+
+        let noResultsRow = document.getElementById('no-results-row');
+        if (!noResultsRow) {
+            noResultsRow = document.createElement('tr');
+            noResultsRow.id = 'no-results-row';
+            noResultsRow.innerHTML = '<td colspan="9" class="px-6 py-8 text-center text-gray-400">No coupon promos found matching this filter.</td>';
+            tbody.appendChild(noResultsRow);
         }
 
         const visibleRows = Array.from(tbody.querySelectorAll('tr.coupon-row')).filter(row => row.style.display !== 'none');
@@ -550,6 +555,33 @@
     }
 
 document.addEventListener('DOMContentLoaded', function() {
+    const couponFilterTabs = Array.from(document.querySelectorAll('.filter-tab[data-filter]'));
+    const couponRows = Array.from(document.querySelectorAll('#coupon-promos-table tbody tr.coupon-row'));
+
+    function applyCouponFilter(filter) {
+        couponRows.forEach(row => {
+            row.style.display = filter === 'all' || row.dataset.status === filter ? '' : 'none';
+        });
+
+        couponFilterTabs.forEach(tab => {
+            const active = tab.dataset.filter === filter;
+            tab.classList.toggle('active', active);
+            tab.style.color = active ? '#3B2F2F' : '#9E8C78';
+            tab.style.borderBottom = active ? '3px solid #3B2F2F' : '3px solid transparent';
+            tab.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+
+        refreshNoResultsRow();
+    }
+
+    couponFilterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            applyCouponFilter(this.dataset.filter || 'all');
+        });
+    });
+
+    applyCouponFilter(@json($currentFilter));
+
     const qrModal = document.getElementById('qr-modal');
     const toast = document.getElementById('toast');
     const qrCanvas = document.getElementById('qrCanvas');

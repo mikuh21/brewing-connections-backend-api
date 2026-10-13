@@ -78,7 +78,6 @@
             grind_type: '',
             stock_quantity: '',
             unit: 'kg',
-            moq: '1',
             image_url: ''
         },
         form: {
@@ -576,7 +575,7 @@
                     <div class="flex justify-end gap-2 mt-2">
                         <button
                             type="button"
-                            @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'moq' => $product->moq, 'image_url' => $product->image_url]) }})"
+                            @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'image_url' => $product->image_url]) }})"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
                             title="Edit product"
                             aria-label="Edit product"
@@ -988,12 +987,7 @@
                 <input x-model="createForm.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
-            <div>
-                <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
-                <input x-model="createForm.moq" type="number" min="1" step="1" inputmode="numeric" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-            </div>
-
-            <div class="md:col-span-3">
+<div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Product Image</label>
                 <input x-ref="createImageInput" type="file" name="image" accept="image/*" @change="handleCreateImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 <div x-show="createImagePreview" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">

@@ -1,119 +1,410 @@
 @extends('layouts.app')
 
-@section('title', 'Register Your Establishment - BrewHub')
+@section('title', 'Register - BrewHub')
 
 @section('content')
-<div class="min-h-screen bg-[#E8DDD0] px-4 py-10 sm:px-6 lg:px-8 flex items-center justify-center">
-    <div class="w-full max-w-5xl overflow-hidden rounded-3xl bg-[#F3E9D7] shadow-2xl lg:grid lg:grid-cols-5">
-        <aside class="hidden lg:flex lg:col-span-2 flex-col justify-between bg-gradient-to-b from-[#3A2E22] to-[#2E5A3D] p-8 text-white">
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-3">
-                <img src="{{ asset('images/brewhublogo2.png') }}" alt="BrewHub logo" class="h-8 w-8 object-contain">
+@php
+    $registrationType = old('registration_type', old('establishment_type', request('type', '')));
+    $isResellerRegistration = $registrationType === 'reseller';
+    $hasRegistrationErrors = $errors->any();
+    $resellerErrors = $errors->resellerRegistration ?? collect();
+    $hasResellerErrors = method_exists($resellerErrors, 'any') && $resellerErrors->any();
+@endphp
+
+@push('styles')
+<style>
+    .registration-shell {
+        min-height: 100svh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    .registration-layout {
+        height: min(700px, calc(100svh - 3rem));
+        min-height: 590px;
+    }
+    .registration-form-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #C9B69F transparent;
+    }
+    .registration-form-scroll::-webkit-scrollbar { width: 6px; }
+    .registration-form-scroll::-webkit-scrollbar-thumb { background: #C9B69F; border-radius: 999px; }
+    .registration-type-card {
+        min-height: 132px;
+        border: 1px solid #D9CBB9;
+        background: rgba(255,255,255,.64);
+        transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+    }
+    .registration-type-card:hover,
+    .registration-type-card:focus-visible {
+        transform: translateY(-2px);
+        border-color: #2E5A3D;
+        background: #FFFFFF;
+        box-shadow: 0 10px 24px rgba(46,90,61,.12);
+        outline: none;
+    }
+    .registration-type-card:focus-visible { outline: 2px solid #2E5A3D; outline-offset: 3px; }
+    .registration-step-dot {
+        display: flex; width: 2rem; height: 2rem; flex: 0 0 2rem;
+        align-items: center; justify-content: center; border-radius: 9999px;
+        border: 1px solid #CDBCA7; background: #FFFFFF; color: #8C7A68;
+        font-size: .8rem; font-weight: 700;
+    }
+    .registration-step-dot.is-active,
+    .registration-step-dot.is-complete { background: #2E5A3D; border-color: #2E5A3D; color: #FFFFFF; }
+    .registration-step-line { height: 2px; flex: 1 1 auto; background: #D9CBB9; }
+    .registration-step-line.is-complete { background: #2E5A3D; }
+    .registration-field {
+        width: 100%; min-height: 44px; border: 1px solid #D4C5B2; border-radius: .5rem;
+        background: #FFFFFF; padding: .7rem .85rem; color: #3A2E22; font-size: .875rem;
+        outline: none; transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    .registration-field:focus { border-color: #2E5A3D; box-shadow: 0 0 0 3px rgba(46,90,61,.12); }
+    @media (max-width: 767px) {
+        .registration-shell { padding: 4.5rem .85rem 1rem; align-items: flex-start; }
+        .registration-layout { height: auto; min-height: 0; border-radius: 1.25rem; }
+        .registration-form-scroll { overflow: visible; }
+        .registration-type-card { min-height: 112px; }
+    }
+    @media (max-height: 760px) and (min-width: 768px) {
+        .registration-layout { height: calc(100svh - 2rem); min-height: 0; }
+    }
+</style>
+@endpush
+
+<div class="registration-shell flex w-screen items-center justify-center bg-[#E8DDD0] px-4 py-6 sm:px-6">
+    <a href="{{ url('/') }}" class="md:hidden fixed top-4 left-4 z-30 inline-flex items-center gap-2 text-[#3A2E22]">
+        <img src="{{ asset('images/brewhublogo.png') }}" alt="BrewHub logo" class="h-7 w-7 object-contain">
+        <span class="text-xl font-bold italic">BrewHub</span>
+    </a>
+
+    <div class="registration-layout auth-layout flex w-full max-w-5xl overflow-hidden rounded-3xl bg-[#F3E9D7] shadow-2xl">
+        <!-- Registration-specific left panel; the overall two-column auth layout follows Log In. -->
+        <aside class="relative hidden w-2/5 flex-col overflow-hidden rounded-l-3xl bg-gradient-to-b from-[#3A2E22] to-[#2E5A3D] p-7 text-white md:flex lg:p-8">
+            <a href="{{ url('/') }}" class="relative z-10 inline-flex items-center gap-2 text-white transition-colors hover:text-[#F3E9D7]" aria-label="Go to BrewHub home">
+                <img src="{{ asset('images/brewhublogo2.png') }}" alt="BrewHub logo" class="h-7 w-7 shrink-0 object-contain">
                 <span class="text-xl font-bold italic">BrewHub</span>
             </a>
-            <div class="py-10">
-                <div class="mb-5 text-5xl" aria-hidden="true">📍</div>
-                <h1 class="text-3xl font-bold font-display leading-tight">Put your establishment on the map.</h1>
-                <p class="mt-4 text-sm leading-6 text-[#F3E9D7]">Create your owner account, pin your location in Lipa, and help coffee lovers discover your establishment.</p>
-                <ul class="mt-6 space-y-3 text-sm text-white/90">
-                    <li class="flex gap-2"><span>✓</span><span>No admin approval queue</span></li>
-                    <li class="flex gap-2"><span>✓</span><span>Your account manages only your establishment</span></li>
-                    <li class="flex gap-2"><span>✓</span><span>Existing map markers remain visible</span></li>
-                </ul>
+            <div class="my-auto pb-4">
+                <div id="registration-side-icon" class="mb-5 text-5xl" aria-hidden="true">📍</div>
+                <h1 id="registration-side-title" class="font-display text-3xl font-bold leading-tight">Put your establishment on the map.</h1>
+                <p id="registration-side-description" class="mt-4 max-w-sm text-sm leading-6 text-[#F3E9D7]">Create your owner account, pin your location in Lipa, and help coffee lovers discover your establishment.</p>
+                <div class="mt-6 space-y-3 text-sm text-white/90">
+                    <p class="flex items-start gap-2"><span aria-hidden="true">✓</span><span>Quick, guided registration</span></p>
+                    <p class="flex items-start gap-2"><span aria-hidden="true">✓</span><span>Your account is linked to your own business</span></p>
+                    <p class="flex items-start gap-2"><span aria-hidden="true">✓</span><span>Pin or update your map location after registration</span></p>
+                </div>
             </div>
             <p class="text-xs text-white/60">BrewHub · Coffee connections in Lipa</p>
         </aside>
 
-        <main class="lg:col-span-3 p-5 sm:p-8 lg:p-10">
-            <a href="{{ url('/') }}" class="inline-flex items-center gap-2 text-sm text-[#6B5B4A] hover:text-[#2E5A3D] lg:hidden mb-6">
-                <img src="{{ asset('images/brewhublogo.png') }}" alt="" class="h-7 w-7 object-contain"> BrewHub
-            </a>
-            <h2 class="text-3xl font-bold italic font-display text-[#3A2E22]">Create your account</h2>
-            <p class="mt-2 text-sm text-[#7B6A59]">Register your coffee farm, coffee shop, or roastery, then pin its location on the map.</p>
-
-            @if ($errors->any())
-                <div class="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-                    <p class="font-semibold">Please check the following:</p>
-                    <ul class="mt-1 list-disc pl-5">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+        <main class="flex w-full min-w-0 flex-col bg-[#F3E9D7] md:w-3/5">
+            <div class="registration-form-scroll min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-7 lg:px-10">
+                <div class="mb-5 md:hidden">
+                    <h1 class="font-display text-2xl font-bold italic text-[#3A2E22]">Join BrewHub</h1>
+                    <p class="mt-1 text-sm text-[#7B6A59]">Choose the account type that fits your business.</p>
                 </div>
-            @endif
 
-            <form method="POST" action="{{ route('establishment.register') }}" class="mt-6 space-y-5">
-                @csrf
-                <section>
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-[#946042]">Establishment details</h3>
-                    <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div class="sm:col-span-2">
-                            <label for="establishment_name" class="mb-1 block text-sm font-medium text-[#3A2E22]">Establishment name *</label>
-                            <input id="establishment_name" name="establishment_name" value="{{ old('establishment_name') }}" required maxlength="255" autocomplete="organization" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm text-[#3A2E22] outline-none transition focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="e.g. Lipa Coffee Farm">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label for="establishment_type" class="mb-1 block text-sm font-medium text-[#3A2E22]">Establishment type *</label>
-                            <select id="establishment_type" name="establishment_type" required class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm text-[#3A2E22] outline-none transition focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20">
-                                <option value="">Choose a type</option>
-                                <option value="farm" @selected(old('establishment_type') === 'farm')>Coffee Farm</option>
-                                <option value="cafe" @selected(old('establishment_type') === 'cafe')>Coffee Shop</option>
-                                <option value="roaster" @selected(old('establishment_type') === 'roaster')>Coffee Roaster</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="address" class="mb-1 block text-sm font-medium text-[#3A2E22]">Street / full address *</label>
-                            <input id="address" name="address" value="{{ old('address') }}" required maxlength="255" autocomplete="street-address" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="Street and area">
-                        </div>
-                        <div>
-                            <label for="barangay" class="mb-1 block text-sm font-medium text-[#3A2E22]">Barangay *</label>
-                            <input id="barangay" name="barangay" value="{{ old('barangay') }}" required maxlength="255" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="Barangay, Lipa City">
-                        </div>
-                        <div>
-                            <label for="contact_number" class="mb-1 block text-sm font-medium text-[#3A2E22]">Contact number *</label>
-                            <input id="contact_number" name="contact_number" value="{{ old('contact_number') }}" required maxlength="30" autocomplete="tel" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="09XX XXX XXXX">
-                        </div>
-                        <div>
-                            <label for="website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website <span class="font-normal text-[#8C7A68]">(optional)</span></label>
-                            <input id="website" name="website" type="url" value="{{ old('website') }}" maxlength="255" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="https://">
-                        </div>
+                @if ($hasRegistrationErrors || $hasResellerErrors)
+                    <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                        <p class="font-semibold">Please check the following details:</p>
+                        <ul class="mt-1 list-disc pl-5">
+                            @if($hasRegistrationErrors)
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            @endif
+                            @if($hasResellerErrors)
+                                @foreach ($resellerErrors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            @endif
+                        </ul>
                     </div>
+                @endif
+
+                <!-- First screen: choose an account type. -->
+                <section id="registration-type-picker" class="{{ $registrationType && in_array($registrationType, ['farm','cafe','roaster','reseller'], true) ? 'hidden' : '' }}">
+                    <h2 class="font-display text-3xl font-bold italic text-[#3A2E22]">Create an Account</h2>
+                    <p class="mt-2 text-sm leading-5 text-[#7B6A59]">What would you like to register with BrewHub?</p>
+
+                    <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+                        <button type="button" class="registration-type-card group rounded-2xl p-4 text-left" data-registration-type="farm">
+                            <span class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#E5ECDD] text-2xl">🌱</span>
+                            <span class="block font-display text-base font-bold text-[#3A2E22]">Coffee Farm</span>
+                            <span class="mt-1 block text-xs leading-4 text-[#7B6A59]">Grow and showcase your coffee farm.</span>
+                        </button>
+                        <button type="button" class="registration-type-card group rounded-2xl p-4 text-left" data-registration-type="cafe">
+                            <span class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0E1D2] text-2xl">☕</span>
+                            <span class="block font-display text-base font-bold text-[#3A2E22]">Coffee Shop</span>
+                            <span class="mt-1 block text-xs leading-4 text-[#7B6A59]">Help customers find your café.</span>
+                        </button>
+                        <button type="button" class="registration-type-card group rounded-2xl p-4 text-left" data-registration-type="roaster">
+                            <span class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#EAE3F0] text-2xl">🫘</span>
+                            <span class="block font-display text-base font-bold text-[#3A2E22]">Roaster</span>
+                            <span class="mt-1 block text-xs leading-4 text-[#7B6A59]">Showcase your coffee roasting business.</span>
+                        </button>
+                        <button type="button" class="registration-type-card group rounded-2xl p-4 text-left" data-registration-type="reseller">
+                            <span class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#DDEAF0] text-2xl">🛍️</span>
+                            <span class="block font-display text-base font-bold text-[#3A2E22]">Reseller</span>
+                            <span class="mt-1 block text-xs leading-4 text-[#7B6A59]">Create an account to sell on BrewHub.</span>
+                        </button>
+                    </div>
+                    <p class="mt-5 text-center text-sm text-[#3A2E22]">Already have an account? <a href="{{ route('login') }}" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Log in here</a></p>
                 </section>
 
-                <section class="border-t border-[#DED0BD] pt-5">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-[#946042]">Owner account</h3>
-                    <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div class="sm:col-span-2">
-                            <label for="owner_name" class="mb-1 block text-sm font-medium text-[#3A2E22]">Owner's full name *</label>
-                            <input id="owner_name" name="owner_name" value="{{ old('owner_name') }}" required maxlength="255" autocomplete="name" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="Your full name">
+                <!-- Guided two-step registration form. -->
+                <section id="registration-form-panel" class="{{ $registrationType && in_array($registrationType, ['farm','cafe','roaster','reseller'], true) ? '' : 'hidden' }}">
+                    <button id="registration-back-to-types" type="button" class="mb-4 inline-flex items-center gap-2 text-sm font-medium text-[#6B5B4A] transition hover:text-[#2E5A3D]">
+                        <span aria-hidden="true">←</span> Change account type
+                    </button>
+
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h2 id="registration-heading" class="font-display text-2xl font-bold italic text-[#3A2E22] sm:text-3xl">Create an Account</h2>
+                            <p id="registration-subheading" class="mt-1 text-sm text-[#7B6A59]">Start with your owner account details.</p>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label for="email" class="mb-1 block text-sm font-medium text-[#3A2E22]">Email address *</label>
-                            <input id="email" name="email" type="email" value="{{ old('email') }}" required maxlength="255" autocomplete="email" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="you@example.com">
+                        <span id="registration-type-badge" class="shrink-0 rounded-full border border-[#D9CBB9] bg-white/70 px-3 py-1 text-xs font-semibold text-[#6B5B4A]">Coffee Farm</span>
+                    </div>
+
+                    <div class="mt-5 flex items-center gap-3" aria-label="Registration progress">
+                        <div class="flex items-center gap-2">
+                            <span id="registration-step-one-dot" class="registration-step-dot is-active">1</span>
+                            <span id="registration-step-one-label" class="text-xs font-semibold text-[#2E5A3D] sm:text-sm">Owner account</span>
                         </div>
-                        <div>
-                            <label for="password" class="mb-1 block text-sm font-medium text-[#3A2E22]">Password *</label>
-                            <input id="password" name="password" type="password" required minlength="8" maxlength="16" autocomplete="new-password" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="8–16 characters">
-                            <p class="mt-1 text-xs text-[#8C7A68]">Include at least one special character.</p>
-                        </div>
-                        <div>
-                            <label for="password_confirmation" class="mb-1 block text-sm font-medium text-[#3A2E22]">Confirm password *</label>
-                            <input id="password_confirmation" name="password_confirmation" type="password" required minlength="8" maxlength="16" autocomplete="new-password" class="w-full rounded-lg border border-[#D4C5B2] bg-white px-4 py-3 text-sm outline-none focus:border-[#2E5A3D] focus:ring-2 focus:ring-[#2E5A3D]/20" placeholder="Re-enter password">
+                        <div id="registration-step-line" class="registration-step-line"></div>
+                        <div class="flex items-center gap-2">
+                            <span id="registration-step-two-dot" class="registration-step-dot">2</span>
+                            <span id="registration-step-two-label" class="text-xs font-medium text-[#8C7A68] sm:text-sm">Business details</span>
                         </div>
                     </div>
+
+                    <form id="guided-registration-form" method="POST" action="{{ $isResellerRegistration ? route('reseller.register') : route('establishment.register') }}" class="mt-5">
+                        @csrf
+                        <input type="hidden" name="registration_type" id="registration_type" value="{{ $registrationType }}">
+                        <input type="hidden" name="establishment_type" id="establishment_type" value="{{ in_array($registrationType, ['farm','cafe','roaster'], true) ? $registrationType : '' }}">
+
+                        <section id="registration-step-one" class="space-y-4">
+                            <div class="rounded-xl border border-[#DED0BD] bg-white/45 p-4">
+                                <h3 class="text-sm font-bold uppercase tracking-wider text-[#946042]">Step 1 · Owner account</h3>
+                                <p class="mt-1 text-xs leading-5 text-[#7B6A59]">Use an email address you can access. It will be used to log in to BrewHub.</p>
+                            </div>
+
+                            <div class="registration-owner-only">
+                                <label for="owner_name" class="mb-1 block text-sm font-medium text-[#3A2E22]">Owner's full name *</label>
+                                <input id="owner_name" name="owner_name" value="{{ old('owner_name') }}" maxlength="255" autocomplete="name" class="registration-field" placeholder="Your full name">
+                            </div>
+                            <div class="registration-reseller-only hidden">
+                                <label for="reseller_name" class="mb-1 block text-sm font-medium text-[#3A2E22]">Full name / business name *</label>
+                                <input id="reseller_name" name="name" value="{{ old('name') }}" maxlength="255" autocomplete="name" class="registration-field" placeholder="Your full name or business name">
+                            </div>
+                            <div>
+                                <label for="registration_email" class="mb-1 block text-sm font-medium text-[#3A2E22]">Email address *</label>
+                                <input id="registration_email" name="email" type="email" value="{{ old('email') }}" maxlength="255" autocomplete="email" class="registration-field" placeholder="you@example.com">
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="registration_password" class="mb-1 block text-sm font-medium text-[#3A2E22]">Password *</label>
+                                    <input id="registration_password" name="password" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field" placeholder="8–16 characters">
+                                    <p class="mt-1 text-xs text-[#8C7A68]">Include at least one special character.</p>
+                                </div>
+                                <div>
+                                    <label for="registration_password_confirmation" class="mb-1 block text-sm font-medium text-[#3A2E22]">Confirm password *</label>
+                                    <input id="registration_password_confirmation" name="password_confirmation" type="password" minlength="8" maxlength="16" autocomplete="new-password" class="registration-field" placeholder="Re-enter password">
+                                </div>
+                            </div>
+                            <button id="registration-next-step" type="button" class="w-full rounded-lg bg-[#2E5A3D] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40 focus:ring-offset-2">Continue to Step 2 <span aria-hidden="true">→</span></button>
+                        </section>
+
+                        <section id="registration-step-two" class="hidden space-y-4">
+                            <div class="rounded-xl border border-[#DED0BD] bg-white/45 p-4">
+                                <h3 id="registration-step-two-heading" class="text-sm font-bold uppercase tracking-wider text-[#946042]">Step 2 · Establishment details</h3>
+                                <p id="registration-step-two-help" class="mt-1 text-xs leading-5 text-[#7B6A59]">Tell us about your establishment so it can be listed on the map.</p>
+                            </div>
+
+                            <div class="registration-establishment-only">
+                                <label for="establishment_name" class="mb-1 block text-sm font-medium text-[#3A2E22]">Establishment name *</label>
+                                <input id="establishment_name" name="establishment_name" value="{{ old('establishment_name') }}" maxlength="255" autocomplete="organization" class="registration-field" placeholder="e.g. Lipa Coffee Farm">
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="registration_contact_number" class="mb-1 block text-sm font-medium text-[#3A2E22]">Contact number *</label>
+                                    <input id="registration_contact_number" name="contact_number" value="{{ old('contact_number') }}" maxlength="30" autocomplete="tel" class="registration-field" placeholder="09XX XXX XXXX">
+                                </div>
+                                <div>
+                                    <label for="registration_barangay" class="mb-1 block text-sm font-medium text-[#3A2E22]">Barangay *</label>
+                                    <input id="registration_barangay" name="barangay" value="{{ old('barangay') }}" maxlength="255" autocomplete="address-level3" class="registration-field" placeholder="Barangay, Lipa City">
+                                </div>
+                            </div>
+                            <div class="registration-establishment-only">
+                                <label for="registration_address" class="mb-1 block text-sm font-medium text-[#3A2E22]">Street / full address *</label>
+                                <input id="registration_address" name="address" value="{{ old('address') }}" maxlength="255" autocomplete="street-address" class="registration-field" placeholder="Street and area">
+                            </div>
+                            <div class="registration-establishment-only">
+                                <label for="registration_website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website <span class="font-normal text-[#8C7A68]">(optional)</span></label>
+                                <input id="registration_website" name="website" type="url" value="{{ old('website') }}" maxlength="255" class="registration-field" placeholder="https://">
+                            </div>
+
+                            <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
+                                <input id="registration_terms" type="checkbox" name="terms_agreed" value="1" @checked(old('terms_agreed')) class="mt-1 h-4 w-4 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
+                                <span>I confirm the information is accurate and agree to BrewHub's <a href="{{ url('/') }}#terms" class="font-semibold text-[#2E5A3D] underline underline-offset-2">Terms &amp; Conditions</a>.</span>
+                            </label>
+
+                            <div class="flex gap-3">
+                                <button id="registration-previous-step" type="button" class="w-2/5 rounded-lg border border-[#CDBCA7] bg-white px-4 py-3 text-sm font-semibold text-[#3A2E22] transition hover:bg-[#F8F2E8]">Back</button>
+                                <button id="registration-submit" type="submit" class="flex-1 rounded-lg bg-[#2E5A3D] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40 focus:ring-offset-2">Create Account</button>
+                            </div>
+                        </section>
+                    </form>
                 </section>
 
-                <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
-                    <input type="checkbox" name="terms_agreed" value="1" required @checked(old('terms_agreed')) class="mt-1 h-4 w-4 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
-                    <span>I confirm that the details provided are accurate and agree to BrewHub's <a href="{{ url('/') }}#terms" class="font-semibold text-[#2E5A3D] underline underline-offset-2">Terms &amp; Conditions</a>.</span>
-                </label>
-
-                <button type="submit" class="w-full rounded-lg bg-[#2E5A3D] px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40 focus:ring-offset-2">
-                    Create Account &amp; Continue to Map
-                </button>
-            </form>
-
-            <p class="mt-5 text-center text-sm text-[#3A2E22]">Already have an account? <a href="{{ route('login') }}" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Log in here</a></p>
-            <p class="mt-3 text-center text-xs text-[#7B6A59]">Registering as a reseller instead? <a href="{{ route('login', ['register' => 'reseller']) }}" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Use reseller registration</a></p>
+                <p class="mt-5 text-center text-sm text-[#3A2E22]"><a href="{{ route('login') }}" class="font-medium text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">← Back to Log In</a></p>
+            </div>
         </main>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const picker = document.getElementById('registration-type-picker');
+    const formPanel = document.getElementById('registration-form-panel');
+    const form = document.getElementById('guided-registration-form');
+    const typeInput = document.getElementById('registration_type');
+    const establishmentTypeInput = document.getElementById('establishment_type');
+    const stepOne = document.getElementById('registration-step-one');
+    const stepTwo = document.getElementById('registration-step-two');
+    const nextButton = document.getElementById('registration-next-step');
+    const previousButton = document.getElementById('registration-previous-step');
+    const backToTypes = document.getElementById('registration-back-to-types');
+    const heading = document.getElementById('registration-heading');
+    const subheading = document.getElementById('registration-subheading');
+    const badge = document.getElementById('registration-type-badge');
+    const stepOneDot = document.getElementById('registration-step-one-dot');
+    const stepTwoDot = document.getElementById('registration-step-two-dot');
+    const stepOneLabel = document.getElementById('registration-step-one-label');
+    const stepTwoLabel = document.getElementById('registration-step-two-label');
+    const stepLine = document.getElementById('registration-step-line');
+    const sideIcon = document.getElementById('registration-side-icon');
+    const sideTitle = document.getElementById('registration-side-title');
+    const sideDescription = document.getElementById('registration-side-description');
+    const typeDetails = {
+        farm: { label: 'Coffee Farm', icon: '🌱', sideTitle: 'Grow your coffee story.', sideDescription: 'Register your farm, share its location, and help coffee lovers discover what you grow.', endpoint: '{{ route('establishment.register') }}' },
+        cafe: { label: 'Coffee Shop', icon: '☕', sideTitle: 'Bring coffee lovers to your café.', sideDescription: 'Create your owner account and put your coffee shop on the BrewHub map.', endpoint: '{{ route('establishment.register') }}' },
+        roaster: { label: 'Roaster', icon: '🫘', sideTitle: 'Showcase your roast.', sideDescription: 'Make your roasting business easier for coffee lovers to find.', endpoint: '{{ route('establishment.register') }}' },
+        reseller: { label: 'Reseller', icon: '🛍️', sideTitle: 'Grow your coffee business.', sideDescription: 'Create a BrewHub reseller account and get started with the marketplace.', endpoint: '{{ route('reseller.register') }}' }
+    };
+    let currentStep = 1;
+
+    const setRequired = (selector, required) => {
+        form.querySelectorAll(selector).forEach((field) => { field.required = required; });
+    };
+
+    const setStep = (step) => {
+        currentStep = step;
+        stepOne.classList.toggle('hidden', step !== 1);
+        stepTwo.classList.toggle('hidden', step !== 2);
+        stepOneDot.classList.toggle('is-active', step === 1);
+        stepOneDot.classList.toggle('is-complete', step === 2);
+        stepTwoDot.classList.toggle('is-active', step === 2);
+        stepOneLabel.classList.toggle('text-[#2E5A3D]', step === 1 || step === 2);
+        stepOneLabel.classList.toggle('text-[#8C7A68]', false);
+        stepTwoLabel.classList.toggle('text-[#2E5A3D]', step === 2);
+        stepTwoLabel.classList.toggle('text-[#8C7A68]', step !== 2);
+        stepLine.classList.toggle('is-complete', step === 2);
+
+        setRequired('#owner_name, #reseller_name, #registration_email, #registration_password, #registration_password_confirmation', step === 1);
+        setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address', step === 2);
+        setRequired('#registration_terms', step === 2);
+
+        if (typeInput.value === 'reseller') {
+            setRequired('#owner_name, #establishment_name, #registration_address', false);
+            setRequired('#reseller_name, #registration_contact_number, #registration_barangay', step === 1 || step === 2);
+        } else {
+            setRequired('#reseller_name', false);
+        }
+        if (step === 2) {
+            const firstField = form.querySelector('.registration-step-two-field') || form.querySelector('#establishment_name, #registration_contact_number');
+            firstField?.focus({ preventScroll: true });
+        }
+    };
+
+    const chooseType = (type) => {
+        const details = typeDetails[type];
+        if (!details) return;
+        typeInput.value = type;
+        establishmentTypeInput.value = ['farm', 'cafe', 'roaster'].includes(type) ? type : '';
+        form.action = details.endpoint;
+        picker.classList.add('hidden');
+        formPanel.classList.remove('hidden');
+        badge.textContent = details.label;
+        heading.textContent = type === 'reseller' ? 'Create a Reseller Account' : 'Create an Owner Account';
+        subheading.textContent = 'Start with your owner account details.';
+        sideIcon.textContent = details.icon;
+        sideTitle.textContent = details.sideTitle;
+        sideDescription.textContent = details.sideDescription;
+        document.getElementById('registration-step-two-heading').textContent = type === 'reseller' ? 'Step 2 · Reseller details' : 'Step 2 · Establishment details';
+        document.getElementById('registration-step-two-help').textContent = type === 'reseller'
+            ? 'Add your contact information to complete your reseller profile.'
+            : 'Tell us about your establishment so it can be listed on the map.';
+        form.querySelectorAll('.registration-establishment-only').forEach((element) => element.classList.toggle('hidden', type === 'reseller'));
+        form.querySelectorAll('.registration-owner-only').forEach((element) => element.classList.toggle('hidden', type === 'reseller'));
+        form.querySelectorAll('.registration-reseller-only').forEach((element) => element.classList.toggle('hidden', type !== 'reseller'));
+        setStep(1);
+    };
+
+    document.querySelectorAll('[data-registration-type]').forEach((button) => {
+        button.addEventListener('click', () => chooseType(button.dataset.registrationType));
+    });
+
+    nextButton.addEventListener('click', () => {
+        const requiredFields = Array.from(stepOne.querySelectorAll('input[required]'));
+        const invalidField = requiredFields.find((field) => !field.checkValidity());
+        if (invalidField) {
+            invalidField.reportValidity();
+            invalidField.focus();
+            return;
+        }
+        if (form.querySelector('#registration_password').value !== form.querySelector('#registration_password_confirmation').value) {
+            form.querySelector('#registration_password_confirmation').setCustomValidity('Passwords do not match.');
+            form.querySelector('#registration_password_confirmation').reportValidity();
+            form.querySelector('#registration_password_confirmation').focus();
+            return;
+        }
+        form.querySelector('#registration_password_confirmation').setCustomValidity('');
+        setStep(2);
+    });
+
+    form.querySelector('#registration_password_confirmation').addEventListener('input', (event) => {
+        event.currentTarget.setCustomValidity('');
+    });
+
+    previousButton.addEventListener('click', () => setStep(1));
+    backToTypes.addEventListener('click', () => {
+        formPanel.classList.add('hidden');
+        picker.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    form.addEventListener('submit', (event) => {
+        if (currentStep !== 2) {
+            event.preventDefault();
+            return;
+        }
+        const password = form.querySelector('#registration_password');
+        const confirmation = form.querySelector('#registration_password_confirmation');
+        confirmation.setCustomValidity(password.value === confirmation.value ? '' : 'Passwords do not match.');
+        if (!form.querySelector('#registration_terms').checked) {
+            event.preventDefault();
+            form.querySelector('#registration_terms').reportValidity();
+        }
+    });
+
+    const initialType = typeInput.value || '';
+    if (typeDetails[initialType]) {
+        chooseType(initialType);
+        @if($hasRegistrationErrors || $hasResellerErrors)
+            setStep(2);
+        @endif
+    }
+});
+</script>
 @endsection

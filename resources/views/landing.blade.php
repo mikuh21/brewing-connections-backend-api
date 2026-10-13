@@ -3648,6 +3648,14 @@
 
             const buildModalContent = (item) => {
                 const imageUrl = safeUrl(item.image);
+                const menuUrl = safeUrl(item.menu_image);
+                const menuExtension = menuUrl.split('?')[0].split('.').pop().toLowerCase();
+                const isPdfMenu = menuExtension === 'pdf';
+                const menuMarkup = menuUrl
+                    ? (isPdfMenu
+                        ? `<div><iframe src="${escapeHtml(menuUrl)}" title="${escapeHtml(item.name || 'Coffee shop')} menu PDF" loading="lazy" class="block w-full min-h-[360px] h-[65vh] rounded-xl border border-[#E6DCCF] bg-[#FAF7F2]"></iframe><a class="landing-establishment-modal-link mt-3 inline-flex" href="${escapeHtml(menuUrl)}" target="_blank" rel="noopener noreferrer">Open full menu PDF</a></div>`
+                        : `<a href="${escapeHtml(menuUrl)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(menuUrl)}" alt="${escapeHtml(item.name || 'Coffee shop')} menu" class="block w-full max-h-[70vh] object-contain rounded-xl border border-[#E6DCCF] bg-[#FAF7F2]" loading="lazy"></a>`)
+                    : '<p class="landing-establishment-modal-empty">This coffee shop has not uploaded a menu yet.</p>';
                 const addressParts = [item.address, item.barangay].filter((value, index, list) => {
                     const normalized = String(value || '').trim();
                     return normalized && list.findIndex((entry) => String(entry || '').trim() === normalized) === index;
@@ -3806,10 +3814,15 @@
                         </div>
                     </section>
 
-                    <section class="landing-establishment-modal-section">
-                        <h4>Products</h4>
-                        ${productMarkup}
-                    </section>
+                    ${isCafe
+                        ? `<section class="landing-establishment-modal-section">
+                            <h4>Menu</h4>
+                            ${menuMarkup}
+                        </section>`
+                        : `<section class="landing-establishment-modal-section">
+                            <h4>Products</h4>
+                            ${productMarkup}
+                        </section>`}
 
                     ${promos.length || isCafe ? `
                         <section class="landing-establishment-modal-section">

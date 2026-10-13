@@ -155,8 +155,8 @@
 
                         <div class="text-center mt-4">
                             <p class="text-sm text-[#3A2E22]">
-                                Coffee Reseller?
-                                <a href="#" id="showRegisterForm" class="font-medium text-[#2E5A3D] hover:text-[#1E3A2A] underline underline-offset-2 transition-colors">Register here</a>
+                                New to BrewHub?
+                                <a href="{{ route('register') }}" class="font-medium text-[#2E5A3D] hover:text-[#1E3A2A] underline underline-offset-2 transition-colors">Register here</a>
                             </p>
                         </div>
 

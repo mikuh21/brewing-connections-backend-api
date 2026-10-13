@@ -307,6 +307,9 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', function () {
     return view('auth.establishment-register');
 })->middleware('guest')->name('register');
+Route::get('/register/check-email', [EstablishmentRegistrationController::class, 'checkEmail'])
+    ->middleware('throttle:30,1')
+    ->name('register.email-check');
 Route::post('/register', [EstablishmentRegistrationController::class, 'store'])
     ->middleware('guest')
     ->name('establishment.register');

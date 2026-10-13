@@ -434,8 +434,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Match the account-type chooser's right-panel exit transition exactly.
-            activePanel.classList.add('auth-navigation-panel', 'registration-leaving');
+            // Reuse the same transition class as changing account type. Only this
+            // right-panel section fades/moves; the outer card and feature panel do not.
+            activePanel.classList.add('registration-leaving');
             window.setTimeout(() => window.location.assign(destination.href), 420);
         });
     });

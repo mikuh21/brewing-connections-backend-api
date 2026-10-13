@@ -87,7 +87,7 @@
                 </div>
             </div>
 
-            <div id="add-farm-location-modal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-black/40 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="add-farm-location-title">
+            <div id="add-farm-location-modal" data-open-on-load="{{ $errors->any() ? 'true' : 'false' }}" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-black/40 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="add-farm-location-title">
                 <div class="w-full max-w-lg overflow-hidden rounded-2xl border border-[#D9CDBA] bg-[#F8F2E8] shadow-2xl">
                     <div class="flex items-start justify-between border-b border-[#E4D8C6] px-5 py-4 sm:px-6">
                         <div>

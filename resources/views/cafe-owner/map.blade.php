@@ -319,7 +319,7 @@
 
 @push('scripts')
 <script>
-    window.IS_FARM_OWNER_MAP = false;
+    window.IS_FARM_OWNER_MAP = true;
     window.IS_ESTABLISHMENT_OWNER_MAP = true;
     window.ESTABLISHMENT_OWNER_PIN_URL = '{{ route('my-establishment.location.update') }}';
     window.OWNER_ESTABLISHMENT_ID = @json(auth()->user()->establishment?->id);

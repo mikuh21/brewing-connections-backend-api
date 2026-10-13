@@ -29,6 +29,18 @@
     @media (prefers-reduced-motion: reduce) {
         .auth-layout { animation: none !important; }
     }
+    .auth-navigation-panel {
+        transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .auth-navigation-panel.auth-navigation-leaving {
+        opacity: 0;
+        transform: translateY(10px) scale(0.985);
+        pointer-events: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .auth-navigation-panel { transition: none !important; }
+    }
     .registration-shell {
         box-sizing: border-box;
         min-height: 100svh;
@@ -415,13 +427,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const path = destination.pathname.replace(/\/$/, '') || '/';
             if (destination.origin !== window.location.origin || !['/login', '/register'].includes(path)) return;
             event.preventDefault();
-            const layout = document.querySelector('.auth-layout');
-            if (!layout || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+
+            const activePanel = link.closest('#registration-type-picker, #registration-form-panel');
+            if (!activePanel || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
                 window.location.assign(destination.href);
                 return;
             }
-            layout.classList.add('auth-page-leaving');
-            window.setTimeout(() => window.location.assign(destination.href), 140);
+
+            activePanel.classList.add('auth-navigation-panel', 'auth-navigation-leaving');
+            window.setTimeout(() => window.location.assign(destination.href), 420);
         });
     });
 

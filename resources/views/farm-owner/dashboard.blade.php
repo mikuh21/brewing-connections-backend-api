@@ -244,7 +244,6 @@
         'Description' => $profileEstablishment?->description,
         'Website (optional)' => $profileEstablishment?->website,
         'Operating hours' => $profileEstablishment?->visit_hours,
-        'Activities' => $profileEstablishment?->activities,
         'Map location' => ($profileEstablishment?->latitude !== null && $profileEstablishment?->longitude !== null) ? 'set' : null,
     ];
     $missingProfileFields = collect($profileCompletenessChecks)

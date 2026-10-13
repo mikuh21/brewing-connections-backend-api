@@ -213,7 +213,9 @@
           tab: '{{ request()->query('tab', 'products') }}', 
           statusFilter: '{{ request()->query('status', 'all') }}', 
           orderSearch: '', 
-          bulkOrderSearch: '', 
+          bulkOrderSearch: '',
+          ordersPage: 1,
+          bulkOrdersPage: 1, 
           showProductModal: false, 
           selectedProduct: null, 
           showRPModal: false, 
@@ -258,7 +260,7 @@
             </div>
 
             <!-- Products Tab -->
-            <div x-show="tab === 'products'" class="mt-6">
+            <div x-cloak x-show="tab === 'products'" class="mt-6">
                 @if($products->count() > 0)
                     <div class="flex items-center mb-4">
   <select x-model="categoryFilter"
@@ -572,7 +574,7 @@ max-h-[90vh]">
             </div>
 
             <!-- Reseller Listings Tab -->
-            <div x-show="tab === 'reseller-listings'" class="mt-6">
+            <div x-cloak x-show="tab === 'reseller-listings'" class="mt-6">
                 @if($resellerProducts->count() > 0)
                     <div class="flex items-center mb-4">
   <select x-model="categoryFilter"
@@ -837,12 +839,11 @@ max-h-[90vh]">
             </div>
 
             <!-- Orders Tab -->
-            <div x-show="tab === 'orders'" class="mt-6">
+            <div x-cloak x-show="tab === 'orders'" class="mt-6">
                 @if($orders->count() > 0)
                     <!-- Filter Row -->
-                    <form method="GET" action="{{ url()->current() }}" class="flex items-center justify-between mb-4">
-                        <input type="hidden" name="tab" value="orders" />
-                        <select name="status" x-model="statusFilter" @change="$event.target.form.submit()" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
+                    <div class="flex items-center justify-between mb-4">
+                        <select x-model="statusFilter" @change="ordersPage = 1; bulkOrdersPage = 1" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
@@ -885,7 +886,6 @@ max-h-[90vh]">
                                     data-status="{{ $normalizedOrderStatus }}"
                                     data-customer="{{ strtolower($order->user->name) }}"
                                     data-product="{{ strtolower($order->product->name) }}"
-                                    x-show="(statusFilter === 'all' || statusFilter === '{{ $normalizedOrderStatus }}') && (orderSearch === '' || '{{ strtolower($order->user->name) }}'.includes(orderSearch.toLowerCase()) || '{{ strtolower($order->product->name) }}'.includes(orderSearch.toLowerCase()))"
                                     style="background-color: {{ $index % 2 === 1 ? '#FAF7F2' : '#FFFFFF' }};">
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $order->id }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $order->user->name }}</td>
@@ -909,9 +909,7 @@ max-h-[90vh]">
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-6">
-                        {{ $orders->appends(['tab' => 'orders', 'status' => request()->query('status', 'all')])->links() }}
-                    </div>
+                    <div class="store-pagination mt-6" data-store-pagination="orders"></div>
                 @else
                     <div class="py-12 text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
@@ -924,7 +922,7 @@ max-h-[90vh]">
             </div>
 
             <!-- Bulk Orders Tab -->
-            <div x-show="tab === 'bulk-orders'" class="mt-6">
+            <div x-cloak x-show="tab === 'bulk-orders'" class="mt-6">
                 @if($bulkOrders->count() > 0)
                     <!-- Filter Row -->
                     <div class="flex items-center justify-between mb-4">
@@ -967,7 +965,6 @@ max-h-[90vh]">
                                     data-status="{{ strtolower($bulkOrder->status) }}"
                                     data-reseller="{{ strtolower($bulkOrder->reseller->name) }}"
                                     data-product="{{ strtolower($bulkOrder->product->name) }}"
-                                    x-show="(statusFilter === 'all' || statusFilter === '{{ $bulkOrder->status }}') && (bulkOrderSearch === '' || '{{ strtolower($bulkOrder->reseller->name) }}'.includes(bulkOrderSearch.toLowerCase()) || '{{ strtolower($bulkOrder->product->name) }}'.includes(bulkOrderSearch.toLowerCase()))"
                                     style="background-color: {{ $index % 2 === 1 ? '#FAF7F2' : '#FFFFFF' }};">
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $bulkOrder->id }}</td>
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $bulkOrder->reseller->name }}</td>
@@ -991,9 +988,7 @@ max-h-[90vh]">
                             </tbody>
                         </table>
                     </div>
-                    <div class="mt-6">
-                        {{ $bulkOrders->links() }}
-                    </div>
+                    <div class="store-pagination mt-6" data-store-pagination="bulk-orders"></div>
                 @else
                     <div class="py-12 text-center">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
@@ -1218,6 +1213,137 @@ function marketplaceState() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
+
+  // Instant client-side filtering and pagination for Orders and Bulk Orders.
+  document.addEventListener('DOMContentLoaded', function () {
+    const pageSize = 10;
+    const statusSelects = document.querySelectorAll('select[x-model="statusFilter"]');
+    const orderSearchInput = document.querySelector('input[x-model="orderSearch"]');
+    const bulkSearchInput = document.querySelector('input[x-model="bulkOrderSearch"]');
+    const orders = Array.from(document.querySelectorAll('.order-row'));
+    const bulkOrders = Array.from(document.querySelectorAll('.bulk-order-row'));
+    const ordersPagination = document.querySelector('[data-store-pagination="orders"]');
+    const bulkPagination = document.querySelector('[data-store-pagination="bulk-orders"]');
+    const stateRoot = document.querySelector('[x-data*="bulkOrderSearch"]');
+
+    let statusFilter = '{{ request()->query('status', 'all') }}';
+    let orderSearch = '';
+    let bulkOrderSearch = '';
+    let ordersPage = 1;
+    let bulkOrdersPage = 1;
+
+    statusSelects.forEach(select => {
+      select.addEventListener('change', function () {
+        statusFilter = this.value;
+        statusSelects.forEach(other => { other.value = statusFilter; });
+        ordersPage = 1;
+        bulkOrdersPage = 1;
+        renderOrders();
+        renderBulkOrders();
+      });
+    });
+
+    if (orderSearchInput) {
+      orderSearchInput.addEventListener('input', function () {
+        orderSearch = this.value.trim().toLowerCase();
+        ordersPage = 1;
+        renderOrders();
+      });
+    }
+
+    if (bulkSearchInput) {
+      bulkSearchInput.addEventListener('input', function () {
+        bulkOrderSearch = this.value.trim().toLowerCase();
+        bulkOrdersPage = 1;
+        renderBulkOrders();
+      });
+    }
+
+    function matchesStatus(row) {
+      const rowStatus = (row.dataset.status || '').toLowerCase();
+      return statusFilter === 'all' || rowStatus === statusFilter ||
+        (statusFilter === 'cancelled' && rowStatus === 'canceled');
+    }
+
+    function renderPagination(container, kind, total, page, setPage, render) {
+      if (!container) return;
+      container.innerHTML = '';
+      container.style.display = total > pageSize ? 'flex' : 'none';
+      container.style.alignItems = 'center';
+      container.style.justifyContent = 'space-between';
+      container.style.flexWrap = 'wrap';
+      container.style.gap = '12px';
+      if (total <= pageSize) return;
+
+      const totalPages = Math.ceil(total / pageSize);
+      const start = (page - 1) * pageSize + 1;
+      const end = Math.min(page * pageSize, total);
+      const summary = document.createElement('span');
+      summary.className = 'text-sm text-[#9E8C78]';
+      summary.textContent = 'Showing ' + start + '–' + end + ' of ' + total;
+
+      const controls = document.createElement('div');
+      controls.className = 'flex items-center gap-2';
+
+      const previous = document.createElement('button');
+      previous.type = 'button';
+      previous.textContent = 'Previous';
+      previous.disabled = page === 1;
+      previous.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+      previous.addEventListener('click', function () {
+        if (page > 1) { setPage(page - 1); render(); }
+      });
+
+      const label = document.createElement('span');
+      label.className = 'text-sm text-[#9E8C78] px-2';
+      label.textContent = 'Page ' + page + ' of ' + totalPages;
+
+      const next = document.createElement('button');
+      next.type = 'button';
+      next.textContent = 'Next';
+      next.disabled = page === totalPages;
+      next.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+      next.addEventListener('click', function () {
+        if (page < totalPages) { setPage(page + 1); render(); }
+      });
+
+      controls.append(previous, label, next);
+      container.append(summary, controls);
+    }
+
+    function renderOrders() {
+      const matching = orders.filter(row =>
+        matchesStatus(row) &&
+        (!orderSearch ||
+          (row.dataset.customer || '').includes(orderSearch) ||
+          (row.dataset.product || '').includes(orderSearch))
+      );
+      const pages = Math.max(1, Math.ceil(matching.length / pageSize));
+      ordersPage = Math.min(Math.max(ordersPage, 1), pages);
+      const visible = new Set(matching.slice((ordersPage - 1) * pageSize, ordersPage * pageSize));
+      orders.forEach(row => { row.style.display = visible.has(row) ? '' : 'none'; });
+      renderPagination(ordersPagination, 'orders', matching.length, ordersPage,
+        page => { ordersPage = page; }, renderOrders);
+    }
+
+    function renderBulkOrders() {
+      const matching = bulkOrders.filter(row =>
+        matchesStatus(row) &&
+        (!bulkOrderSearch ||
+          (row.dataset.reseller || '').includes(bulkOrderSearch) ||
+          (row.dataset.product || '').includes(bulkOrderSearch))
+      );
+      const pages = Math.max(1, Math.ceil(matching.length / pageSize));
+      bulkOrdersPage = Math.min(Math.max(bulkOrdersPage, 1), pages);
+      const visible = new Set(matching.slice((bulkOrdersPage - 1) * pageSize, bulkOrdersPage * pageSize));
+      bulkOrders.forEach(row => { row.style.display = visible.has(row) ? '' : 'none'; });
+      renderPagination(bulkPagination, 'bulk-orders', matching.length, bulkOrdersPage,
+        page => { bulkOrdersPage = page; }, renderBulkOrders);
+    }
+
+    renderOrders();
+    renderBulkOrders();
+  });
 </script>
 
 @endsection

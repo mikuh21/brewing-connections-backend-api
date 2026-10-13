@@ -673,8 +673,9 @@ document.querySelectorAll('[data-auth-transition]').forEach((link) => {
             return;
         }
 
-        // Use the exact right-panel exit class and timing as account-type selection.
-        activePanel.classList.add('auth-navigation-panel', 'registration-leaving');
+        // Animate only the active content inside the right-hand form stage.
+        // Never animate the outer auth card or its left feature panel.
+        activePanel.classList.add('registration-leaving');
         window.setTimeout(() => window.location.assign(destination.href), 420);
     });
 });

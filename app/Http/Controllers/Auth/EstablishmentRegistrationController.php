@@ -14,13 +14,44 @@ use Illuminate\Validation\Rule;
 
 class EstablishmentRegistrationController extends Controller
 {
+    public function checkEmail(Request $request)
+    {
+        $email = strtolower(trim((string) $request->query('email', '')));
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Enter a valid email address.',
+            ], 422);
+        }
+
+        $exists = User::query()
+            ->whereRaw('LOWER(email) = ?', [$email])
+            ->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'This email is registered. Try another email.' : '',
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
             'owner_name' => ['required', 'string', 'max:255'],
             'establishment_name' => ['required', 'string', 'max:255'],
             'establishment_type' => ['required', Rule::in(['farm', 'cafe', 'roaster'])],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $normalizedEmail = strtolower(trim((string) $value));
+                    if (User::query()->whereRaw('LOWER(email) = ?', [$normalizedEmail])->exists()) {
+                        $fail('This email is registered. Try another email.');
+                    }
+                },
+            ],
             'password' => ['required', 'string', 'min:8', 'max:16', 'regex:/[@$!%*#?&]/', 'confirmed'],
             'password_confirmation' => ['required', 'string'],
             'contact_number' => ['required', 'string', 'max:30', 'regex:/^[0-9+() -]{7,30}$/', 'regex:/^(?=(?:.*\\d){7,15}$)[0-9+() -]+$/'],

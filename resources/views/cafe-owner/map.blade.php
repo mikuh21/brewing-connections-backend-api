@@ -68,6 +68,21 @@
                 "></div>
             </div>
 
+            <div id="owner-pin-controls" class="absolute bottom-4 left-4 z-[950] flex flex-col items-start gap-2">
+                <button id="pin-my-establishment-btn" type="button" class="inline-flex items-center gap-2 rounded-full bg-[#2E5A3D] px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg>
+                    Pin My Establishment
+                </button>
+                <div id="owner-pin-confirm" class="hidden w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-[#D9CDBA] bg-white p-4 shadow-xl">
+                    <p id="owner-pin-confirm-text" class="text-sm font-semibold text-[#3A2E22]">Use this location for your establishment?</p>
+                    <p class="mt-1 text-xs leading-5 text-[#7B6A59]">Click another point to adjust the pin, or save the selected location.</p>
+                    <div class="mt-3 flex gap-2">
+                        <button id="owner-pin-save-btn" type="button" class="flex-1 rounded-lg bg-[#2E5A3D] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#1E3A2A] disabled:cursor-not-allowed disabled:opacity-60">Save Location</button>
+                        <button id="owner-pin-cancel-btn" type="button" class="rounded-lg border border-[#D4C5B2] bg-white px-3 py-2 text-xs font-semibold text-[#3A2E22] transition hover:bg-[#F5F0E8]">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="route-strip" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-3 hidden z-40 max-w-sm">
                 <div id="route-summary" class="text-sm font-medium text-gray-800"></div>
                 <div id="route-steps" class="mt-2 max-h-32 overflow-y-auto text-xs text-gray-600"></div>
@@ -304,7 +319,10 @@
 
 @push('scripts')
 <script>
-    window.IS_FARM_OWNER_MAP = true;
+    window.IS_FARM_OWNER_MAP = false;
+    window.IS_ESTABLISHMENT_OWNER_MAP = true;
+    window.ESTABLISHMENT_OWNER_PIN_URL = '{{ route('my-establishment.location.update') }}';
+    window.OWNER_ESTABLISHMENT_ID = @json(\\App\\Models\\Establishment::query()->where('owner_id', auth()->id())->whereIn('type', ['farm', 'cafe'])->whereNull('deleted_at')->value('id'));
     window.MAPBOX_TOKEN = '{{ $mapboxToken }}';
     window.GOOGLE_MAPS_KEY = '{{ $googleMapsKey }}';
     window.JWT_TOKEN = '{{ auth()->user()->api_token ?? '' }}';

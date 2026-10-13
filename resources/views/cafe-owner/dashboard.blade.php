@@ -254,6 +254,40 @@
     </div>
 </div>
 
+@php
+    $profileEstablishment = $establishment ?? null;
+    $profileCompletenessChecks = [
+        'Profile image' => $profileEstablishment?->image,
+        'Description' => $profileEstablishment?->description,
+        'Website (optional)' => $profileEstablishment?->website,
+        'Operating hours' => $profileEstablishment?->visit_hours,
+        'Activities' => $profileEstablishment?->activities,
+        'Map location' => ($profileEstablishment?->latitude !== null && $profileEstablishment?->longitude !== null) ? 'set' : null,
+    ];
+    $missingProfileFields = collect($profileCompletenessChecks)
+        ->filter(fn ($value) => blank($value))
+        ->keys()
+        ->values();
+@endphp
+
+@if($profileEstablishment && $missingProfileFields->isNotEmpty())
+    <div class="mb-8 rounded-2xl border border-[#E5DDD0] border-l-4 border-l-red-500 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <h2 class="text-xl font-display font-bold text-[#3A2E22]">Complete your profile</h2>
+                <p class="mt-1 text-sm text-[#9E8C78]">Add more details to help customers discover your coffee shop and make your listing more informative.</p>
+                <p class="mt-2 text-sm text-[#5E5447]">Missing: {{ $missingProfileFields->join(', ') }}.</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('cafe-owner.my-cafe') }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">Complete Profile</a>
+                @if($profileEstablishment->latitude === null || $profileEstablishment->longitude === null)
+                    <a href="{{ route('cafe-owner.map') }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>
+                @endif
+            </div>
+        </div>
+    </div>
+@endif
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] border-l-4 border-l-green-500 p-6 hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between">

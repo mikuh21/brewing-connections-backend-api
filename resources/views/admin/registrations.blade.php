@@ -262,6 +262,7 @@
                                     data-name="{{ strtolower($consumer->name) }}"
                                     data-email="{{ strtolower($consumer->email) }}"
                                     data-status="{{ $consumer->status }}"
+                                    data-created-at="{{ $consumer->created_at->timestamp }}"
                                     data-type="{{ $consumer->role === 'consumer' ? 'consumers' : ($consumer->role === 'farm_owner' ? 'farm_owners' : (($consumer->establishment?->type ?? '') === 'roaster' ? 'roasters' : 'coffee_shop_owners')) }}"
                                     style="background-color: {{ $index % 2 === 1 ? '#FAF7F2' : '#FFFFFF' }};">
                                     <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $consumers->firstItem() + $index }}</td>
@@ -371,61 +372,69 @@
         };
     }
 
-    // Client-side filtering and searching for consumers
+    // Client-side filtering and searching for registrations (no page reload).
     document.addEventListener('DOMContentLoaded', function() {
         const filterTabs = document.querySelectorAll('.filter-tab');
         const searchInput = document.getElementById('search-input');
         const consumerRows = document.querySelectorAll('.consumer-row');
         const tbody = document.getElementById('consumers-tbody');
         const accountTypeFilter = document.getElementById('account-type-filter');
-        if (accountTypeFilter) {
-            accountTypeFilter.addEventListener('change', function () {
-                const url = new URL(window.location.href);
-                url.searchParams.set('account_type', this.value);
-                url.searchParams.delete('page');
-                window.location.href = url.toString();
-            });
-        }
         let currentFilter = @json($filter);
-        let currentSearch = '';
+        let currentAccountType = @json($accountType ?? 'all');
+        let currentSearch = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-        // Apply status filters on the server so results remain correct across pagination.
+        // Status tabs update the table instantly, matching the Resellers page behavior.
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function() {
-                const url = new URL(window.location.href);
-                url.searchParams.set('filter', this.getAttribute('data-filter'));
-                url.searchParams.delete('page');
-                window.location.href = url.toString();
+                currentFilter = this.getAttribute('data-filter');
+
+                filterTabs.forEach(btn => {
+                    const active = btn === this;
+                    btn.style.color = active ? '#3B2F2F' : '#9E8C78';
+                    btn.style.borderBottomColor = active ? '#3B2F2F' : 'transparent';
+                    btn.classList.toggle('active', active);
+                });
+
+                updateTableDisplay();
             });
         });
 
-        // Handle search input
-        searchInput.addEventListener('input', function() {
-            currentSearch = this.value.toLowerCase();
-            updateTableDisplay();
-        });
+        // Account type changes filter the existing rows without navigating or reloading.
+        if (accountTypeFilter) {
+            accountTypeFilter.addEventListener('change', function() {
+                currentAccountType = this.value;
+                updateTableDisplay();
+            });
+        }
 
-        // Update table display based on filter and search
+        // Keep the existing instant search behavior.
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                currentSearch = this.value.toLowerCase().trim();
+                updateTableDisplay();
+            });
+        }
+
         function updateTableDisplay() {
             let visibleCount = 0;
+            const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
 
             consumerRows.forEach(row => {
-                const rowName = row.getAttribute('data-name');
-                const rowEmail = row.getAttribute('data-email');
+                const rowName = (row.getAttribute('data-name') || '').toLowerCase();
+                const rowEmail = (row.getAttribute('data-email') || '').toLowerCase();
                 const rowStatus = row.getAttribute('data-status');
+                const rowType = row.getAttribute('data-type');
+                const createdAt = Number(row.getAttribute('data-created-at') || 0);
 
-                // Check status filter
-                const statusMatch = currentFilter === 'all' || rowStatus === currentFilter;
-
-                // Check search query
-                let searchMatch = true;
-                if (currentSearch) {
-                    searchMatch = rowName.includes(currentSearch) ||
-                                 rowEmail.includes(currentSearch);
+                let statusMatch = currentFilter === 'all' || rowStatus === currentFilter;
+                if (currentFilter === 'last_30_days') {
+                    statusMatch = createdAt >= thirtyDaysAgo;
                 }
 
-                // Show or hide row
-                if (statusMatch && searchMatch) {
+                const accountTypeMatch = currentAccountType === 'all' || rowType === currentAccountType;
+                const searchMatch = !currentSearch || rowName.includes(currentSearch) || rowEmail.includes(currentSearch);
+
+                if (statusMatch && accountTypeMatch && searchMatch) {
                     row.style.display = '';
                     visibleCount++;
                 } else {
@@ -433,7 +442,6 @@
                 }
             });
 
-            // Show or hide "No results found" message
             let noResultsRow = document.getElementById('no-results-row');
             if (visibleCount === 0) {
                 if (!noResultsRow) {

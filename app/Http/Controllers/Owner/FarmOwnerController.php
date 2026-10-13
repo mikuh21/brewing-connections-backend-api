@@ -961,7 +961,7 @@ class FarmOwnerController extends Controller
     public function addFarmLocation(Request $request)
     {
         $user = Auth::user();
-        /** @var \\App\\Models\\User $user */
+        /** @var \App\Models\User $user */
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -992,7 +992,7 @@ class FarmOwnerController extends Controller
     public function map(Request $request)
     {
         $user = Auth::user();
-        /** @var \\App\\Models\\User $user */
+        /** @var \App\Models\User $user */
         $activeFarm = $this->resolveActiveFarm($user, $this->activeFarmIdFromRequest($request), true);
 
         abort_unless($activeFarm && $this->isFarmManagedByUser($activeFarm, $user), 403);

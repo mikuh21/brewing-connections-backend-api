@@ -11,7 +11,7 @@
 @endpush
 
 @section('content')
-<div class="admin-map-page min-h-screen flex bg-[#F5F0E8] text-[#3A2E22]">
+<div class="admin-map-page h-screen overflow-hidden flex bg-[#F5F0E8] text-[#3A2E22]">
     <!-- Sidebar -->
     <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
@@ -164,7 +164,7 @@
                     <!-- Content will be populated by JS -->
                 </div>
 
-                <div id="map" class="flex-1 min-h-0 min-w-0 w-full rounded-xl overflow-hidden relative" style="opacity: 1; position: relative; overflow: hidden;">
+                <div id="map" class="h-full w-full rounded-xl overflow-hidden relative" style="opacity: 0; transition: opacity 0.2s; position: relative; overflow: hidden;">
                     <div id="details-panel" style="
                       position: absolute;
                       top: 0;

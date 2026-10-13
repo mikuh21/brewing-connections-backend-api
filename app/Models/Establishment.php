@@ -88,6 +88,7 @@ class Establishment extends Model
         'visit_hours',
         'activities',
         'image',
+        'menu_image',
         'banner_focus_x',
         'banner_focus_y',
         'profile_focus_x',
@@ -185,6 +186,11 @@ class Establishment extends Model
     }
 
     public function getImageAttribute($value): ?string
+    {
+        return static::normalizeMediaUrl($value);
+    }
+
+    public function getMenuImageAttribute($value): ?string
     {
         return static::normalizeMediaUrl($value);
     }

@@ -8,6 +8,9 @@ let resellerPlacementMode = false;
 let ownerPinPlacementMode = false;
 let ownerPinTempMarker = null;
 let ownerPinLatLng = null;
+let ownerEditingExistingMarker = null;
+let ownerOriginalMarkerLatLng = null;
+let ownerOriginalMarkerIcon = null;
 let editingMarker = null;
 let originalLatLng = null;
 let selectedResellerForMapping = null;
@@ -3273,7 +3276,7 @@ function cancelResellerPlacementMode() {
     }
 }
 
-function resetOwnerPinPlacement() {
+function resetOwnerPinPlacement({ restoreEditedMarker = false } = {}) {
     ownerPinPlacementMode = false;
     ownerPinLatLng = null;
 
@@ -3281,6 +3284,18 @@ function resetOwnerPinPlacement() {
         map.removeLayer(ownerPinTempMarker);
     }
     ownerPinTempMarker = null;
+
+    if (ownerEditingExistingMarker) {
+        if (restoreEditedMarker && ownerOriginalMarkerLatLng) {
+            ownerEditingExistingMarker.setLatLng(ownerOriginalMarkerLatLng);
+        }
+        ownerEditingExistingMarker.off('dragend', handleOwnerExistingMarkerDragEnd);
+        ownerEditingExistingMarker.dragging?.disable();
+        if (ownerOriginalMarkerIcon) ownerEditingExistingMarker.setIcon(ownerOriginalMarkerIcon);
+    }
+    ownerEditingExistingMarker = null;
+    ownerOriginalMarkerLatLng = null;
+    ownerOriginalMarkerIcon = null;
 
     map?.off('click', handleOwnerPinMapClick);
 
@@ -3334,7 +3349,66 @@ function handleOwnerPinMapClick(event) {
     panel?.classList.remove('hidden');
 }
 
+function startOwnerExistingMarkerEdit(establishmentId) {
+    if (!establishmentId || String(establishmentId) !== String(window.OWNER_ESTABLISHMENT_ID)) {
+        showToast('You can only edit the location of your own establishment.', true);
+        return;
+    }
+
+    const markerData = window.markerIndex?.[String(establishmentId)] || window.markerIndex?.[establishmentId];
+    const marker = markerData?.marker;
+    if (!marker || !markerData?.feature) {
+        showToast('Your establishment marker could not be found on the map. Refresh and try again.', true);
+        return;
+    }
+
+    resetOwnerPinPlacement();
+    closeDetailsPanel();
+
+    ownerEditingExistingMarker = marker;
+    ownerOriginalMarkerLatLng = marker.getLatLng();
+    ownerOriginalMarkerIcon = marker.options.icon || marker.getIcon();
+    marker.dragging?.enable();
+    marker.setIcon(editingIcon);
+    marker.on('dragend', handleOwnerExistingMarkerDragEnd);
+
+    const confirmPanel = document.getElementById('owner-pin-confirm');
+    const confirmText = document.getElementById('owner-pin-confirm-text');
+    const saveButton = document.getElementById('owner-pin-save-btn');
+    if (confirmText) {
+        confirmText.textContent = 'Drag your establishment marker to its new location, then save.';
+    }
+    if (saveButton) saveButton.disabled = true;
+    confirmPanel?.classList.remove('hidden');
+    showToast('Drag your establishment marker to reposition it, then save.');
+}
+
+function handleOwnerExistingMarkerDragEnd() {
+    if (!ownerEditingExistingMarker) return;
+    const position = ownerEditingExistingMarker.getLatLng();
+    const confirmText = document.getElementById('owner-pin-confirm-text');
+    const saveButton = document.getElementById('owner-pin-save-btn');
+
+    if (position.lat < 13.85 || position.lat > 14.05 || position.lng < 121.05 || position.lng > 121.30) {
+        if (ownerOriginalMarkerLatLng) ownerEditingExistingMarker.setLatLng(ownerOriginalMarkerLatLng);
+        if (confirmText) confirmText.textContent = 'That position is outside the Lipa map area. Drag the marker to a valid location.';
+        if (saveButton) saveButton.disabled = true;
+        showToast('Choose a location within the Lipa map area.', true);
+        return;
+    }
+
+    if (confirmText) {
+        confirmText.textContent = `Save new location? ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`;
+    }
+    if (saveButton) saveButton.disabled = false;
+}
+
 function startOwnerPinPlacement() {
+    if (window.OWNER_ESTABLISHMENT_PINNED) {
+        startOwnerExistingMarkerEdit(window.OWNER_ESTABLISHMENT_ID);
+        return;
+    }
+
     const pinButton = document.getElementById('pin-my-establishment-btn');
     if (!window.OWNER_ESTABLISHMENT_ID || !window.ESTABLISHMENT_OWNER_PIN_URL) {
         showToast('No establishment is linked to this account. Please contact support.', true);
@@ -3369,12 +3443,22 @@ function setupOwnerEstablishmentPinning() {
     });
 
     cancelButton.addEventListener('click', () => {
-        resetOwnerPinPlacement();
+        resetOwnerPinPlacement({ restoreEditedMarker: true });
     });
 
     saveButton.addEventListener('click', async () => {
-        if (!ownerPinLatLng) {
+        const editingExistingMarker = Boolean(ownerEditingExistingMarker);
+        const targetLatLng = editingExistingMarker
+            ? ownerEditingExistingMarker.getLatLng()
+            : ownerPinLatLng;
+
+        if (!targetLatLng) {
             showToast('Click the map to select a location first.', true);
+            return;
+        }
+
+        if (targetLatLng.lat < 13.85 || targetLatLng.lat > 14.05 || targetLatLng.lng < 121.05 || targetLatLng.lng > 121.30) {
+            showToast('Choose a location within the Lipa map area.', true);
             return;
         }
 
@@ -3391,8 +3475,8 @@ function setupOwnerEstablishmentPinning() {
                 },
                 body: JSON.stringify({
                     establishment_id: window.OWNER_ESTABLISHMENT_ID,
-                    latitude: ownerPinLatLng.lat.toFixed(8),
-                    longitude: ownerPinLatLng.lng.toFixed(8),
+                    latitude: targetLatLng.lat.toFixed(8),
+                    longitude: targetLatLng.lng.toFixed(8),
                 }),
             });
 
@@ -3402,6 +3486,17 @@ function setupOwnerEstablishmentPinning() {
                 throw new Error(errors || payload?.message || 'Could not save your establishment location.');
             }
 
+            if (editingExistingMarker && ownerEditingExistingMarker) {
+                const marker = ownerEditingExistingMarker;
+                const id = String(window.OWNER_ESTABLISHMENT_ID);
+                const markerData = window.markerIndex?.[id];
+                if (markerData?.feature) {
+                    markerData.feature.geometry.coordinates = [targetLatLng.lng, targetLatLng.lat];
+                    markerData.feature.properties.latitude = targetLatLng.lat;
+                    markerData.feature.properties.longitude = targetLatLng.lng;
+                }
+                marker.dragging?.disable();
+            }
             window.OWNER_ESTABLISHMENT_PINNED = true;
             resetOwnerPinPlacement();
             showToast(payload.message || 'Establishment location saved.');
@@ -3443,7 +3538,7 @@ function setupStaticEventListeners() {
             e.preventDefault();
             const featureId = e.target.closest('#edit-owner-pinned-location-btn').getAttribute('data-feature-id');
             if (String(featureId) === String(window.OWNER_ESTABLISHMENT_ID) && window.OWNER_ESTABLISHMENT_PINNED) {
-                startOwnerPinPlacement();
+                startOwnerExistingMarkerEdit(featureId);
             } else {
                 showToast('You can only edit the location of your own establishment.', true);
             }

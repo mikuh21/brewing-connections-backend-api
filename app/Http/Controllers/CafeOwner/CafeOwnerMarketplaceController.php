@@ -4,472 +4,77 @@ namespace App\Http\Controllers\CafeOwner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
-use App\Models\Order;
-use App\Models\Product;
-use App\Services\MenuImageExtractionService;
-use App\Services\OrderReceiptNotifier;
-use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class CafeOwnerMarketplaceController extends Controller
 {
-    public function __construct(
-        private readonly MenuImageExtractionService $menuImageExtractionService,
-        private readonly OrderReceiptNotifier $orderReceiptNotifier,
-        private readonly OrderStockManager $orderStockManager,
-    ) {
-    }
-
     public function index()
     {
-        $user = Auth::user();
-        /** @var \App\Models\User $user */
+        $establishment = $this->resolveOwnedEstablishment((int) Auth::id());
 
-        $userId = (int) $user->id;
-        $establishment = $this->resolveOwnedEstablishment($userId);
-        $typeCategoryMap = [
-            'coffee_beans' => 'Coffee Beans',
-            'ground_coffee' => 'Ground Coffee',
-            'hot_drinks' => 'Hot Drinks',
-            'iced_drinks' => 'Iced Drinks',
-            'iced_blended_drinks' => 'Iced Blended Drinks',
-            'tea' => 'Tea',
-            'rice_meals' => 'Rice Meals',
-            'pastas' => 'Pastas',
-            'appetizers' => 'Appetizers',
-            'sandwiches' => 'Sandwiches',
-            'burgers' => 'Burgers',
-            'pastries' => 'Pastries',
-        ];
-
-        $productsQuery = Product::query()->whereRaw('1 = 0');
-
-        if ($establishment || Schema::hasColumn('products', 'seller_id') || Schema::hasColumn('products', 'user_id')) {
-            $productsQuery = Product::query();
-
-            if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
-                $productsQuery->where('establishment_id', $establishment->id);
-            } elseif (Schema::hasColumn('products', 'seller_id')) {
-                $productsQuery->where('seller_id', $userId);
-
-                if (Schema::hasColumn('products', 'seller_type')) {
-                    $productsQuery->where('seller_type', 'cafe_owner');
-                }
-            } elseif (Schema::hasColumn('products', 'user_id')) {
-                $productsQuery->where('user_id', $userId);
-            }
-
-            if ($search = trim((string) request('search'))) {
-                $searchLower = mb_strtolower($search);
-                $productsQuery->where(function ($query) use ($searchLower) {
-                    $query->whereRaw('LOWER(name) LIKE ?', ['%' . $searchLower . '%'])
-                        ->orWhereRaw('LOWER(category) LIKE ?', ['%' . $searchLower . '%']);
-                });
-            }
-
-            if (($type = request('type')) && isset($typeCategoryMap[$type])) {
-                $productsQuery->where('category', $typeCategoryMap[$type]);
-            }
-
-            $productsQuery->latest();
-        }
-
-        $products = $productsQuery->paginate(12)->withQueryString();
-
-        $marketplaceQuery = Product::query();
-
-        if (Schema::hasTable('users') && Schema::hasColumn('products', 'seller_id')) {
-            $marketplaceQuery->leftJoin('users as sellers', 'sellers.id', '=', 'products.seller_id');
-        }
-
-        if (Schema::hasColumn('products', 'is_active')) {
-            $marketplaceQuery->where(function ($builder) {
-                $builder->where('products.is_active', true)
-                    ->orWhereNull('products.is_active');
-            });
-        }
-
-        if (Schema::hasColumn('products', 'seller_id')) {
-            $marketplaceQuery->where(function ($builder) use ($userId) {
-                $builder->whereNull('products.seller_id')
-                    ->orWhere('products.seller_id', '!=', $userId);
-            });
-        }
-
-        if (Schema::hasColumn('products', 'user_id')) {
-            $marketplaceQuery->where(function ($builder) use ($userId) {
-                $builder->whereNull('products.user_id')
-                    ->orWhere('products.user_id', '!=', $userId);
-            });
-        }
-
-        if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
-            $marketplaceQuery->where(function ($builder) use ($establishment) {
-                $builder->whereNull('products.establishment_id')
-                    ->orWhere('products.establishment_id', '!=', (int) $establishment->id);
-            });
-        }
-
-        if ($search = trim((string) request('search'))) {
-            $searchLower = mb_strtolower($search);
-            $marketplaceQuery->where(function ($builder) use ($searchLower) {
-                $builder->whereRaw('LOWER(products.name) LIKE ?', ['%' . $searchLower . '%'])
-                    ->orWhereRaw('LOWER(products.category) LIKE ?', ['%' . $searchLower . '%'])
-                    ->orWhereRaw('LOWER(products.description) LIKE ?', ['%' . $searchLower . '%'])
-                    ->orWhereRaw('LOWER(COALESCE(sellers.name, "")) LIKE ?', ['%' . $searchLower . '%']);
-            });
-        }
-
-        if (($type = request('type')) && isset($typeCategoryMap[$type])) {
-            $marketplaceQuery->where('products.category', $typeCategoryMap[$type]);
-        }
-
-        $sellerTypeFilter = request('seller_type_filter');
-        if (Schema::hasColumn('products', 'seller_type') && in_array($sellerTypeFilter, ['farm_owner', 'cafe_owner', 'reseller'], true)) {
-            $marketplaceQuery->where('products.seller_type', $sellerTypeFilter);
-        }
-
-        $marketplaceProducts = $marketplaceQuery
-            ->select([
-                'products.id',
-                'products.name',
-                'products.description',
-                'products.category',
-                'products.price_per_unit',
-                'products.stock_quantity',
-                'products.unit',
-                'products.moq',
-                'products.image_url',
-                'products.seller_type',
-                'products.seller_id',
-                'sellers.name as seller_name',
-            ])
-            ->orderByDesc('products.updated_at')
-            ->paginate(12, ['*'], 'market_page')
-            ->withQueryString();
-
-        $orders = collect();
-        if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
-            $orders = Order::with(['user:id,name', 'product:id,name,establishment_id'])
-                ->whereHas('product', function ($query) use ($establishment) {
-                    $query->where('establishment_id', $establishment->id);
-                })
-                ->latest()
-                ->get();
-        } elseif (Schema::hasColumn('products', 'seller_id')) {
-            $orders = Order::with(['user:id,name', 'product:id,name,seller_id,seller_type'])
-                ->whereHas('product', function ($query) use ($userId) {
-                    $query->where('seller_id', $userId);
-
-                    if (Schema::hasColumn('products', 'seller_type')) {
-                        $query->where('seller_type', 'cafe_owner');
-                    }
-                })
-                ->latest()
-                ->get();
-        }
-
-        return view('cafe-owner.marketplace', compact('products', 'marketplaceProducts', 'orders'));
+        return view('cafe-owner.menu', compact('establishment'));
     }
 
-    public function store(Request $request)
-    {
-        $userId = Auth::id();
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'required|in:Coffee Beans,Ground Coffee',
-            'roast_level' => 'nullable|string|max:100',
-            'grind_type' => 'nullable|string|max:100',
-            'price_per_unit' => 'required|numeric|gt:0',
-            'unit' => 'nullable|string|max:50',
-            'moq' => 'nullable|integer|min:1',
-            'stock_quantity' => 'required|integer|min:1',
-            'image' => 'nullable|image|max:5120',
-        ]);
-
-        $establishment = Establishment::query()
-            ->when(
-                Schema::hasColumn('establishments', 'user_id'),
-                fn ($query) => $query->where('user_id', $userId),
-                fn ($query) => $query->where('owner_id', $userId)
-            )
-            ->first();
-
-        $payload = [
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'category' => $validated['category'],
-            'roast_level' => $validated['roast_level'] ?? null,
-            'grind_type' => $validated['grind_type'] ?? null,
-            'price_per_unit' => $validated['price_per_unit'],
-            'unit' => $validated['unit'] ?? 'kg',
-            'moq' => $validated['moq'] ?? 1,
-            'stock_quantity' => $validated['stock_quantity'],
-            'is_active' => true,
-        ];
-
-        if (Schema::hasColumn('products', 'user_id')) {
-            $payload['user_id'] = $userId;
-        }
-
-        if (Schema::hasColumn('products', 'seller_id')) {
-            $payload['seller_id'] = $userId;
-        }
-
-        if (Schema::hasColumn('products', 'seller_type')) {
-            $payload['seller_type'] = 'cafe_owner';
-        }
-
-        if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
-            $payload['establishment_id'] = $establishment->id;
-        }
-
-        if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
-            $storedPath = $request->file('image')->store('products', 'supabase');
-            $payload['image_url'] = $storedPath;
-        }
-
-        Product::create($payload);
-
-        return back()->with('status', 'Product created successfully.');
-    }
-
-    public function updateProduct(Request $request, Product $product)
-    {
-        $user = Auth::user();
-        /** @var \App\Models\User $user */
-
-        if (!$this->productBelongsToUser($product, (int) $user->id)) {
-            abort(403);
-        }
-
-        $productCategories = [
-            'Coffee Beans',
-            'Ground Coffee',
-            'Hot Drinks',
-            'Iced Drinks',
-            'Iced Blended Drinks',
-            'Tea',
-            'Rice Meals',
-            'Pastas',
-            'Appetizers',
-            'Sandwiches',
-            'Burgers',
-            'Pastries',
-        ];
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'required|in:' . implode(',', $productCategories),
-            'price_per_unit' => 'required|numeric|min:0',
-            'stock_quantity' => 'nullable|integer|min:0',
-            'unit' => 'nullable|string|max:50',
-            'moq' => 'nullable|integer|min:1',
-            'image' => 'nullable|image|max:5120',
-        ]);
-
-        $isCoffeeProduct = in_array($validated['category'], ['Coffee Beans', 'Ground Coffee'], true);
-
-        if ($isCoffeeProduct && !array_key_exists('stock_quantity', $validated)) {
-            return back()
-                ->withErrors(['stock_quantity' => 'Stock quantity is required for Coffee Beans and Ground Coffee.'])
-                ->withInput();
-        }
-
-        $imageUrl = $product->getRawOriginal('image_url') ?: $product->image_url;
-        if ($request->hasFile('image') && Schema::hasColumn('products', 'image_url')) {
-            $path = $request->file('image')->store('products', 'supabase');
-            $imageUrl = $path;
-        }
-
-        $updatePayload = [
-            'name' => $validated['name'],
-            'description' => $validated['description'] ?? null,
-            'category' => $validated['category'],
-            'price_per_unit' => $validated['price_per_unit'],
-            'stock_quantity' => $validated['stock_quantity'] ?? ($product->stock_quantity ?? ($isCoffeeProduct ? 0 : 10)),
-            'unit' => $validated['unit'] ?? ($product->unit ?: ($isCoffeeProduct ? 'kg' : 'serving')),
-            'moq' => $validated['moq'] ?? ($product->moq ?: 1),
-        ];
-
-        if (Schema::hasColumn('products', 'image_url')) {
-            $updatePayload['image_url'] = $imageUrl;
-        }
-
-        $product->update($updatePayload);
-
-        return back()->with('status', 'Product updated successfully.');
-    }
-
-    public function extractMenuItems(Request $request)
+    public function uploadMenu(Request $request)
     {
         $validated = $request->validate([
-            'menu_image' => ['required', 'image', 'max:10240'],
+            'menu_file' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+        ], [
+            'menu_file.required' => 'Please choose a menu image or PDF to upload.',
+            'menu_file.mimes' => 'Upload your menu as a JPG, PNG, WEBP image, or PDF.',
+            'menu_file.max' => 'Your menu file must be 10 MB or smaller.',
         ]);
 
-        try {
-            $items = $this->menuImageExtractionService->extractDraftProducts($validated['menu_image']);
-        } catch (\Throwable $exception) {
-            return response()->json([
-                'message' => $exception->getMessage(),
-            ], 422);
-        }
+        $establishment = $this->resolveOwnedEstablishment((int) Auth::id());
 
-        return response()->json([
-            'message' => 'Menu image extracted successfully.',
-            'items' => $items,
-        ]);
-    }
-
-    public function confirmExtractedMenuItems(Request $request)
-    {
-        $userId = (int) Auth::id();
-
-        $menuCategories = implode(',', [
-            'Coffee Beans',
-            'Ground Coffee',
-            'Hot Drinks',
-            'Iced Drinks',
-            'Iced Blended Drinks',
-            'Tea',
-            'Rice Meals',
-            'Pastas',
-            'Appetizers',
-            'Sandwiches',
-            'Burgers',
-            'Pastries',
-        ]);
-
-        $validated = $request->validate([
-            'items' => ['required', 'array', 'min:1', 'max:100'],
-            'items.*.name' => ['required', 'string', 'max:255'],
-            'items.*.description' => ['nullable', 'string'],
-            'items.*.category' => ['required', 'in:' . $menuCategories],
-            'items.*.price_per_unit' => ['required', 'numeric', 'min:0'],
-        ]);
-
-        $establishment = $this->resolveOwnedEstablishment($userId);
-        $createdProducts = [];
-
-        foreach ($validated['items'] as $item) {
-            $payload = [
-                'name' => trim((string) $item['name']),
-                'description' => $item['description'] ?? null,
-                'category' => $item['category'],
-                'price_per_unit' => $item['price_per_unit'],
-                'stock_quantity' => 10,
-                'unit' => 'serving',
-                'moq' => 1,
-                'is_active' => true,
-            ];
-
-            if (Schema::hasColumn('products', 'user_id')) {
-                $payload['user_id'] = $userId;
-            }
-
-            if (Schema::hasColumn('products', 'seller_id')) {
-                $payload['seller_id'] = $userId;
-            }
-
-            if (Schema::hasColumn('products', 'seller_type')) {
-                $payload['seller_type'] = 'cafe_owner';
-            }
-
-            if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
-                $payload['establishment_id'] = $establishment->id;
-            }
-
-            $createdProduct = Product::create($payload);
-            $createdProducts[] = [
-                'id' => (int) $createdProduct->id,
-                'name' => (string) $createdProduct->name,
-            ];
-        }
-
-        return response()->json([
-            'message' => 'Menu items imported successfully.',
-            'created_count' => count($createdProducts),
-            'products' => $createdProducts,
-        ]);
-    }
-
-    public function updateProductVisibility(Request $request, Product $product)
-    {
-        $userId = (int) Auth::id();
-
-        if (!$this->productBelongsToUser($product, $userId)) {
-            abort(403);
-        }
-
-        if (!Schema::hasColumn('products', 'is_active')) {
-            return response()->json([
-                'message' => 'Product visibility is not supported in this environment.',
-            ], 422);
-        }
-
-        $validated = $request->validate([
-            'is_active' => ['required', 'boolean'],
-        ]);
-
-        $product->update([
-            'is_active' => (bool) $validated['is_active'],
-        ]);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'message' => 'Product visibility updated successfully.',
-                'product' => [
-                    'id' => (int) $product->id,
-                    'is_active' => (bool) $product->is_active,
-                ],
-            ]);
-        }
-
-        return back()->with('status', 'Product visibility updated successfully.');
-    }
-
-    public function updateOrder(Request $request, Order $order)
-    {
-        $userId = (int) Auth::id();
-
-        $productColumns = ['id'];
-
-        foreach (['establishment_id', 'seller_id', 'seller_type', 'user_id'] as $column) {
-            if (Schema::hasColumn('products', $column)) {
-                $productColumns[] = $column;
-            }
-        }
-
-        $order->loadMissing([
-            'product:' . implode(',', $productColumns),
-        ]);
-
-        if (!$order->product || !$this->productBelongsToUser($order->product, $userId)) {
-            abort(403);
-        }
-
-        if (in_array(strtolower((string) $order->status), ['canceled', 'cancelled'], true)) {
+        if (!$establishment) {
             return back()->withErrors([
-                'status' => 'Cancelled orders can no longer be updated.',
+                'menu_file' => 'Create your coffee shop profile before uploading a menu.',
             ]);
         }
 
-        $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed,canceled,cancelled',
-        ]);
+        if (!Schema::hasColumn('establishments', 'menu_image')) {
+            return back()->withErrors([
+                'menu_file' => 'Menu uploads are not available until the latest database migration has run.',
+            ]);
+        }
 
-        $status = $validated['status'] === 'canceled' ? 'cancelled' : $validated['status'];
+        $path = $validated['menu_file']->store('establishment-menus', 'supabase');
+        $establishment->menu_image = $path;
+        $establishment->save();
 
-        $order = $this->orderStockManager->applyStatusTransition($order, $status);
+        return redirect()
+            ->route('cafe-owner.marketplace')
+            ->with('status', 'Your cafe menu was uploaded successfully.');
+    }
 
-        $this->orderReceiptNotifier->sendStatusUpdated($order);
+    public function deleteMenu()
+    {
+        $establishment = $this->resolveOwnedEstablishment((int) Auth::id());
 
-        return back()->with('status', 'Order status updated successfully.');
+        if (!$establishment) {
+            return redirect()->route('cafe-owner.marketplace');
+        }
+
+        $storedPath = (string) ($establishment->getRawOriginal('menu_image') ?? '');
+
+        if ($storedPath !== '' && !preg_match('/^https?:\/\//i', $storedPath)) {
+            try {
+                Storage::disk('supabase')->delete($storedPath);
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        $establishment->menu_image = null;
+        $establishment->save();
+
+        return redirect()
+            ->route('cafe-owner.marketplace')
+            ->with('status', 'Your cafe menu was removed.');
     }
 
     protected function resolveOwnedEstablishment(int $userId): ?Establishment
@@ -485,29 +90,5 @@ class CafeOwnerMarketplaceController extends Controller
         }
 
         return null;
-    }
-
-    protected function productBelongsToUser(Product $product, int $userId): bool
-    {
-        if (Schema::hasColumn('products', 'establishment_id')) {
-            $establishment = $this->resolveOwnedEstablishment($userId);
-            if ($establishment && (int) $product->establishment_id === (int) $establishment->id) {
-                return true;
-            }
-        }
-
-        if (Schema::hasColumn('products', 'seller_id') && (int) $product->seller_id === $userId) {
-            if (!Schema::hasColumn('products', 'seller_type')) {
-                return true;
-            }
-
-            return (string) $product->seller_type === 'cafe_owner';
-        }
-
-        if (Schema::hasColumn('products', 'user_id') && (int) $product->user_id === $userId) {
-            return true;
-        }
-
-        return false;
     }
 }

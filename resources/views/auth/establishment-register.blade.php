@@ -819,16 +819,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return true;
     };
 
-    nextButton.addEventListener('click', () => {
+    nextButton.addEventListener('click', async () => {
         if (!validateVisibleRequiredFields(stepOne)) return;
-        const email = form.querySelector('#registration_email');
-        email.setCustomValidity('');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim())) {
-            email.setCustomValidity('Enter a valid email address.');
-            email.reportValidity();
-            email.focus();
+        emailInput.setCustomValidity('');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim())) {
+            emailInput.setCustomValidity('Enter a valid email address.');
+            emailInput.reportValidity();
+            emailInput.focus();
             return;
         }
+
+        window.clearTimeout(emailCheckTimer);
+        const emailIsAlreadyChecked = emailAvailability === 'available'
+            && checkedEmail === emailInput.value.trim().toLowerCase();
+        if (!emailIsAlreadyChecked) {
+            const availability = await checkEmailAvailability(emailInput.value);
+            if (availability === false) {
+                emailInput.focus();
+                return;
+            }
+        }
+        if (emailAvailability === 'taken') {
+            emailInput.focus();
+            return;
+        }
+
         if (!validatePasswordFields()) return;
         setStep(2);
     });

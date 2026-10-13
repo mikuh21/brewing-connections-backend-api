@@ -758,7 +758,6 @@
     $browseSellerTypeOptions = [
         'all' => 'All Products',
         'farm_owner' => 'Farm Products',
-        'cafe_owner' => 'Cafe Products',
         'reseller' => 'Reseller Products',
     ];
 @endphp
@@ -767,7 +766,7 @@
     @foreach($browseSellerTypeOptions as $filterKey => $filterLabel)
         <a
             href="{{ route('farm-owner.marketplace', array_merge(request()->query(), ['seller_type_filter' => $filterKey === 'all' ? null : $filterKey])) }}#browse"
-            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors {{ $browseSellerTypeFilter === $filterKey || ($filterKey === 'all' && !in_array($browseSellerTypeFilter, ['farm_owner', 'cafe_owner', 'reseller'], true)) ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]' }}"
+            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors {{ $browseSellerTypeFilter === $filterKey || ($filterKey === 'all' && !in_array($browseSellerTypeFilter, ['farm_owner', 'reseller'], true)) ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]' }}"
         >
             {{ $filterLabel }}
         </a>

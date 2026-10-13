@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
             incomingStep.classList.remove('registration-enter');
             void incomingStep.offsetWidth;
             incomingStep.classList.add('registration-enter');
-        }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 180);
+        }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 420);
         stepOneDot.classList.toggle('is-active', step === 1);
         stepOneDot.classList.toggle('is-complete', step === 2);
         stepTwoDot.classList.toggle('is-active', step === 2);
@@ -487,10 +487,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             setRequired('#reseller_name', false);
         }
-        if (step === 2) {
-            const firstField = form.querySelector('.registration-step-two-field') || form.querySelector('#establishment_name, #registration_contact_number');
-            firstField?.focus({ preventScroll: true });
-        }
+        window.setTimeout(() => {
+            const firstField = step === 2
+                ? (typeInput.value === 'reseller' ? form.querySelector('#registration_contact_number') : form.querySelector('#establishment_name'))
+                : (typeInput.value === 'reseller' ? form.querySelector('#reseller_name') : form.querySelector('#owner_name'));
+            if (firstField && !firstField.closest('.hidden')) firstField.focus({ preventScroll: true });
+        }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 430);
     };
 
     const chooseType = (type) => {
@@ -527,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
             to.classList.remove('registration-enter');
             void to.offsetWidth;
             to.classList.add('registration-enter');
-        }, reducedMotion ? 0 : 210);
+        }, reducedMotion ? 0 : 420);
     };
 
     document.querySelectorAll('[data-registration-type]').forEach((button) => {
@@ -536,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const validateVisibleRequiredFields = (section) => {
         const fields = Array.from(section.querySelectorAll('input, select, textarea'))
-            .filter((field) => !field.disabled && !field.closest('.hidden'));
+            .filter((field) => field.type !== 'hidden' && field.type !== 'button' && !field.disabled && !field.closest('.hidden'));
         for (const field of fields) {
             const isOptional = field.dataset.optional === 'true';
             if (isOptional && !field.value.trim()) {

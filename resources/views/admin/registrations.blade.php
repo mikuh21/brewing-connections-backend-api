@@ -459,6 +459,53 @@
 
 @push('styles')
 <style>
+    /* Keep account-type filter and search aligned and equal-sized on desktop. */
+    .registrations-search-controls {
+        display: flex;
+        align-items: stretch;
+        gap: 0.75rem;
+        width: 436px;
+        max-width: 100%;
+    }
+
+    .account-type-filter,
+    .registrations-search {
+        box-sizing: border-box;
+        flex: 1 1 0;
+        width: 0;
+        min-width: 0;
+        height: 2.7rem;
+    }
+
+    .account-type-filter {
+        padding: 0 0.75rem;
+        border-radius: 14px;
+        background: #FCFAF7;
+        font-size: 0.85rem;
+    }
+
+    .registrations-search-form {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .registrations-search input {
+        box-sizing: border-box;
+        width: 100% !important;
+        min-width: 0;
+        height: 2.7rem;
+        padding-left: 2.25rem;
+        font-size: 0.85rem;
+        border-radius: 14px;
+        background: #FCFAF7;
+    }
+
+    .registrations-search-icon {
+        z-index: 1;
+        pointer-events: none;
+    }
+
     @media (max-width: 767px) {
         .registrations-panel {
             padding: 1rem !important;

@@ -226,13 +226,13 @@
         <!-- Filter Tabs -->
         <div class="mb-6 border-b border-gray-200 pb-4">
             <div class="flex gap-2">
-                <button class="filter-tab {{ $filter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'all', 'tab' => $activeTab]) }}'" style="color: {{ $filter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'all' ? '#3B2F2F' : 'transparent' }};">
+                <button class="filter-tab rating-period-tab {{ $filter === 'all' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="all" type="button" style="color: {{ $filter === 'all' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'all' ? '#3B2F2F' : 'transparent' }};">
                     All
                 </button>
-                <button class="filter-tab {{ $filter === 'this_week' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'this_week', 'tab' => $activeTab]) }}'" style="color: {{ $filter === 'this_week' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_week' ? '#3B2F2F' : 'transparent' }};">
+                <button class="filter-tab rating-period-tab {{ $filter === 'this_week' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="this_week" type="button" style="color: {{ $filter === 'this_week' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_week' ? '#3B2F2F' : 'transparent' }};">
                     This Week
                 </button>
-                <button class="filter-tab {{ $filter === 'this_month' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" onclick="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => 'this_month', 'tab' => $activeTab]) }}'" style="color: {{ $filter === 'this_month' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_month' ? '#3B2F2F' : 'transparent' }};">
+                <button class="filter-tab rating-period-tab {{ $filter === 'this_month' ? 'active' : '' }} px-4 py-2 text-sm font-medium transition-colors" data-filter="this_month" type="button" style="color: {{ $filter === 'this_month' ? '#3B2F2F' : '#9E8C78' }}; border-bottom: 3px solid {{ $filter === 'this_month' ? '#3B2F2F' : 'transparent' }};">
                     This Month
                 </button>
             </div>
@@ -243,7 +243,7 @@
                 <div class="flex gap-2">
                     <button
                         type="button"
-                        @click="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => $filter, 'tab' => 'cafe']) }}'"
+                        @click="activeTab = 'cafe'"
                         class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
                         :style="activeTab === 'cafe' ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F;' : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
                     >
@@ -251,7 +251,7 @@
                     </button>
                     <button
                         type="button"
-                        @click="window.location.href='{{ route('admin.rating-moderation.index', ['filter' => $filter, 'tab' => 'farm-products']) }}'"
+                        @click="activeTab = 'farm-products'"
                         class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
                         :style="activeTab === 'farm-products' ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F;' : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
                     >
@@ -267,7 +267,7 @@
                 <p class="text-[#9E8C78] text-sm mb-4">Complete list of submitted cafe ratings</p>
 
                 @forelse($cafeRatings as $rating)
-                    <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
+                    <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow" data-created-at="{{ $rating->created_at->timestamp }}">
                         <div class="rating-card-header flex items-center justify-between mb-4">
                             <div class="rating-card-user flex items-center gap-3">
                                 <div class="w-10 h-10 bg-[#4A6741] rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -385,8 +385,8 @@
                     </div>
                 @endforelse
 
-                <div class="rating-pagination mt-6">
-                    {{ $cafeRatings->links() }}
+                <div class="rating-filter-empty text-center py-8" hidden>
+                    <p class="text-gray-400 text-lg">No cafe ratings found for the selected period.</p>
                 </div>
             </div>
 
@@ -506,8 +506,8 @@
                     </div>
                 @endforelse
 
-                <div class="rating-pagination mt-6">
-                    {{ $farmProductRatings->links() }}
+                <div class="rating-filter-empty text-center py-8" hidden>
+                    <p class="text-gray-400 text-lg">No farm product ratings found for the selected period.</p>
                 </div>
             </div>
         </div>
@@ -689,6 +689,54 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const periodTabs = Array.from(document.querySelectorAll('.rating-period-tab'));
+    const ratingCards = Array.from(document.querySelectorAll('.rating-card[data-created-at]'));
+
+    function applyRatingPeriod(period) {
+        const now = new Date();
+        let start = null;
+        let end = null;
+
+        if (period === 'this_week') {
+            start = new Date(now);
+            const day = (now.getDay() + 6) % 7;
+            start.setDate(now.getDate() - day);
+            start.setHours(0, 0, 0, 0);
+            end = new Date(start);
+            end.setDate(start.getDate() + 7);
+        } else if (period === 'this_month') {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        }
+
+        ratingCards.forEach(card => {
+            const timestamp = Number(card.dataset.createdAt || 0) * 1000;
+            const date = new Date(timestamp);
+            card.style.display = (!start || (date >= start && date < end)) ? '' : 'none';
+        });
+
+        document.querySelectorAll('.filter-content').forEach(panel => {
+            const cards = Array.from(panel.querySelectorAll('.rating-card[data-created-at]'));
+            const emptyState = panel.querySelector('.rating-filter-empty');
+            if (emptyState) {
+                emptyState.hidden = cards.filter(card => card.style.display !== 'none').length > 0;
+            }
+        });
+
+        periodTabs.forEach(tab => {
+            const active = tab.dataset.filter === period;
+            tab.classList.toggle('active', active);
+            tab.style.color = active ? '#3B2F2F' : '#9E8C78';
+            tab.style.borderBottom = active ? '3px solid #3B2F2F' : '3px solid transparent';
+            tab.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    }
+
+    periodTabs.forEach(tab => tab.addEventListener('click', () => applyRatingPeriod(tab.dataset.filter || 'all')));
+    applyRatingPeriod(@json($filter));
+});
+</script>
     document.addEventListener('DOMContentLoaded', function () {
         const content = document.querySelector('.filter-content');
         if (content) {

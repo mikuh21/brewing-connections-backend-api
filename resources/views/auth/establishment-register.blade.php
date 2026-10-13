@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emailFeedback.classList.toggle('text-red-600', state === 'taken' || state === 'invalid');
         emailFeedback.classList.toggle('text-[#8C7A68]', state === 'checking');
         emailInput.setAttribute('aria-invalid', state === 'taken' || state === 'invalid' ? 'true' : 'false');
-        emailInput.setCustomValidity(state === 'taken' ? message : '');
+        emailInput.setCustomValidity('');
     };
 
     const checkEmailAvailability = async (rawEmail) => {

@@ -89,6 +89,7 @@ class Establishment extends Model
         'activities',
         'image',
         'menu_image',
+        'menu_uploaded_at',
         'banner_focus_x',
         'banner_focus_y',
         'profile_focus_x',

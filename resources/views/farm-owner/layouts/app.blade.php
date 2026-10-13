@@ -328,7 +328,7 @@
                 </div>
 
                 @if($sidebarManagedFarms->count() > 1)
-                    <form method="GET" action="{{ route('farm-owner.dashboard') }}" class="mb-4">
+                    <form method="GET" action="{{ request()->routeIs('farm-owner.map') ? route('farm-owner.map') : route('farm-owner.dashboard') }}" class="mb-4">
                         <label for="sidebar-farm-switch" class="block text-[11px] font-semibold text-[#D9C9B2] mb-1">Switch Farm</label>
                         <select id="sidebar-farm-switch" name="farm_id" onchange="this.form.submit()" class="w-full rounded-lg border border-[#6B5B4A] bg-[#4E3D2B] text-[#F5F0E8] px-2 py-1.5 text-xs focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                             @foreach($sidebarManagedFarms as $farmOption)

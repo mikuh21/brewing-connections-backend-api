@@ -51,20 +51,14 @@ class RatingModerationController extends Controller
             $dateRange = null;
         }
 
-        if ($dateRange) {
-            $cafeRatingsQuery->whereBetween('created_at', $dateRange);
-            $farmProductRatingsQuery->whereBetween('created_at', $dateRange);
-        }
-
+        // Load all ratings for both tabs; period filtering is handled instantly in the view.
         $cafeRatings = $cafeRatingsQuery
             ->orderBy('created_at', 'desc')
-            ->paginate(3, ['*'], 'cafe_page')
-            ->appends(request()->query());
+            ->get();
 
         $farmProductRatings = $farmProductRatingsQuery
             ->orderBy('created_at', 'desc')
-            ->paginate(3, ['*'], 'farm_product_page')
-            ->appends(request()->query());
+            ->get();
 
         $totalRatings = Rating::count();
 

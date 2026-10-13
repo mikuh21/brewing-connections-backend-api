@@ -5,6 +5,9 @@ let tempMarker = null;
 let placementMode = false;
 let editMode = false;
 let resellerPlacementMode = false;
+let ownerPinPlacementMode = false;
+let ownerPinTempMarker = null;
+let ownerPinLatLng = null;
 let editingMarker = null;
 let originalLatLng = null;
 let selectedResellerForMapping = null;
@@ -3270,8 +3273,136 @@ function cancelResellerPlacementMode() {
     }
 }
 
+function resetOwnerPinPlacement() {
+    ownerPinPlacementMode = false;
+    ownerPinLatLng = null;
+
+    if (map && ownerPinTempMarker) {
+        map.removeLayer(ownerPinTempMarker);
+    }
+    ownerPinTempMarker = null;
+
+    map?.off('click', handleOwnerPinMapClick);
+
+    const confirmPanel = document.getElementById('owner-pin-confirm');
+    const pinButton = document.getElementById('pin-my-establishment-btn');
+    const saveButton = document.getElementById('owner-pin-save-btn');
+
+    confirmPanel?.classList.add('hidden');
+    if (pinButton) {
+        pinButton.disabled = false;
+        pinButton.innerHTML = '<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg> Pin My Establishment';
+    }
+    if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save Location';
+    }
+    if (map?.getContainer()) {
+        map.getContainer().style.cursor = '';
+    }
+}
+
+function handleOwnerPinMapClick(event) {
+    if (!ownerPinPlacementMode || !map) return;
+
+    const latitude = Number(event.latlng.lat);
+    const longitude = Number(event.latlng.lng);
+
+    if (latitude < 13.85 || latitude > 14.05 || longitude < 121.05 || longitude > 121.30) {
+        showToast('Choose a location within the Lipa map area.', true);
+        return;
+    }
+
+    ownerPinLatLng = event.latlng;
+    if (ownerPinTempMarker) {
+        map.removeLayer(ownerPinTempMarker);
+    }
+
+    ownerPinTempMarker = L.marker([latitude, longitude], { icon: newPinIcon }).addTo(map);
+    ownerPinTempMarker.bindTooltip('Your establishment location', {
+        direction: 'top',
+        offset: [0, -12],
+        className: 'custom-marker-tooltip',
+    }).openTooltip();
+
+    const text = document.getElementById('owner-pin-confirm-text');
+    const panel = document.getElementById('owner-pin-confirm');
+    if (text) {
+        text.textContent = `Save this location? ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    }
+    panel?.classList.remove('hidden');
+}
+
+function setupOwnerEstablishmentPinning() {
+    const pinButton = document.getElementById('pin-my-establishment-btn');
+    const saveButton = document.getElementById('owner-pin-save-btn');
+    const cancelButton = document.getElementById('owner-pin-cancel-btn');
+    const confirmPanel = document.getElementById('owner-pin-confirm');
+
+    if (!pinButton || !saveButton || !cancelButton || !confirmPanel) return;
+
+    pinButton.addEventListener('click', () => {
+        if (!window.OWNER_ESTABLISHMENT_ID || !window.ESTABLISHMENT_OWNER_PIN_URL) {
+            showToast('No establishment is linked to this account. Please contact support.', true);
+            return;
+        }
+
+        resetOwnerPinPlacement();
+        ownerPinPlacementMode = true;
+        pinButton.disabled = true;
+        pinButton.textContent = 'Click the map to place your pin';
+        map.getContainer().style.cursor = 'crosshair';
+        map.on('click', handleOwnerPinMapClick);
+        showToast('Click the map to choose your establishment location.');
+    });
+
+    cancelButton.addEventListener('click', () => {
+        resetOwnerPinPlacement();
+    });
+
+    saveButton.addEventListener('click', async () => {
+        if (!ownerPinLatLng) {
+            showToast('Click the map to select a location first.', true);
+            return;
+        }
+
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+
+        try {
+            const response = await fetch(window.ESTABLISHMENT_OWNER_PIN_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.CSRF_TOKEN,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    latitude: ownerPinLatLng.lat.toFixed(8),
+                    longitude: ownerPinLatLng.lng.toFixed(8),
+                }),
+            });
+
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const errors = payload?.errors ? Object.values(payload.errors).flat().join(' ') : '';
+                throw new Error(errors || payload?.message || 'Could not save your establishment location.');
+            }
+
+            resetOwnerPinPlacement();
+            showToast(payload.message || 'Establishment location saved.');
+            window.setTimeout(() => window.location.reload(), 700);
+        } catch (error) {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Save Location';
+            showToast(error.message || 'Could not save your establishment location.', true);
+        }
+    });
+}
+
 function setupStaticEventListeners() {
     syncMapActionButtonsLayout();
+    setupOwnerEstablishmentPinning();
     bindEditBannerInteractions();
     refreshVerifiedResellers().finally(() => {
         updateResellerUnmappedCountBadge();

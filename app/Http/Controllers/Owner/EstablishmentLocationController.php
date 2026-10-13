@@ -1,12 +1,12 @@
 <?php
 
-namespace App\\Http\\Controllers\\Owner;
+namespace App\Http\Controllers\Owner;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Models\\Establishment;
-use Illuminate\\Http\\JsonResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Schema;
+use App\Http\Controllers\Controller;
+use App\Models\Establishment;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class EstablishmentLocationController extends Controller
 {

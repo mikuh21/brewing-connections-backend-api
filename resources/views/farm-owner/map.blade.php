@@ -69,9 +69,13 @@
             </div>
 
             <div id="owner-pin-controls" class="absolute bottom-7 left-7 z-[950] flex flex-col items-start gap-2">
+                <button id="add-farm-location-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full border border-[#D9CDBA] bg-white px-3 py-2 text-xs font-semibold text-[#3A2E22] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40">
+                    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/></svg>
+                    Add Farm Location
+                </button>
                 <button id="pin-my-establishment-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full bg-[#2E5A3D] px-3 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40">
                     <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg>
-                    <span id="pin-my-establishment-label">{{ auth()->user()->establishment?->latitude !== null && auth()->user()->establishment?->longitude !== null ? 'Edit Pinned Location' : 'Pin My Establishment' }}</span>
+                    <span id="pin-my-establishment-label">{{ $activeFarm?->latitude !== null && $activeFarm?->longitude !== null ? 'Edit Pinned Location' : 'Pin My Establishment' }}</span>
                 </button>
                 <div id="owner-pin-confirm" class="hidden w-[min(20rem,calc(100vw-3rem))] rounded-xl border border-[#D9CDBA] bg-white p-4 shadow-xl">
                     <p id="owner-pin-confirm-text" class="text-sm font-semibold text-[#3A2E22]">Use this location for your establishment?</p>
@@ -83,6 +87,39 @@
                 </div>
             </div>
 
+            <div id="add-farm-location-modal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-black/40 px-4 py-6" role="dialog" aria-modal="true" aria-labelledby="add-farm-location-title">
+                <div class="w-full max-w-lg overflow-hidden rounded-2xl border border-[#D9CDBA] bg-[#F8F2E8] shadow-2xl">
+                    <div class="flex items-start justify-between border-b border-[#E4D8C6] px-5 py-4 sm:px-6">
+                        <div>
+                            <h2 id="add-farm-location-title" class="font-display text-xl font-bold text-[#3A2E22]">Add Farm Location</h2>
+                            <p class="mt-1 text-sm text-[#8C7A68]">Create another farm under your account, then pin its location on the map.</p>
+                        </div>
+                        <button type="button" id="close-add-farm-location-modal" class="rounded-lg p-1 text-xl leading-none text-[#6B5B4A] hover:bg-[#ECE1CF]" aria-label="Close">&times;</button>
+                    </div>
+                    <form method="POST" action="{{ route('farm-owner.farms.store') }}" class="space-y-4 px-5 py-5 sm:px-6">
+                        @csrf
+                        <div>
+                            <label for="new-farm-name" class="mb-1 block text-sm font-semibold text-[#3A2E22]">Farm name *</label>
+                            <input id="new-farm-name" name="name" required maxlength="255" class="w-full rounded-lg border border-[#D9CDBA] bg-white px-3 py-2.5 text-sm text-[#3A2E22] outline-none focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20" placeholder="e.g. Lipa Coffee Farm">
+                        </div>
+                        <div>
+                            <label for="new-farm-address" class="mb-1 block text-sm font-semibold text-[#3A2E22]">Street / full address *</label>
+                            <input id="new-farm-address" name="address" required maxlength="255" class="w-full rounded-lg border border-[#D9CDBA] bg-white px-3 py-2.5 text-sm text-[#3A2E22] outline-none focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20" placeholder="Street and area">
+                        </div>
+                        <div>
+                            <label for="new-farm-barangay" class="mb-1 block text-sm font-semibold text-[#3A2E22]">Barangay *</label>
+                            <input id="new-farm-barangay" name="barangay" required maxlength="255" class="w-full rounded-lg border border-[#D9CDBA] bg-white px-3 py-2.5 text-sm text-[#3A2E22] outline-none focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20" placeholder="Barangay, Lipa City">
+                        </div>
+                        @if($errors->any())
+                            <p class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ $errors->first() }}</p>
+                        @endif
+                        <div class="flex justify-end gap-2 border-t border-[#E4D8C6] pt-4">
+                            <button type="button" id="cancel-add-farm-location-modal" class="rounded-lg border border-[#D9CDBA] bg-white px-4 py-2 text-sm font-semibold text-[#3A2E22] transition hover:bg-[#ECE1CF]">Cancel</button>
+                            <button type="submit" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1E3A2A]">Add Farm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             <div id="route-strip" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-3 hidden z-40 max-w-sm">
                 <div id="route-summary" class="text-sm font-medium text-gray-800"></div>
                 <div id="route-steps" class="mt-2 max-h-32 overflow-y-auto text-xs text-gray-600"></div>
@@ -322,8 +359,8 @@
     window.IS_FARM_OWNER_MAP = true;
     window.IS_ESTABLISHMENT_OWNER_MAP = true;
     window.ESTABLISHMENT_OWNER_PIN_URL = '{{ route('my-establishment.location.update') }}';
-    window.OWNER_ESTABLISHMENT_ID = @json(auth()->user()->establishment?->id);
-    window.OWNER_ESTABLISHMENT_PINNED = @json(auth()->user()->establishment?->latitude !== null && auth()->user()->establishment?->longitude !== null);
+    window.OWNER_ESTABLISHMENT_ID = @json($activeFarm?->id);
+    window.OWNER_ESTABLISHMENT_PINNED = @json($activeFarm?->latitude !== null && $activeFarm?->longitude !== null);
     window.OWNER_REGISTRATION_NOTICE = @json(session('success'));
     window.MAPBOX_TOKEN = '{{ $mapboxToken }}';
     window.GOOGLE_MAPS_KEY = '{{ $googleMapsKey }}';

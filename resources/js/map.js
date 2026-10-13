@@ -3341,7 +3341,11 @@ function handleOwnerPinMapClick(event) {
     }).openTooltip();
 
     const text = document.getElementById('owner-pin-confirm-text');
+    const help = document.getElementById('owner-pin-confirm-help');
     const panel = document.getElementById('owner-pin-confirm');
+    if (help) {
+        help.textContent = 'Click another point to adjust the pin, or save the selected location.';
+    }
     if (text) {
         const action = window.OWNER_ESTABLISHMENT_PINNED ? 'Update your pinned location?' : 'Use this location for your establishment?';
         text.textContent = `${action} ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
@@ -3374,9 +3378,13 @@ function startOwnerExistingMarkerEdit(establishmentId) {
 
     const confirmPanel = document.getElementById('owner-pin-confirm');
     const confirmText = document.getElementById('owner-pin-confirm-text');
+    const confirmHelp = document.getElementById('owner-pin-confirm-help');
     const saveButton = document.getElementById('owner-pin-save-btn');
     if (confirmText) {
         confirmText.textContent = 'Drag your establishment marker to its new location, then save.';
+    }
+    if (confirmHelp) {
+        confirmHelp.textContent = 'Drag the existing marker to adjust its position. Cancel restores the original location.';
     }
     if (saveButton) saveButton.disabled = true;
     confirmPanel?.classList.remove('hidden');

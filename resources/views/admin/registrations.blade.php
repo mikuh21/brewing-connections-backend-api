@@ -295,7 +295,7 @@
                     </table>
                 </div>
 
-                <!-- All registrations are loaded for instant client-side filtering. -->
+                <div class="registrations-pagination mt-6" data-registrations-pagination></div>
             @else
                 <div class="py-12 text-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
@@ -369,21 +369,24 @@
         };
     }
 
-    // Client-side filtering and searching for registrations (no page reload).
+    // Client-side filtering and pagination for registrations (instant, no page reload).
     document.addEventListener('DOMContentLoaded', function() {
         const filterTabs = document.querySelectorAll('.filter-tab');
         const searchInput = document.getElementById('search-input');
-        const consumerRows = document.querySelectorAll('.consumer-row');
+        const consumerRows = Array.from(document.querySelectorAll('.consumer-row'));
         const tbody = document.getElementById('consumers-tbody');
         const accountTypeFilter = document.getElementById('account-type-filter');
+        const pagination = document.querySelector('[data-registrations-pagination]');
+        const pageSize = 10;
         let currentFilter = @json($filter);
         let currentAccountType = @json($accountType ?? 'all');
         let currentSearch = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        let currentPage = 1;
 
-        // Status tabs update the table instantly, matching the Resellers page behavior.
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function() {
                 currentFilter = this.getAttribute('data-filter');
+                currentPage = 1;
 
                 filterTabs.forEach(btn => {
                     const active = btn === this;
@@ -396,27 +399,25 @@
             });
         });
 
-        // Account type changes filter the existing rows without navigating or reloading.
         if (accountTypeFilter) {
             accountTypeFilter.addEventListener('change', function() {
                 currentAccountType = this.value;
+                currentPage = 1;
                 updateTableDisplay();
             });
         }
 
-        // Keep the existing instant search behavior.
         if (searchInput) {
             searchInput.addEventListener('input', function() {
                 currentSearch = this.value.toLowerCase().trim();
+                currentPage = 1;
                 updateTableDisplay();
             });
         }
 
         function updateTableDisplay() {
-            let visibleCount = 0;
             const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
-
-            consumerRows.forEach(row => {
+            const matchingRows = consumerRows.filter(row => {
                 const rowName = (row.getAttribute('data-name') || '').toLowerCase();
                 const rowEmail = (row.getAttribute('data-email') || '').toLowerCase();
                 const rowStatus = row.getAttribute('data-status');
@@ -424,23 +425,24 @@
                 const createdAt = Number(row.getAttribute('data-created-at') || 0);
 
                 let statusMatch = currentFilter === 'all' || rowStatus === currentFilter;
-                if (currentFilter === 'last_30_days') {
-                    statusMatch = createdAt >= thirtyDaysAgo;
-                }
+                if (currentFilter === 'last_30_days') statusMatch = createdAt >= thirtyDaysAgo;
 
                 const accountTypeMatch = currentAccountType === 'all' || rowType === currentAccountType;
                 const searchMatch = !currentSearch || rowName.includes(currentSearch) || rowEmail.includes(currentSearch);
+                return statusMatch && accountTypeMatch && searchMatch;
+            });
 
-                if (statusMatch && accountTypeMatch && searchMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+            const totalPages = Math.max(1, Math.ceil(matchingRows.length / pageSize));
+            currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+            const firstIndex = (currentPage - 1) * pageSize;
+            const visibleRows = new Set(matchingRows.slice(firstIndex, firstIndex + pageSize));
+
+            consumerRows.forEach(row => {
+                row.style.display = visibleRows.has(row) ? '' : 'none';
             });
 
             let noResultsRow = document.getElementById('no-results-row');
-            if (visibleCount === 0) {
+            if (matchingRows.length === 0) {
                 if (!noResultsRow) {
                     noResultsRow = document.createElement('tr');
                     noResultsRow.id = 'no-results-row';
@@ -451,7 +453,62 @@
             } else if (noResultsRow) {
                 noResultsRow.style.display = 'none';
             }
+
+            renderPagination(matchingRows.length, totalPages);
         }
+
+        function renderPagination(totalItems, totalPages) {
+            if (!pagination) return;
+            pagination.innerHTML = '';
+            pagination.style.display = totalItems > pageSize ? 'flex' : 'none';
+            pagination.style.alignItems = 'center';
+            pagination.style.justifyContent = 'space-between';
+            pagination.style.gap = '12px';
+
+            if (totalItems <= pageSize) return;
+
+            const startItem = (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(currentPage * pageSize, totalItems);
+            const summary = document.createElement('span');
+            summary.className = 'text-sm text-[#9E8C78]';
+            summary.textContent = 'Showing ' + startItem + '–' + endItem + ' of ' + totalItems;
+
+            const controls = document.createElement('div');
+            controls.className = 'flex items-center gap-2';
+
+            const previous = document.createElement('button');
+            previous.type = 'button';
+            previous.textContent = 'Previous';
+            previous.disabled = currentPage === 1;
+            previous.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+            previous.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTableDisplay();
+                }
+            });
+
+            const pageLabel = document.createElement('span');
+            pageLabel.className = 'text-sm text-[#9E8C78] px-2';
+            pageLabel.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+
+            const next = document.createElement('button');
+            next.type = 'button';
+            next.textContent = 'Next';
+            next.disabled = currentPage === totalPages;
+            next.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+            next.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateTableDisplay();
+                }
+            });
+
+            controls.append(previous, pageLabel, next);
+            pagination.append(summary, controls);
+        }
+
+        updateTableDisplay();
     });
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -464,6 +521,42 @@
 
 @push('styles')
 <style>
+    .registrations-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: #9E8C78;
+    }
+
+    .registrations-pagination button {
+        background: #FFFFFF;
+        color: #3A2E22;
+        border-color: #D6CDC2;
+        transition: background-color 0.15s ease;
+    }
+
+    .registrations-pagination button:not(:disabled):hover {
+        background: #F6F1E8;
+    }
+
+    .registrations-pagination button:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+
+    @media (max-width: 640px) {
+        .registrations-pagination {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .registrations-pagination > div {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+
     /* Match the original compact search input dimensions for both controls. */
     .registrations-search-controls {
         display: flex;

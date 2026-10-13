@@ -172,6 +172,7 @@ class FarmOwnerController extends Controller
                 'clickTrend' => $this->buildTrendMeta(0, null),
                 'popularityTrend' => $this->buildTrendMeta(0, null),
                 'recentActivity' => collect(),
+                'establishment' => null,
             ]);
         }
 
@@ -251,7 +252,8 @@ class FarmOwnerController extends Controller
             'trailTrend',
             'clickTrend',
             'popularityTrend',
-            'recentActivity'
+            'recentActivity',
+            'establishment'
         ));
     }
 

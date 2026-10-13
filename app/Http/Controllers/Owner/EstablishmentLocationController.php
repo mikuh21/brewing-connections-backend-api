@@ -13,6 +13,7 @@ class EstablishmentLocationController extends Controller
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'establishment_id' => ['required', 'integer', 'exists:establishments,id'],
             'latitude' => ['required', 'numeric', 'between:13.85,14.05'],
             'longitude' => ['required', 'numeric', 'between:121.05,121.30'],
         ], [
@@ -23,6 +24,7 @@ class EstablishmentLocationController extends Controller
         $user = $request->user();
 
         $establishment = Establishment::query()
+            ->whereKey($validated['establishment_id'])
             ->whereNull('deleted_at')
             ->whereIn('type', ['farm', 'cafe', 'roaster'])
             ->where(function ($ownedByUser) use ($user) {

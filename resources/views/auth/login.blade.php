@@ -650,7 +650,7 @@ document.querySelectorAll('[data-auth-transition]').forEach((link) => {
     link.addEventListener('click', (event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
         const destination = new URL(link.href, window.location.href);
-        if (destination.origin !== window.location.origin || !['/login', '/register'].includes(destination.pathname.replace(/\\/$/, '') || '/')) return;
+        if (destination.origin !== window.location.origin || !['/login', '/register'].includes(destination.pathname.replace(/\/$/, '') || '/')) return;
         event.preventDefault();
         const layout = document.querySelector('.auth-layout');
         if (!layout || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

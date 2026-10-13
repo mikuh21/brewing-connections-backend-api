@@ -149,7 +149,7 @@
             <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-green-500 p-6 hover:shadow-md transition-shadow">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[#9E8C78] text-sm font-medium">Total Consumers</p>
+                        <p class="text-[#9E8C78] text-sm font-medium">Total Users</p>
                         <p class="text-3xl font-bold text-[#3A2E22] mt-1">{{ $totalConsumers ?? 0 }}</p>
                     </div>
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -229,14 +229,14 @@
                             <option value="roasters" {{ ($accountType ?? '') === 'roasters' ? 'selected' : '' }}>Roasters</option>
                         </select>
                         <div class="registrations-search relative">
-                        <svg class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <form method="GET" action="{{ route('admin.registrations.index') }}" class="relative">
-                            <input type="hidden" name="filter" value="{{ $filter }}">
-                            <input type="hidden" name="account_type" value="{{ $accountType ?? 'all' }}">
-                            <input type="search" id="search-input" name="search" value="{{ $search ?? '' }}" placeholder="Search by name, email, phone..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent md:w-64" />
-                        </form>
+                            <form method="GET" action="{{ route('admin.registrations.index') }}" class="registrations-search-form relative">
+                                <input type="hidden" name="filter" value="{{ $filter }}">
+                                <input type="hidden" name="account_type" value="{{ $accountType ?? 'all' }}">
+                                <svg class="registrations-search-icon w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                                <input type="search" id="search-input" name="search" value="{{ $search ?? '' }}" placeholder="Search by name, email, phone..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent" />
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -473,6 +473,10 @@
             padding-bottom: 0.85rem !important;
         }
 
+        .registrations-search-controls {
+            width: 100%;
+        }
+
         .registrations-filter-tabs {
             display: flex;
             flex-wrap: nowrap;
@@ -499,30 +503,49 @@
         }
 
         .registrations-search-controls {
-            width: 100%;
+            width: 436px;
+            max-width: 100%;
             display: flex;
-            flex-direction: column;
             align-items: stretch;
+            gap: 0.75rem;
+        }
+
+        .account-type-filter,
+        .registrations-search {
+            box-sizing: border-box;
+            flex: 1 1 0;
+            width: 0;
+            min-width: 0;
+            height: 2.7rem;
         }
 
         .account-type-filter {
-            width: 100%;
-            min-height: 2.7rem;
+            padding: 0 0.75rem;
             border-radius: 14px;
             background: #FCFAF7;
+            font-size: 0.85rem;
         }
 
-        .registrations-search {
+        .registrations-search-form {
+            position: relative;
             width: 100%;
+            height: 100%;
         }
 
         .registrations-search input {
+            box-sizing: border-box;
             width: 100% !important;
             min-width: 0;
             height: 2.7rem;
+            padding-left: 2.25rem;
             font-size: 0.85rem;
             border-radius: 14px;
             background: #FCFAF7;
+        }
+
+        .registrations-search-icon {
+            z-index: 1;
+            pointer-events: none;
         }
     }
 </style>

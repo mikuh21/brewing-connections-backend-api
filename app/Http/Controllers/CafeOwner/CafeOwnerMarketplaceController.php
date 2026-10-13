@@ -121,11 +121,6 @@ class CafeOwnerMarketplaceController extends Controller
             $marketplaceQuery->where('products.category', $typeCategoryMap[$type]);
         }
 
-        $sellerTypeFilter = request('seller_type_filter');
-        if (Schema::hasColumn('products', 'seller_type') && in_array($sellerTypeFilter, ['farm_owner', 'reseller'], true)) {
-            $marketplaceQuery->where('products.seller_type', $sellerTypeFilter);
-        }
-
         $marketplaceProducts = $marketplaceQuery
             ->select([
                 'products.id',
@@ -141,8 +136,7 @@ class CafeOwnerMarketplaceController extends Controller
                 'sellers.name as seller_name',
             ])
             ->orderByDesc('products.updated_at')
-            ->paginate(12, ['*'], 'market_page')
-            ->withQueryString();
+            ->get();
 
         return view('cafe-owner.marketplace', compact('products', 'marketplaceProducts'));
     }

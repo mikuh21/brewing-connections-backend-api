@@ -860,17 +860,17 @@
     x-transition:leave-end="opacity-0"
     class="cafe-edit-product-modal fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-3 max-h-[90vh] overflow-y-auto">
+    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-xl p-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Edit Product</h2>
             <button type="button" @click="showEditModal = false" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
         </div>
 
-        <form method="POST" :action="formAction()" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+        <form method="POST" :action="formAction()" enctype="multipart/form-data" class="grid grid-cols-1 gap-2.5">
             @csrf
             @method('PATCH')
 
-            <div class="md:col-span-3">
+            <div class="w-full">
                 <label class="block text-[11px] font-semibold">Name *</label>
                 <input x-model="form.name" name="name" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
@@ -906,7 +906,7 @@
                 </div>
             </template>
 
-<div class="md:col-span-3">
+<div class="w-full">
                 <label class="block text-[11px] font-semibold">Product Image</label>
                 <input x-ref="editImageInput" type="file" name="image" accept="image/*" @change="handleEditImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 <div x-show="editImagePreview" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
@@ -916,12 +916,12 @@
                 </div>
             </div>
 
-            <div class="md:col-span-3">
+            <div class="w-full">
                 <label class="block text-[11px] font-semibold">Description</label>
                 <textarea x-model="form.description" name="description" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
             </div>
 
-            <div class="col-span-2 md:col-span-3 flex justify-end gap-2 pt-2">
+            <div class="flex justify-end gap-2 pt-2">
                 <button type="button" @click="showEditModal = false" class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 whitespace-nowrap">Cancel</button>
                 <button type="submit" class="inline-flex items-center justify-center px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] whitespace-nowrap">Save Product</button>
             </div>
@@ -940,16 +940,16 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-3 max-h-[90vh] overflow-y-auto">
+    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-xl p-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
             <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('cafe-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+        <form method="POST" action="{{ route('cafe-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="isCreatingProduct = true" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 gap-2.5">
             @csrf
 
-            <div class="md:col-span-3">
+            <div class="w-full">
                 <label class="block text-[11px] font-semibold">Name *</label>
                 <input x-model="createForm.name" name="name" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
@@ -963,7 +963,7 @@
                 </select>
             </div>
 
-<div class="md:col-span-3">
+<div class="w-full">
                 <label class="block text-[11px] font-semibold">Product Image</label>
                 <input x-ref="createImageInput" type="file" name="image" accept="image/*" @change="handleCreateImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 <div x-show="createImagePreview" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
@@ -973,12 +973,12 @@
                 </div>
             </div>
 
-            <div class="md:col-span-3">
+            <div class="w-full">
                 <label class="block text-[11px] font-semibold">Description</label>
                 <textarea x-model="createForm.description" name="description" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
             </div>
 
-            <div class="md:col-span-3 flex justify-end gap-2 pt-2">
+            <div class="flex justify-end gap-2 pt-2">
                 <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
                 <button type="submit" :disabled="isCreatingProduct" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-80">
                     <svg x-show="isCreatingProduct" x-cloak class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">

@@ -156,7 +156,7 @@
                         <div class="text-center mt-4">
                             <p class="text-sm text-[#3A2E22]">
                                 New to BrewHub?
-                                <a href="{{ route('register') }}" class="font-medium text-[#2E5A3D] hover:text-[#1E3A2A] underline underline-offset-2 transition-colors">Register here</a>
+                                <a href="{{ route('register') }}" data-auth-transition class="font-medium text-[#2E5A3D] hover:text-[#1E3A2A] underline underline-offset-2 transition-colors">Register here</a>
                             </p>
                         </div>
 
@@ -332,6 +332,18 @@
 .dot.active {
     background: white;
     transform: scale(1.2);
+}
+@keyframes authPageEnter {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes authPageLeave {
+    to { opacity: 0; transform: translateY(5px); }
+}
+.auth-layout { animation: authPageEnter 180ms ease-out both; }
+.auth-layout.auth-page-leaving { animation: authPageLeave 140ms ease-in both; }
+@media (prefers-reduced-motion: reduce) {
+    .auth-layout { animation: none !important; }
 }
 .form-panel {
     will-change: opacity, transform;
@@ -632,6 +644,22 @@ toggleRegisterPasswordConfirmation.addEventListener('click', () => {
 
     const registerConfirmEyeIcon = document.getElementById('registerConfirmEyeIcon');
     registerConfirmEyeIcon.innerHTML = type === 'text' ? closedEyePath : openEyePath;
+});
+
+document.querySelectorAll('[data-auth-transition]').forEach((link) => {
+    link.addEventListener('click', (event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        const destination = new URL(link.href, window.location.href);
+        if (destination.origin !== window.location.origin || !['/login', '/register'].includes(destination.pathname.replace(/\\/$/, '') || '/')) return;
+        event.preventDefault();
+        const layout = document.querySelector('.auth-layout');
+        if (!layout || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            window.location.assign(destination.href);
+            return;
+        }
+        layout.classList.add('auth-page-leaving');
+        window.setTimeout(() => window.location.assign(destination.href), 140);
+    });
 });
 
 const loginFormPanel = document.getElementById('loginFormPanel');

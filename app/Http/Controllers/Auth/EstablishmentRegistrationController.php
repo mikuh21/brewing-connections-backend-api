@@ -19,7 +19,7 @@ class EstablishmentRegistrationController extends Controller
         $validated = $request->validate([
             'owner_name' => ['required', 'string', 'max:255'],
             'establishment_name' => ['required', 'string', 'max:255'],
-            'establishment_type' => ['required', Rule::in(['farm', 'cafe'])],
+            'establishment_type' => ['required', Rule::in(['farm', 'cafe', 'roaster'])],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:16', 'regex:/[@$!%*#?&]/', 'confirmed'],
             'password_confirmation' => ['required', 'string'],

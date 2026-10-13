@@ -44,7 +44,6 @@ class EstablishmentRegistrationController extends Controller
                 'barangay' => trim($validated['barangay']),
                 'role' => $role,
                 'status' => 'active',
-                'email_verified_at' => now(),
             ]);
 
             $payload = [

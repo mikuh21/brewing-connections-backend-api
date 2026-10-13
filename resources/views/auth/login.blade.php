@@ -672,10 +672,14 @@ function showLogin() {
 syncPanelStageHeight();
 window.addEventListener('resize', syncPanelStageHeight);
 
-showRegisterForm.addEventListener('click', (event) => {
+showRegisterForm?.addEventListener('click', (event) => {
     event.preventDefault();
     showRegister();
 });
+
+if (new URLSearchParams(window.location.search).get('register') === 'reseller') {
+    showRegister();
+}
 
 showLoginForm.addEventListener('click', (event) => {
     event.preventDefault();

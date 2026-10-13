@@ -274,37 +274,30 @@
 <div id="termsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#2E5A3D]/40 px-4">
     <div class="bg-[#F3E9D7] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#D9CDBA]">
         <div class="flex items-center justify-between px-6 py-4 border-b border-[#D9CDBA]">
-            <h3 class="text-lg font-bold text-[#3A2E22] font-display">Terms &amp; Conditions — BrewHub Reseller Agreement</h3>
-            <button type="button" id="closeTermsModal" class="text-[#3A2E22] hover:text-[#1E3A2A] text-xl leading-none">&times;</button>
+            <h3 class="text-lg font-bold text-[#3A2E22] font-display">Terms &amp; Conditions — BrewHub User Agreement</h3>
+            <button type="button" id="closeTermsModal" class="text-[#3A2E22] hover:text-[#1E3A2A] text-xl leading-none" aria-label="Close Terms and Conditions">&times;</button>
         </div>
         <div id="termsModalBody" class="px-6 py-5 text-sm text-[#3A2E22] leading-relaxed overflow-y-auto max-h-[400px]">
-            <p class="mb-4">Welcome to BrewHub. By registering as a reseller, you agree to the following terms:</p>
-
-            <p class="mb-2"><strong>1. Account Verification</strong></p>
-            <p class="mb-4">BrewHub Admin will verify your reseller account within 1-2 business days. You will be notified via email once your account is approved. BrewHub reserves the right to reject applications that do not meet reseller qualifications.</p>
-
-            <p class="mb-2"><strong>2. Reseller Eligibility</strong></p>
-            <p class="mb-4">You must be a legitimate business entity or individual engaged in the reselling of coffee products. You agree to provide accurate and truthful information during registration and throughout your use of the platform.</p>
-
-            <p class="mb-2"><strong>3. Product Listings</strong></p>
-            <p class="mb-4">Resellers may only list coffee-related products (Coffee Beans and Ground Coffee). All product listings must comply with BrewHub's store standards. Misleading or fraudulent listings will result in immediate account suspension.</p>
-
-            <p class="mb-2"><strong>4. Orders &amp; Transactions</strong></p>
-            <p class="mb-4">Resellers are responsible for fulfilling orders placed through the BrewHub store in a timely manner. Failure to fulfill orders repeatedly may result in account suspension or permanent removal.</p>
-
-            <p class="mb-2"><strong>5. Data Privacy</strong></p>
-            <p class="mb-4">Your personal and business information will be collected, stored, and used in accordance with BrewHub's Privacy Policy. We do not sell your data to third parties.</p>
-
-            <p class="mb-2"><strong>6. Code of Conduct</strong></p>
-            <p class="mb-4">Resellers must maintain professional and respectful communication with consumers, cafe owners, farm owners, and BrewHub admin through the platform's messaging system.</p>
-
-            <p class="mb-2"><strong>7. Account Suspension &amp; Termination</strong></p>
-            <p class="mb-4">BrewHub reserves the right to suspend or permanently terminate any reseller account found to be in violation of these terms, without prior notice.</p>
-
-            <p class="mb-2"><strong>8. Amendments</strong></p>
-            <p class="mb-4">BrewHub may update these Terms &amp; Conditions at any time. Continued use of the platform after changes constitutes acceptance of the new terms.</p>
-
-            <p>By clicking 'I Agree', you confirm that you have read, understood, and agree to all of the above terms and conditions.</p>
+            <p class="mb-4">Welcome to BrewHub. By creating an account or using BrewHub as a coffee farm, coffee shop, roaster, or reseller, you agree to these Terms &amp; Conditions.</p>
+            <p class="mb-2"><strong>1. Accurate Account Information</strong></p>
+            <p class="mb-4">You must provide accurate, complete, and current account and business information. Keep your login credentials confidential and notify BrewHub if you believe your account has been accessed without permission. You are responsible for activity performed through your account.</p>
+            <p class="mb-2"><strong>2. Establishment Profiles and Map Locations</strong></p>
+            <p class="mb-4">Farm, coffee shop, and roaster owners are responsible for the accuracy of their establishment details, contact information, and map location. Only submit a location you are authorized to represent. Update your details when they change, and do not deliberately misrepresent an establishment or its products.</p>
+            <p class="mb-2"><strong>3. Products, Listings, and Promotions</strong></p>
+            <p class="mb-4">Where available, resellers are responsible for accurate product listings, descriptions, prices, stock information, and promotional claims. Listings and promotions must be coffee-related where required by BrewHub and must not be misleading, fraudulent, unlawful, or infringe another person's rights.</p>
+            <p class="mb-2"><strong>4. Orders and Transactions</strong></p>
+            <p class="mb-4">If you use BrewHub features for orders, sales, or transactions, you must provide truthful information and handle your responsibilities promptly and professionally. Business owners and resellers are responsible for fulfilling commitments made to customers and communicating material changes or issues.</p>
+            <p class="mb-2"><strong>5. Respectful Use of the Platform</strong></p>
+            <p class="mb-4">Use BrewHub lawfully and respectfully. Do not harass other users, manipulate ratings or reviews, submit false information, interfere with platform operation, attempt unauthorized access, or misuse messaging, map, store, or promotional features.</p>
+            <p class="mb-2"><strong>6. Privacy and Information</strong></p>
+            <p class="mb-4">BrewHub uses account and establishment information to operate its features, support discovery, and facilitate interactions on the platform. Do not submit information you are not authorized to share. Information displayed in a public establishment profile may be visible to other users.</p>
+            <p class="mb-2"><strong>7. Content and Platform Availability</strong></p>
+            <p class="mb-4">You are responsible for the content you submit and must have the rights or permission needed to use it. BrewHub may modify, suspend, or discontinue features to maintain, improve, or protect the platform.</p>
+            <p class="mb-2"><strong>8. Suspension and Termination</strong></p>
+            <p class="mb-4">BrewHub may restrict, suspend, or terminate accounts or remove content when reasonably necessary to address violations of these terms, suspected fraud, security risks, unlawful activity, or harm to users or the platform.</p>
+            <p class="mb-2"><strong>9. Changes to These Terms</strong></p>
+            <p class="mb-4">BrewHub may update these Terms &amp; Conditions as its services or requirements change. The current version will be made available through the platform. Continued use after an update constitutes acceptance of the revised terms where permitted by applicable law.</p>
+            <p>By clicking “I Agree,” you confirm that you have read and understood these Terms &amp; Conditions and agree to follow them.</p>
         </div>
         <div class="px-6 py-4 border-t border-[#D9CDBA] flex justify-end gap-3">
             <button type="button" id="cancelTermsModal" class="px-4 py-2 rounded-lg border border-[#CBBCA7] text-[#3A2E22] hover:bg-[#ECE1CF] transition-colors">Cancel</button>

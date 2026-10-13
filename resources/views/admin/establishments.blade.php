@@ -310,6 +310,8 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="establishments-pagination mt-6" data-establishments-pagination></div>
             @else
                 <div class="py-12 text-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
@@ -384,86 +386,136 @@
         };
     }
 
-    // Client-side filtering and searching for establishments
+    // Client-side filtering, searching, and pagination for establishments.
     document.addEventListener('DOMContentLoaded', function() {
-        const filterTabs = document.querySelectorAll('.filter-tab');
+        const filterTabs = Array.from(document.querySelectorAll('.establishments-filter-tabs .filter-tab'));
         const searchInput = document.getElementById('search-input');
-        const establishmentRows = document.querySelectorAll('.establishment-row');
+        const establishmentRows = Array.from(document.querySelectorAll('.establishment-row'));
         const tbody = document.getElementById('establishments-tbody');
+        const pagination = document.querySelector('[data-establishments-pagination]');
+        const pageSize = 10;
         let currentFilter = 'all';
         let currentSearch = '';
+        let currentPage = 1;
 
-        // Handle filter tab clicks
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function() {
                 currentFilter = this.getAttribute('data-filter');
+                currentPage = 1;
 
-                // Update active tab styling
                 filterTabs.forEach(btn => {
-                    if (btn === this) {
-                        btn.style.color = '#3B2F2F';
-                        btn.style.borderBottomColor = '#3B2F2F';
-                    } else {
-                        btn.style.color = '#9E8C78';
-                        btn.style.borderBottomColor = 'transparent';
-                    }
+                    const active = btn === this;
+                    btn.style.color = active ? '#3B2F2F' : '#9E8C78';
+                    btn.style.borderBottomColor = active ? '#3B2F2F' : 'transparent';
+                    btn.classList.toggle('active', active);
                 });
 
                 updateTableDisplay();
             });
         });
 
-        // Handle search input
-        searchInput.addEventListener('input', function() {
-            currentSearch = this.value.toLowerCase();
-            updateTableDisplay();
-        });
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                currentSearch = this.value.toLowerCase().trim();
+                currentPage = 1;
+                updateTableDisplay();
+            });
+        }
 
-        // Update table display based on filter and search
         function updateTableDisplay() {
-            let visibleCount = 0;
+            const matchingRows = establishmentRows.filter(row => {
+                const rowType = (row.getAttribute('data-type') || '').toLowerCase();
+                const rowName = (row.getAttribute('data-name') || '').toLowerCase();
+                const rowBarangay = (row.getAttribute('data-barangay') || '').toLowerCase();
+                const rowVarieties = (row.getAttribute('data-varieties') || '').toLowerCase();
 
-            establishmentRows.forEach(row => {
-                const rowType = row.getAttribute('data-type');
-                const rowName = row.getAttribute('data-name');
-                const rowBarangay = row.getAttribute('data-barangay');
-                const rowVarieties = row.getAttribute('data-varieties');
-
-                // Check type filter
                 const typeMatch = currentFilter === 'all' || rowType === currentFilter;
+                const searchMatch = !currentSearch ||
+                    rowName.includes(currentSearch) ||
+                    rowType.includes(currentSearch) ||
+                    rowBarangay.includes(currentSearch) ||
+                    rowVarieties.includes(currentSearch);
 
-                // Check search query
-                let searchMatch = true;
-                if (currentSearch) {
-                    searchMatch = rowName.includes(currentSearch) ||
-                                 rowType.includes(currentSearch) ||
-                                 rowBarangay.includes(currentSearch) ||
-                                 rowVarieties.includes(currentSearch);
-                }
-
-                // Show or hide row
-                if (typeMatch && searchMatch) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+                return typeMatch && searchMatch;
             });
 
-            // Show or hide "No results found" message
+            const totalPages = Math.max(1, Math.ceil(matchingRows.length / pageSize));
+            currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+            const firstIndex = (currentPage - 1) * pageSize;
+            const visibleRows = new Set(matchingRows.slice(firstIndex, firstIndex + pageSize));
+
+            establishmentRows.forEach(row => {
+                row.style.display = visibleRows.has(row) ? '' : 'none';
+            });
+
             let noResultsRow = document.getElementById('no-results-row');
-            if (visibleCount === 0) {
+            if (matchingRows.length === 0) {
                 if (!noResultsRow) {
                     noResultsRow = document.createElement('tr');
                     noResultsRow.id = 'no-results-row';
-                    noResultsRow.innerHTML = '<td colspan="8" class="px-6 py-8 text-center"><p class="text-gray-400">No establishments found matching your search.</p></td>';
+                    noResultsRow.innerHTML = '<td colspan="8" class="px-6 py-8 text-center"><p class="text-gray-400">No establishments found matching your filters.</p></td>';
                     tbody.appendChild(noResultsRow);
                 }
                 noResultsRow.style.display = '';
             } else if (noResultsRow) {
                 noResultsRow.style.display = 'none';
             }
+
+            renderPagination(matchingRows.length, totalPages);
         }
+
+        function renderPagination(totalItems, totalPages) {
+            if (!pagination) return;
+            pagination.innerHTML = '';
+            pagination.style.display = totalItems > pageSize ? 'flex' : 'none';
+            pagination.style.alignItems = 'center';
+            pagination.style.justifyContent = 'space-between';
+            pagination.style.gap = '12px';
+
+            if (totalItems <= pageSize) return;
+
+            const startItem = (currentPage - 1) * pageSize + 1;
+            const endItem = Math.min(currentPage * pageSize, totalItems);
+            const summary = document.createElement('span');
+            summary.className = 'text-sm text-[#9E8C78]';
+            summary.textContent = 'Showing ' + startItem + '–' + endItem + ' of ' + totalItems;
+
+            const controls = document.createElement('div');
+            controls.className = 'flex items-center gap-2';
+
+            const previous = document.createElement('button');
+            previous.type = 'button';
+            previous.textContent = 'Previous';
+            previous.disabled = currentPage === 1;
+            previous.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+            previous.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTableDisplay();
+                }
+            });
+
+            const pageLabel = document.createElement('span');
+            pageLabel.className = 'text-sm text-[#9E8C78] px-2';
+            pageLabel.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+
+            const next = document.createElement('button');
+            next.type = 'button';
+            next.textContent = 'Next';
+            next.disabled = currentPage === totalPages;
+            next.className = 'px-4 py-2 rounded-lg border border-gray-300 text-sm disabled:opacity-40';
+            next.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateTableDisplay();
+                }
+            });
+
+            controls.append(previous, pageLabel, next);
+            pagination.append(summary, controls);
+        }
+
+        updateTableDisplay();
     });
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -477,6 +529,42 @@
 
 @push('styles')
 <style>
+    .establishments-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: #9E8C78;
+    }
+
+    .establishments-pagination button {
+        background: #FFFFFF;
+        color: #3A2E22;
+        border-color: #D6CDC2;
+        transition: background-color 0.15s ease;
+    }
+
+    .establishments-pagination button:not(:disabled):hover {
+        background: #F6F1E8;
+    }
+
+    .establishments-pagination button:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+
+    @media (max-width: 640px) {
+        .establishments-pagination {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .establishments-pagination > div {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+    }
+
     @media (max-width: 767px) {
         .establishments-panel {
             padding: 1rem !important;

@@ -389,23 +389,13 @@
         let currentFilter = @json($filter);
         let currentSearch = '';
 
-        // Handle filter tab clicks
+        // Apply status filters on the server so results remain correct across pagination.
         filterTabs.forEach(tab => {
             tab.addEventListener('click', function() {
-                currentFilter = this.getAttribute('data-filter');
-
-                // Update active tab styling
-                filterTabs.forEach(btn => {
-                    if (btn === this) {
-                        btn.style.color = '#3B2F2F';
-                        btn.style.borderBottomColor = '#3B2F2F';
-                    } else {
-                        btn.style.color = '#9E8C78';
-                        btn.style.borderBottomColor = 'transparent';
-                    }
-                });
-
-                updateTableDisplay();
+                const url = new URL(window.location.href);
+                url.searchParams.set('filter', this.getAttribute('data-filter'));
+                url.searchParams.delete('page');
+                window.location.href = url.toString();
             });
         });
 

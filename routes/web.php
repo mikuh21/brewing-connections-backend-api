@@ -456,6 +456,7 @@ Route::prefix('farm-owner')
         Route::patch('/marketplace/products/{product}/visibility', [FarmOwnerController::class, 'updateMarketplaceProductVisibility'])->name('marketplace.products.visibility');
         Route::patch('/marketplace/orders/{order}', [FarmOwnerController::class, 'updateMarketplaceOrder'])->name('marketplace.orders.update');
         Route::get('/map', [FarmOwnerController::class, 'map'])->name('map');
+        Route::post('/farms', [FarmOwnerController::class, 'addFarmLocation'])->name('farms.store');
         Route::get('/messages', [FarmOwnerController::class, 'messages'])->name('messages');
         Route::get('/messages/{conversation}', [FarmOwnerController::class, 'messages'])->name('messages.show');
         Route::post('/messages', [FarmOwnerController::class, 'messagesStore'])->name('messages.store');

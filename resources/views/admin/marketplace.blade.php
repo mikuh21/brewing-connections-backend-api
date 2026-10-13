@@ -431,7 +431,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
                     </div>
                 @endif
 
-<div x-show="showProductModal" 
+<div x-cloak x-show="showProductModal" 
   x-transition:enter="transition ease-out duration-200"
   x-transition:enter-start="opacity-0"
   x-transition:enter-end="opacity-100"
@@ -441,7 +441,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
   class="marketplace-details-overlay fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
   @click.self="showProductModal = false">
 
-  <div x-show="showProductModal"
+  <div x-cloak x-show="showProductModal"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 scale-95"
     x-transition:enter-end="opacity-100 scale-100"
@@ -711,7 +711,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
                     </div>
                 @endif
 
-<div x-show="showRPModal" 
+<div x-cloak x-show="showRPModal" 
   x-transition:enter="transition ease-out duration-200"
   x-transition:enter-start="opacity-0"
   x-transition:enter-end="opacity-100"
@@ -721,7 +721,7 @@ x-transition:enter-end="opacity-100 translate-y-0">
   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
   @click.self="showRPModal = false">
 
-  <div x-show="showRPModal"
+  <div x-cloak x-show="showRPModal"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 scale-95"
     x-transition:enter-end="opacity-100 scale-100"

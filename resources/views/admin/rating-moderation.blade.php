@@ -413,7 +413,7 @@
                             default => 'text-[#4A6741]',
                         };
                     @endphp
-                    <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow">
+                    <div class="rating-card bg-white border border-gray-200 rounded-xl p-4 mb-4 hover:shadow-md transition-shadow" data-created-at="{{ $rating->created_at->timestamp }}">
                         <div class="rating-card-header flex items-center justify-between mb-4">
                             <div class="rating-card-user flex items-center gap-3">
                                 <div class="w-10 h-10 bg-[#4A6741] rounded-full flex items-center justify-center text-white font-bold text-sm">

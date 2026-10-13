@@ -442,12 +442,7 @@ class RecommendationAnalyticsService
                 'rating.owner_response'
             );
 
-        if ($range === 'this_week') {
-            $query->whereBetween('rating.created_at', [now()->startOfWeek(), now()->endOfWeek()]);
-        } elseif ($range === 'this_month') {
-            $query->whereBetween('rating.created_at', [now()->startOfMonth(), now()->endOfMonth()]);
-        }
-
+        // Return the recent review set once; the Recent Consumer Ratings tabs filter it client-side.
         return $query
             ->orderBy('rating.created_at', 'desc')
             ->limit(12)

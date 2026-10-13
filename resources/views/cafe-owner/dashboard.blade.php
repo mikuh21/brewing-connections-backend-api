@@ -43,63 +43,15 @@
             open: false,
             unreadCount: 0,
             items: [],
-            seenIds: [],
-            showUnreadOnly: false,
             poller: null,
-            isUnread(item) {
-                if (item.type === 'chat') {
-                    return true;
-                }
-                return !this.seenIds.includes(item.id);
+            isUnread() {
+                return true;
             },
             visibleItems() {
-                return this.showUnreadOnly
-                    ? this.items.filter((item) => this.isUnread(item))
-                    : this.items;
+                return this.items;
             },
             chatItems() {
                 return this.visibleItems().filter((item) => item.type === 'chat');
-            },
-            storageKey() {
-                return 'cafeOwnerSeenNotifications:{{ auth()->id() }}';
-            },
-            loadSeen() {
-                try {
-                    const raw = localStorage.getItem(this.storageKey()) || '[]';
-                    const parsed = JSON.parse(raw);
-                    this.seenIds = Array.isArray(parsed) ? parsed : [];
-                } catch (_error) {
-                    this.seenIds = [];
-                }
-            },
-            persistSeen() {
-                localStorage.setItem(this.storageKey(), JSON.stringify(this.seenIds));
-            },
-            recomputeUnread() {
-                this.unreadCount = this.items.filter((item) => this.isUnread(item)).length;
-            },
-            markItemAsRead(itemId) {
-                const item = this.items.find((entry) => entry.id === itemId);
-                if (item?.type === 'chat') {
-                    return;
-                }
-                if (!this.seenIds.includes(itemId)) {
-                    this.seenIds.push(itemId);
-                    this.persistSeen();
-                }
-                this.recomputeUnread();
-            },
-            markAllAsRead() {
-                this.items.forEach((item) => {
-                    if (item.type === 'chat') {
-                        return;
-                    }
-                    if (!this.seenIds.includes(item.id)) {
-                        this.seenIds.push(item.id);
-                    }
-                });
-                this.persistSeen();
-                this.recomputeUnread();
             },
             playTone() {
                 try {
@@ -159,7 +111,6 @@
                 }
             },
             init() {
-                this.loadSeen();
                 this.fetchNotifications();
                 this.poller = setInterval(() => this.fetchNotifications(), 60000);
             }
@@ -181,10 +132,7 @@
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>
                         <p class="text-xs text-[#9E8C78]">Updates for messages</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button type="button" @click="showUnreadOnly = !showUnreadOnly" class="text-xs font-semibold whitespace-nowrap" :class="showUnreadOnly ? 'text-[#3A2E22]' : 'text-[#4A6741] hover:text-[#3A2E22]'" x-text="showUnreadOnly ? 'Show all' : 'Unread only'"></button>
-                        <button type="button" x-show="unreadCount > 0" @click="markAllAsRead()" class="text-xs text-[#4A6741] font-semibold hover:text-[#3A2E22] whitespace-nowrap">Mark all read</button>
-                    </div>
+
                 </div>
 
                 <div class="max-h-80 overflow-y-auto notif-scrollbar">
@@ -198,7 +146,7 @@
                         <div>
                             <p class="px-4 pt-3 pb-1 text-[11px] uppercase tracking-wide font-semibold text-[#9E8C78]">Messages</p>
                             <template x-for="item in chatItems()" :key="item.id">
-                                <a :href="item.url" @click="markItemAsRead(item.id); open = false" class="block px-4 py-3 border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
+                                <a :href="item.url" @click="open = false" class="block px-4 py-3 border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors">
                                     <div class="flex items-start gap-3">
                                         <div class="mt-0.5 inline-flex w-6 h-6 rounded-full bg-blue-100 items-center justify-center">
                                             <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

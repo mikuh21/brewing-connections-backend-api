@@ -1451,43 +1451,50 @@
     </div>
 </div>
 
-<div
+<!-- Cancel Order Confirmation Modal (matches the Admin deletion modal pattern) -->
+<div class="fixed inset-0 z-[90] flex items-center justify-center px-4"
     x-show="showCancelOrderModal"
-    x-cloak
+    @keydown.escape.window="showCancelOrderModal = false"
     x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
     x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    @click="showCancelOrderModal = false"
+    style="display: none;"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="cancelSupplierOrderTitle"
-    @keydown.escape.window="showCancelOrderModal = false"
->
-    <div @click.away="showCancelOrderModal = false" class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div class="border-b border-[#E7DED1] p-5 sm:p-6">
-            <div class="flex items-start gap-3">
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/>
-                    </svg>
+    aria-labelledby="cancelSupplierOrderTitle">
+
+    <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm"
+        @click.stop="showCancelOrderModal = false"></div>
+
+    <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full"
+        @click.stop>
+        <div class="p-6">
+            <h2 id="cancelSupplierOrderTitle" class="text-2xl font-display font-bold text-[#3A2E22] mb-4">
+                Cancel Pending Order?
+            </h2>
+            <p class="text-[#3A2E22] mb-6">
+                Are you sure you want to cancel
+                <span class="font-semibold" x-text="cancelOrderReference"></span>?
+                This action cannot be undone.
+            </p>
+            <form method="POST" :action="cancelOrderAction" @submit="showCancelOrderModal = false">
+                @csrf
+                <div class="flex gap-3">
+                    <button type="button" @click="showCancelOrderModal = false"
+                        class="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                        Keep Order
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
+                        Cancel Order
+                    </button>
                 </div>
-                <div class="min-w-0">
-                    <h2 id="cancelSupplierOrderTitle" class="text-lg font-display font-bold text-[#3A2E22]">Cancel Pending Order?</h2>
-                    <p class="mt-1 text-sm leading-relaxed text-[#6B5B4A]">Are you sure you want to cancel your order for <span class="font-semibold text-[#3A2E22]" x-text="cancelOrderReference"></span>? This action cannot be undone.</p>
-                    <p class="mt-2 text-xs text-[#9E8C78]">Only cancel if you no longer want this supplier order.</p>
-                </div>
-            </div>
+            </form>
         </div>
-        <form method="POST" :action="cancelOrderAction" @submit="showCancelOrderModal = false">
-            @csrf
-            <div class="flex flex-col-reverse gap-2 bg-[#F8F4ED] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
-                <button type="button" @click="showCancelOrderModal = false" class="rounded-lg border border-[#D8CCBD] bg-white px-4 py-2.5 text-sm font-semibold text-[#3A2E22] hover:bg-[#F5F0E8]">Keep Order</button>
-                <button type="submit" class="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">Yes, Cancel Order</button>
-            </div>
-        </form>
     </div>
 </div>
 

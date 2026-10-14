@@ -677,6 +677,41 @@
         }
     }
 
+
+    /* Mobile-only layout for the reservation confirmation modal. Desktop styling remains unchanged. */
+    @media (max-width: 639px) {
+        #reservationConfirmModal {
+            padding: 12px;
+            align-items: center;
+        }
+        #reservationConfirmModalPanel {
+            width: 100%;
+            max-width: none;
+            max-height: calc(100vh - 24px);
+            max-height: calc(100dvh - 24px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        #reservationConfirmModalPanel > .p-5 {
+            padding: 16px;
+        }
+        #reservationConfirmModalActions {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+        #reservationConfirmModalActions button {
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            height: auto;
+            padding: 11px 14px;
+            line-height: 1.25;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+    }
+
 </style>
 @endpush
 
@@ -3070,7 +3105,7 @@
                     setFieldError(
                         reservationFullNameInput,
                         'reservationFullNameError',
-                        'Enter a valid full name (at least 3 characters).'
+                        'Enter a valid full name.'
                     );
                     hasError = true;
                 } else {
@@ -3499,7 +3534,7 @@
 
                 <p id="reservationConfirmError" class="hidden text-sm text-[#B43F3F] font-body mb-4"></p>
 
-                <div class="flex flex-col-reverse sm:flex-row gap-3">
+                <div id="reservationConfirmModalActions" class="flex flex-col-reverse sm:flex-row gap-3">
                     <button id="reservationConfirmCancelButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg border border-gray-300 text-gray-700 text-base font-semibold hover:bg-gray-50 transition-colors">Go Back</button>
                     <button id="reservationConfirmProceedButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#2E5A3D] text-white text-base font-semibold hover:bg-[#1E3A2A] transition-colors">Confirm &amp; Continue</button>
                 </div>

@@ -1501,6 +1501,12 @@
                             <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
+                        <div id="reservationDeliveryLocationField" class="hidden">
+                            <label class="block text-sm text-[#3A2E22] font-body mb-1">Delivery Location <span class="text-[#B43F3F]">*</span></label>
+                            <button id="reservationPinLocationButton" type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#2E5A3D] bg-white px-4 py-3 text-sm font-medium text-[#2E5A3D] hover:bg-[#F3E9D7] transition-colors"><span id="reservationPinLocationButtonText">Pin My Location</span></button>
+                            <p id="reservationDeliveryLocationSummary" class="mt-2 text-xs text-[#6B5B4A] hidden"></p>
+                            <p id="reservationDeliveryLocationError" class="mt-1 text-xs text-[#B43F3F] font-body hidden">Please pin and confirm your delivery location.</p>
+                        </div>
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Phone Number
@@ -1534,6 +1540,16 @@
         </div>
     </section>
 
+    <!-- Independent delivery pin map; does not use or modify establishment GIS state -->
+    <div id="reservationDeliveryMapModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="reservationDeliveryMapTitle">
+        <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-[#F3E9D7] shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#DCCBB2] px-5 py-4"><div><h3 id="reservationDeliveryMapTitle" class="font-display text-xl font-bold text-[#3A2E22]">Pin Delivery Location</h3><p class="mt-1 text-xs text-[#6B5B4A]">Click the map or drag the pin to your exact delivery address.</p></div><button id="reservationDeliveryMapClose" type="button" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">×</button></div>
+            <div class="p-4 sm:p-5"><div class="mb-3 flex flex-wrap gap-2"><button id="reservationUseCurrentLocation" type="button" class="rounded-lg border border-[#2E5A3D] bg-white px-3 py-2 text-sm font-medium text-[#2E5A3D] hover:bg-[#edf4ea]">Use My Current Location</button><span id="reservationMapStatus" class="self-center text-xs text-[#6B5B4A]" aria-live="polite">Choose your delivery point on the map.</span></div>
+                <div id="reservationDeliveryMap" class="h-[340px] w-full rounded-xl border border-[#DCCBB2] bg-white sm:h-[420px]"></div>
+                <p class="mt-3 text-xs text-[#6B5B4A]">The pin is required for Cash on Delivery and is saved only with this reservation.</p>
+                <div class="mt-4 flex justify-end gap-2"><button id="reservationDeliveryMapCancel" type="button" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button><button id="reservationDeliveryMapConfirm" type="button" disabled class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50">Confirm Location</button></div></div>
+        </div>
+    </div>
     <!-- About / Barako Features -->
     <section id="about" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

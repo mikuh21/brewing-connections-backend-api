@@ -899,6 +899,10 @@
             $orderMetadata = json_decode((string) ($order->notes ?? ''), true);
             $orderMetadata = is_array($orderMetadata) ? $orderMetadata : [];
             $orderStatus = strtolower((string) ($order->status ?? 'pending'));
+            $orderPaymentMode = strtolower((string) ($order->payment_mode ?? ($orderMetadata['payment_mode'] ?? 'pickup')));
+            $orderProductTotal = (float) ($order->total_price ?? 0);
+            $orderDeliveryFee = (float) ($order->delivery_fee ?? ($orderMetadata['delivery_fee'] ?? 0));
+            $orderTotalAmount = (float) ($order->total_amount ?? ($orderProductTotal + $orderDeliveryFee));
             $orderProduct = $order->product;
             $orderSupplierName = optional(optional($orderProduct)->seller)->name ?: 'Supplier';
             $receiptToken = (string) ($orderMetadata['receipt_token'] ?? '');
@@ -917,10 +921,21 @@
             </div>
             <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div><p class="text-[#9E8C78]">Quantity</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ (int) $order->quantity }} {{ $orderProduct->unit ?? 'kg' }}</p></div>
-                <div><p class="text-[#9E8C78]">Estimated Total</p><p class="mt-1 font-semibold text-[#3A2E22]">₱{{ number_format((float) $order->total_price, 2) }}</p></div>
-                <div><p class="text-[#9E8C78]">Pickup Date</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ $order->pickup_date ? \Illuminate\Support\Carbon::parse($order->pickup_date)->format('M d, Y') : 'Not set' }}</p></div>
+                <div><p class="text-[#9E8C78]">Mode of Payment</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ $orderPaymentMode === 'cod' ? 'Cash on Delivery' : 'Pickup' }}</p></div>
+                <div><p class="text-[#9E8C78]">Product Total</p><p class="mt-1 font-semibold text-[#3A2E22]">₱{{ number_format($orderProductTotal, 2) }}</p></div>
                 <div><p class="text-[#9E8C78]">Submitted</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ optional($order->created_at)->format('M d, Y') }}</p></div>
             </div>
+            @if($orderPaymentMode === 'cod')
+                <div class="mt-3 rounded-lg bg-[#F8F4ED] p-3 space-y-2 text-xs">
+                    <div class="flex items-center justify-between gap-3"><span class="text-[#8E7B67]">Estimated Delivery Fee</span><span class="font-semibold text-[#3A2E22]">₱{{ number_format($orderDeliveryFee, 2) }}</span></div>
+                    <div class="flex items-center justify-between gap-3 border-t border-[#E7DED1] pt-2"><span class="font-semibold text-[#3A2E22]">Total Amount</span><span class="font-bold text-[#2C4A2E]">₱{{ number_format($orderTotalAmount, 2) }}</span></div>
+                    @if(!empty($orderMetadata['address']))
+                        <p class="pt-1 text-[#6B5B4A]"><span class="font-semibold">Delivery address:</span> {{ $orderMetadata['address'] }}</p>
+                    @endif
+                </div>
+            @else
+                <p class="mt-3 text-xs text-[#6B5B4A]">Preferred pickup: {{ $order->pickup_date ? \Illuminate\Support\Carbon::parse($order->pickup_date)->format('M d, Y') : 'Not set' }}{{ $order->pickup_time ? ' at ' . \Illuminate\Support\Carbon::parse($order->pickup_time)->format('h:i A') : '' }}</p>
+            @endif
             @if(!empty($orderMetadata['buyer_notes']))
                 <p class="mt-3 text-xs text-[#6B5B4A]"><span class="font-semibold">Your note:</span> {{ $orderMetadata['buyer_notes'] }}</p>
             @endif
@@ -1041,14 +1056,34 @@
                 <p class="mt-1 text-[11px] text-[#8E7B67]">Minimum order: <span x-text="orderProduct.moq"></span> <span x-text="orderProduct.unit"></span></p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label for="supplier-payment-mode" class="block text-xs font-semibold text-[#3A2E22]">Mode of Payment *</label>
+                <select id="supplier-payment-mode" name="payment_mode" x-model="orderForm.payment_mode" required class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                    <option value="pickup">Pickup</option>
+                    <option value="cod">Cash on Delivery</option>
+                </select>
+            </div>
+
+            <div x-show="orderForm.payment_mode === 'pickup'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label for="supplier-order-date" class="block text-xs font-semibold text-[#3A2E22]">Preferred Pickup Date</label>
-                    <input id="supplier-order-date" type="date" name="pickup_date" x-model="orderForm.pickup_date" min="{{ now()->toDateString() }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                    <label for="supplier-order-date" class="block text-xs font-semibold text-[#3A2E22]">Preferred Pickup Date *</label>
+                    <input id="supplier-order-date" type="date" name="pickup_date" x-model="orderForm.pickup_date" :required="orderForm.payment_mode === 'pickup'" min="{{ now()->toDateString() }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 </div>
                 <div>
-                    <label for="supplier-order-time" class="block text-xs font-semibold text-[#3A2E22]">Preferred Pickup Time</label>
-                    <input id="supplier-order-time" type="time" name="pickup_time" x-model="orderForm.pickup_time" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                    <label for="supplier-order-time" class="block text-xs font-semibold text-[#3A2E22]">Preferred Pickup Time *</label>
+                    <input id="supplier-order-time" type="time" name="pickup_time" x-model="orderForm.pickup_time" :required="orderForm.payment_mode === 'pickup'" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                </div>
+            </div>
+
+            <div x-show="orderForm.payment_mode === 'cod'" x-cloak class="space-y-3 rounded-lg border border-[#E7DED1] p-3">
+                <div>
+                    <label for="supplier-order-address" class="block text-xs font-semibold text-[#3A2E22]">Delivery Address *</label>
+                    <textarea id="supplier-order-address" name="address" x-model="orderForm.address" :required="orderForm.payment_mode === 'cod'" maxlength="255" rows="2" placeholder="Enter the full address for delivery" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
+                </div>
+                <div>
+                    <label for="supplier-order-phone" class="block text-xs font-semibold text-[#3A2E22]">Contact Number *</label>
+                    <input id="supplier-order-phone" type="tel" name="phone" x-model="orderForm.phone" :required="orderForm.payment_mode === 'cod'" inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11-digit mobile number" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                    <p class="mt-1 text-[11px] text-[#8E7B67]">Enter 11 digits, including the leading 0.</p>
                 </div>
             </div>
 
@@ -1057,12 +1092,23 @@
                 <textarea id="supplier-order-notes" name="buyer_notes" x-model="orderForm.buyer_notes" rows="2" maxlength="1000" placeholder="Optional instructions or questions..." class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
             </div>
 
-            <div class="flex items-center justify-between rounded-lg bg-[#EEF4EA] px-3 py-3">
-                <span class="text-sm font-semibold text-[#3A2E22]">Estimated Total</span>
-                <span class="text-base font-bold text-[#2C4A2E]">₱<span x-text="orderTotal"></span></span>
+            <div class="rounded-lg border border-[#E7DED1] bg-white p-3 space-y-2">
+                <div class="flex items-center justify-between gap-3 text-sm">
+                    <span class="text-[#8E7B67]">Product Total</span>
+                    <span class="font-semibold text-[#3A2E22]">₱<span x-text="productTotal.toFixed(2)"></span></span>
+                </div>
+                <div x-show="orderForm.payment_mode === 'cod'" class="flex items-center justify-between gap-3 text-sm">
+                    <span class="text-[#8E7B67]">Estimated Delivery Fee</span>
+                    <span class="font-semibold text-[#3A2E22]">₱<span x-text="deliveryFee"></span></span>
+                </div>
+                <div class="flex items-center justify-between gap-3 border-t border-[#E7DED1] pt-2">
+                    <span class="text-sm font-semibold text-[#3A2E22]">Total Amount</span>
+                    <span class="text-base font-bold text-[#2C4A2E]">₱<span x-text="orderTotal"></span></span>
+                </div>
+                <p x-show="orderForm.payment_mode === 'cod'" class="text-[11px] leading-relaxed text-[#8E7B67]">Delivery fee uses BrewHub's existing weight-based estimate and may vary if the recorded product weight changes.</p>
             </div>
 
-            <p class="text-[11px] leading-relaxed text-[#8E7B67]">This is a reservation request, not an immediate payment. The supplier must confirm it before stock is reserved.</p>
+            <p class="text-[11px] leading-relaxed text-[#8E7B67]">This is a reservation request, not an immediate payment. For Cash on Delivery, pay the displayed total in cash when the order is delivered. The supplier must confirm the request before stock is reserved.</p>
 
             <div class="flex justify-end gap-2 pt-1">
                 <button type="button" @click="showOrderModal = false" :disabled="isSubmittingOrder" class="rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 disabled:opacity-50">Cancel</button>

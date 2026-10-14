@@ -1473,7 +1473,7 @@
                                     <div class="text-xs text-[#946042]">TOTAL TO PAY:</div>
                                     <div id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</div>
                                 </div>
-                                <p class="text-xs text-[#6B5B4A] mt-2">*Delivery fee is estimated and may vary depending on the shipping destination and final parcel weight.</p>
+                                <p class="text-xs text-[#6B5B4A] mt-2">*Provisional BrewHub estimate using a J&T-style weight reference. This is not a live J&T quote; final fees depend on courier origin/destination rates and verified parcel measurements.</p>
                             </div>
                         </div>
 

@@ -2110,7 +2110,7 @@
             const label = await reverseGeocodeReservationPin(pin); reservationDeliveryPin = { ...pin, label: label };
             if (reservationDeliveryLocationSummary) { reservationDeliveryLocationSummary.textContent = (label || "Pinned map location") + " (" + pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6) + ")"; reservationDeliveryLocationSummary.classList.remove("hidden"); }
             if (reservationPinLocationButtonText) reservationPinLocationButtonText.textContent = "Change Pinned Location";
-            if (reservationAddressInput && label) reservationAddressInput.value = label.slice(0, 255);
+            // Keep the customer's manually entered address intact; store the reverse-geocoded pin label separately.
             if (reservationDeliveryLocationError) reservationDeliveryLocationError.classList.add("hidden"); closeReservationDeliveryMap();
         });
         document.addEventListener("keydown", event => { if (event.key === "Escape" && reservationDeliveryMapModal && !reservationDeliveryMapModal.classList.contains("hidden")) closeReservationDeliveryMap(); });

@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Establishment;
+use App\Mail\RegistrationWelcomeMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class EstablishmentSelfRegistrationTest extends TestCase
@@ -13,6 +15,8 @@ class EstablishmentSelfRegistrationTest extends TestCase
 
     public function test_farm_owner_can_register_and_get_an_owned_unpinned_establishment(): void
     {
+        Mail::fake();
+
         $response = $this->post('/register', [
             'owner_name' => 'Test Farmer',
             'establishment_name' => 'Green Valley Farm',
@@ -31,6 +35,12 @@ class EstablishmentSelfRegistrationTest extends TestCase
         $response->assertRedirect(route('farm-owner.map'));
         $this->assertAuthenticatedAs($user);
         $this->assertSame('farm_owner', $user->role);
+        Mail::assertSent(RegistrationWelcomeMail::class, function (RegistrationWelcomeMail $mail) use ($user) {
+            return $mail->hasTo('farmer@example.com')
+                && $mail->user->is($user)
+                && $mail->establishmentName === 'Green Valley Farm'
+                && $mail->establishmentType === 'farm';
+        });
         $this->assertDatabaseHas('establishments', [
             'owner_id' => $user->id,
             'name' => 'Green Valley Farm',

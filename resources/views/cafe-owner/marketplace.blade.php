@@ -113,10 +113,15 @@
             seller_type: '',
             seller_name: ''
         },
+        defaultDeliveryAddress: @js((string) (Auth::user()->address ?? '')),
+        defaultDeliveryPhone: @js((string) (Auth::user()->contact_number ?? '')),
         orderForm: {
             quantity: 1,
+            payment_mode: 'pickup',
             pickup_date: '',
             pickup_time: '',
+            address: @js((string) (Auth::user()->address ?? '')),
+            phone: @js((string) (Auth::user()->contact_number ?? '')),
             buyer_notes: ''
         },
         openOrderModal(product) {
@@ -128,19 +133,46 @@
                 stock_quantity: Number(product.stock_quantity || 0),
                 moq: Math.max(1, Number(product.moq || 1)),
                 price: Number(product.order_price || product.price_per_unit || 0),
+                weight_grams: Number(product.weight_grams || 0),
                 seller_type: String(product.seller_type || '').toLowerCase(),
                 seller_name: product.seller_name || 'Supplier'
             };
             this.orderForm = {
                 quantity: Math.max(1, Number(product.moq || 1)),
+                payment_mode: 'pickup',
                 pickup_date: '',
                 pickup_time: '',
+                address: this.defaultDeliveryAddress,
+                phone: this.defaultDeliveryPhone,
                 buyer_notes: ''
             };
             this.showOrderModal = true;
         },
+        get productTotal() {
+            return Math.max(0, Number(this.orderForm.quantity || 0)) * Math.max(0, Number(this.orderProduct.price || 0));
+        },
+        get deliveryFee() {
+            if (this.orderForm.payment_mode !== 'cod') return '0.00';
+
+            let grams = Number(this.orderProduct.weight_grams || 0);
+            if (grams <= 0) {
+                const unit = String(this.orderProduct.unit || '').trim().toLowerCase();
+                const gramMatch = unit.match(/^(\d+(?:\.\d+)?)\s*(g|grams?)$/);
+                const kgMatch = unit.match(/^(\d+(?:\.\d+)?)\s*(kg)$/);
+                if (gramMatch) grams = Math.round(Number(gramMatch[1]));
+                else if (kgMatch) grams = Math.round(Number(kgMatch[1]) * 1000);
+                else grams = 500;
+            }
+
+            const totalGrams = grams * Math.max(1, Number(this.orderForm.quantity || 1));
+            let fee = 0;
+            if (totalGrams > 0 && totalGrams <= 500) fee = 90;
+            else if (totalGrams <= 1000) fee = 160;
+            else if (totalGrams > 1000) fee = Math.ceil(totalGrams / 1000) * 160;
+            return fee.toFixed(2);
+        },
         get orderTotal() {
-            return (Math.max(0, Number(this.orderForm.quantity || 0)) * Math.max(0, Number(this.orderProduct.price || 0))).toFixed(2);
+            return (this.productTotal + Number(this.deliveryFee || 0)).toFixed(2);
         },
         openViewer(product) {
             this.viewProduct = {
@@ -863,6 +895,7 @@
                                 "stock_quantity" => $product->stock_quantity,
                                 "moq" => $product->moq,
                                 "order_price" => $orderPrice,
+                                "weight_grams" => $product->weight_grams ?? null,
                                 "seller_type" => $sellerType,
                                 "seller_name" => $ownerName,
                             ]) }})'

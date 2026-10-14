@@ -1552,15 +1552,8 @@
                         <div id="reservationCodSummary" class="mt-3 rounded-lg border border-[#E2D5C1] bg-[#FAF6EE] p-3 hidden">
                             <p class="text-sm font-semibold text-[#3A2E22] font-poppins">Order Summary</p>
                             <div class="mt-2 space-y-1.5 text-sm text-[#3A2E22] font-body">
-                                <div class="flex items-center justify-between gap-3"><span>Item weight:</span><span id="codItemWeight" class="text-right">—</span></div>
-                                <div class="flex items-center justify-between gap-3"><span>Delivery distance:</span><span id="codDeliveryDistance" class="text-right">Pin location to estimate</span></div>
-                                <div class="flex items-center justify-between gap-3"><span>Product Total:</span><span id="codProductTotal">₱0.00</span></div>
-                                <div class="flex items-center justify-between gap-3"><span>Estimated Delivery Fee:</span><span id="codDeliveryFee">₱0.00</span></div>
-                                <div class="pt-2 border-t border-[#E8DCC9]">
-                                    <div class="text-xs text-[#946042]">TOTAL TO PAY:</div>
-                                    <div id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</div>
-                                </div>
-                                <p class="text-xs text-[#6B5B4A] mt-2">*Distance is an approximate straight-line distance from the seller's pinned coordinates to your delivery pin, not road distance. Estimated using the provided J&T-style zone/weight matrix; this is not a live courier quote.</p>
+                                <div class="flex items-center justify-between gap-3"><span>Total Item Weight:</span><span id="codItemWeight" class="text-right">—</span></div>
+                                <div class="flex items-center justify-between gap-3"><span>Total:</span><span id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</span></div>
                             </div>
                         </div>
                         <div>
@@ -2104,11 +2097,8 @@
         const reservationPaymentModeSelect = document.getElementById('reservationPaymentModeSelect');
         const reservationPickupFields = document.getElementById('reservationPickupFields');
         const reservationCodSummary = document.getElementById('reservationCodSummary');
-        const codProductTotal = document.getElementById('codProductTotal');
-        const codDeliveryFee = document.getElementById('codDeliveryFee');
         const codTotalAmount = document.getElementById('codTotalAmount');
         const codItemWeight = document.getElementById('codItemWeight');
-        const codDeliveryDistance = document.getElementById('codDeliveryDistance');
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
@@ -2786,8 +2776,6 @@
             const receiptPaymentModeRow = document.getElementById('receiptPaymentModeRow');
             const receiptPaymentModeElement = document.getElementById('receiptPaymentMode');
             const receiptPickupDetailsRow = document.getElementById('receiptPickupDetailsRow');
-            const receiptProductTotalElement = document.getElementById('receiptProductTotal');
-            const receiptDeliveryFeeElement = document.getElementById('receiptDeliveryFee');
             const receiptTotalAmountElement = document.getElementById('receiptTotalAmount');
             const receiptCodDetails = document.getElementById('receiptCodDetails');
             const receiptSellerElement = document.getElementById('receiptSeller');
@@ -2847,9 +2835,10 @@
 
             if (receiptCodDetails) {
                 if (paymentMode === 'cod') {
-                    if (receiptProductTotalElement) receiptProductTotalElement.textContent = `₱${(Number(data.productTotal || data.product_total || 0)).toFixed(2)}`;
-                    if (receiptDeliveryFeeElement) receiptDeliveryFeeElement.textContent = `₱${(Number(data.deliveryFee || data.delivery_fee || 0)).toFixed(2)}`;
-                    if (receiptTotalAmountElement) receiptTotalAmountElement.textContent = `₱${(Number(data.totalAmount || data.total_amount || 0)).toFixed(2)}`;
+                    const totalItemWeightGrams = Number(data.totalItemWeightGrams || data.total_item_weight_grams || 0);
+                    const receiptItemWeightElement = document.getElementById('receiptItemWeight');
+                    if (receiptItemWeightElement) receiptItemWeightElement.textContent = `${totalItemWeightGrams.toLocaleString()} g (${(totalItemWeightGrams / 1000).toFixed(2)} kg)`;
+                    if (receiptTotalAmountElement) receiptTotalAmountElement.textContent = `₱${(Number(data.totalAmount || data.total_amount || data.productTotal || 0)).toFixed(2)}`;
                     receiptCodDetails.classList.remove('hidden');
                 } else {
                     receiptCodDetails.classList.add('hidden');
@@ -3117,19 +3106,8 @@
                 const selectedOptionForCalc = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
                 const pricePerUnit = Number(selectedOptionForCalc?.dataset?.pricePerUnit || 0) || 0;
                 const productTotal = Math.round((pricePerUnit * quantityValue + Number.EPSILON) * 100) / 100;
-                let deliveryFeeValue = 0;
-                let totalAmountValue = productTotal;
-                if (paymentModeValue === 'cod') {
-                    const explicitWeight = Number(selectedOptionForCalc?.dataset?.weight || 0) || null;
-                    const unit = String(selectedOptionForCalc?.dataset?.unit || '').trim();
-                    const perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
-                    const totalGramsCalc = perUnitGrams * quantityValue;
-                    const originAddress = String(selectedOptionForCalc?.dataset?.originAddress || '');
-                    const destinationAddress = String(reservationDeliveryPin?.label || '');
-                    const deliveryZone = getDeliveryZone(originAddress, destinationAddress);
-                    deliveryFeeValue = computeDeliveryFeeByWeight(totalGramsCalc, deliveryZone);
-                    totalAmountValue = Math.round(((productTotal + deliveryFeeValue) + Number.EPSILON) * 100) / 100;
-                }
+                const deliveryFeeValue = 0;
+                const totalAmountValue = productTotal;
 
                 const receiptPayload = {
                     reservationId: generateReservationId(),
@@ -3200,104 +3178,21 @@
             return null;
         }
 
-        function normalizeDeliveryRegion(address) {
-            const value = String(address || '').toLowerCase();
-            const groups = [
-                { region: 'NCR', island: 'Luzon', terms: ['metro manila', 'national capital region', ' ncr', 'manila city', 'quezon city', 'makati', 'pasig', 'taguig', 'paranaque', 'las pinas', 'muntinlupa', 'caloocan', 'malabon', 'navotas', 'marikina', 'mandaluyong', 'san juan city', 'valenzuela', 'pateros'] },
-                { region: 'CALABARZON', island: 'Luzon', terms: ['batangas', 'cavite', 'laguna', 'rizal', 'quezon province', 'calabarzon', 'lip[a] city'] },
-                { region: 'MIMAROPA', island: 'Luzon', terms: ['oriental mindoro', 'occidental mindoro', 'marinduque', 'romblon', 'palawan', 'mimaropa'] },
-                { region: 'Central Luzon', island: 'Luzon', terms: ['aurora', 'bataan', 'bulacan', 'nueva ecija', 'pampanga', 'tarlac', 'zambales', 'central luzon'] },
-                { region: 'Ilocos', island: 'Luzon', terms: ['ilocos norte', 'ilocos sur', 'la union', 'pangasinan', 'ilocos region'] },
-                { region: 'Cagayan Valley', island: 'Luzon', terms: ['batanes', 'cagayan', 'isabela province', 'nueva vizcaya', 'quirino', 'cagayan valley'] },
-                { region: 'Cordillera', island: 'Luzon', terms: ['abra', 'apayao', 'benguet', 'ifugao', 'kalinga', 'mountain province', 'cordillera'] },
-                { region: 'Bicol', island: 'Luzon', terms: ['albay', 'camarines norte', 'camarines sur', 'catanduanes', 'masbate', 'sorsogon', 'bicol'] },
-                { region: 'Western Visayas', island: 'Visayas', terms: ['aklan', 'antique', 'capiz', 'guimaras', 'iloilo', 'western visayas'] },
-                { region: 'Central Visayas', island: 'Visayas', terms: ['bohol', 'cebu', 'negros oriental', 'siquijor', 'central visayas'] },
-                { region: 'Eastern Visayas', island: 'Visayas', terms: ['biliran', 'eastern samar', 'leyte', 'northern samar', 'samar', 'southern leyte', 'eastern visayas'] },
-                { region: 'Zamboanga Peninsula', island: 'Mindanao', terms: ['zamboanga del norte', 'zamboanga del sur', 'zamboanga sibugay', 'zamboanga peninsula'] },
-                { region: 'Northern Mindanao', island: 'Mindanao', terms: ['bukidnon', 'camiguin', 'lanao del norte', 'misamis occidental', 'misamis oriental', 'northern mindanao'] },
-                { region: 'Davao', island: 'Mindanao', terms: ['davao de oro', 'davao del norte', 'davao del sur', 'davao occidental', 'davao oriental', 'davao region'] },
-                { region: 'SOCCSKSARGEN', island: 'Mindanao', terms: ['cotabato', 'sarangani', 'south cotabato', 'sultan kudarat', 'soccsksargen'] },
-                { region: 'Caraga', island: 'Mindanao', terms: [' agusan', 'dinagat', 'surigao del norte', 'surigao del sur', 'caraga'] },
-                { region: 'BARMM', island: 'Mindanao', terms: ['basilan', 'lanao del sur', 'maguindanao', 'sulu', 'tawi-tawi', 'barmm'] },
-            ];
-            for (const group of groups) {
-                if (group.terms.some(term => value.includes(term))) return { region: group.region, island: group.island };
-            }
-            return null;
-        }
-
-        function getDeliveryZone(originAddress, destinationAddress) {
-            const origin = normalizeDeliveryRegion(originAddress);
-            const destination = normalizeDeliveryRegion(destinationAddress);
-            if (!origin || !destination) return 'cross-region';
-            if (origin.island !== destination.island) return 'inter-island';
-            return origin.region === destination.region ? 'intra-region' : 'cross-region';
-        }
-
-        function computeDeliveryFeeByWeight(totalGrams, zone) {
-            if (!Number.isFinite(totalGrams) || totalGrams <= 0) return 0;
-            const rates = {
-                'intra-region': { small: 85, medium: 115, large: 155, extraKg: 30 },
-                'cross-region': { small: 95, medium: 165, large: 190, extraKg: 50 },
-                'inter-island': { small: 105, medium: 195, large: 220, extraKg: 85 }
-            };
-            const rate = rates[zone] || rates['cross-region'];
-            if (totalGrams <= 500) return rate.small;
-            if (totalGrams <= 1000) return rate.medium;
-            if (totalGrams <= 3000) return rate.large;
-            return rate.large + (Math.ceil((totalGrams - 3000) / 1000) * rate.extraKg);
-        }
-
         function getSelectedOption() {
             return reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
         }
 
         function updateCodSummary() {
             if (!reservationCodSummary) return;
-
             const selectedOption = getSelectedOption();
             const quantity = Math.max(1, Number(reservationQuantityInput?.value || 1));
-            const price = Number(selectedOption?.dataset?.pricePerUnit || 0) || 0;
             const unit = String(selectedOption?.dataset?.unit || '').trim();
             const explicitWeight = Number(selectedOption?.dataset?.weight || 0) || null;
-
-            const productTotal = Math.round((price * quantity + Number.EPSILON) * 100) / 100;
-            let perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
+            const perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
             const totalGrams = perUnitGrams * quantity;
-            const originAddress = String(selectedOption?.dataset?.originAddress || '');
-            const destinationAddress = String(reservationDeliveryPin?.label || '');
-            const deliveryZone = getDeliveryZone(originAddress, destinationAddress);
-            const deliveryFee = computeDeliveryFeeByWeight(totalGrams, deliveryZone);
-            const totalAmount = Math.round(((productTotal + deliveryFee) + Number.EPSILON) * 100) / 100;
-
-            const originLat = Number(selectedOption?.dataset?.originLatitude);
-            const originLng = Number(selectedOption?.dataset?.originLongitude);
-            const destinationLat = Number(reservationDeliveryPin?.latitude);
-            const destinationLng = Number(reservationDeliveryPin?.longitude);
-            const hasOriginCoordinates = Number.isFinite(originLat) && Number.isFinite(originLng)
-                && selectedOption?.dataset?.originLatitude !== '' && selectedOption?.dataset?.originLongitude !== '';
-            const hasDestinationCoordinates = Number.isFinite(destinationLat) && Number.isFinite(destinationLng)
-                && !!reservationDeliveryPin;
-            let distanceKm = null;
-            if (hasOriginCoordinates && hasDestinationCoordinates) {
-                const radians = value => value * Math.PI / 180;
-                const dLat = radians(destinationLat - originLat);
-                const dLng = radians(destinationLng - originLng);
-                const a = Math.sin(dLat / 2) ** 2
-                    + Math.cos(radians(originLat)) * Math.cos(radians(destinationLat)) * Math.sin(dLng / 2) ** 2;
-                distanceKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
-            }
-
-            if (codItemWeight) codItemWeight.textContent = `${perUnitGrams.toLocaleString()} g × ${quantity} = ${totalGrams.toLocaleString()} g (${(totalGrams / 1000).toFixed(2)} kg)`;
-            if (codDeliveryDistance) {
-                codDeliveryDistance.textContent = distanceKm === null
-                    ? (hasDestinationCoordinates ? 'Seller coordinates unavailable' : 'Pin location to estimate')
-                    : `≈ ${distanceKm.toFixed(1)} km (direct)`;
-            }
-            if (codProductTotal) codProductTotal.textContent = `₱${productTotal.toFixed(2)}`;
-            if (codDeliveryFee) codDeliveryFee.textContent = `₱${deliveryFee.toFixed(2)}`;
-            if (codTotalAmount) codTotalAmount.textContent = `₱${totalAmount.toFixed(2)}`;
+            const productTotal = Math.round(((Number(selectedOption?.dataset?.pricePerUnit || 0) || 0) * quantity + Number.EPSILON) * 100) / 100;
+            if (codItemWeight) codItemWeight.textContent = `${totalGrams.toLocaleString()} g (${(totalGrams / 1000).toFixed(2)} kg)`;
+            if (codTotalAmount) codTotalAmount.textContent = `₱${productTotal.toFixed(2)}`;
         }
 
         function togglePaymentModeUI(mode) {
@@ -3590,15 +3485,11 @@
                         </div>
                         <div id="receiptCodDetails" class="hidden">
                             <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
-                                <p class="text-xs sm:text-sm text-[#946042] font-body">Product Total</p>
-                                <p id="receiptProductTotal" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total Item Weight</p>
+                                <p id="receiptItemWeight" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
                             </div>
                             <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
-                                <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Delivery Fee</p>
-                                <p id="receiptDeliveryFee" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
-                            </div>
-                            <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
-                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total Amount</p>
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total</p>
                                 <p id="receiptTotalAmount" class="text-xs sm:text-sm text-[#3A2E22] font-body">-</p>
                             </div>
                         </div>

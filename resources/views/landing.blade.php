@@ -3145,6 +3145,8 @@
             if (codProductTotal) codProductTotal.textContent = `₱${productTotal.toFixed(2)}`;
             if (codDeliveryFee) codDeliveryFee.textContent = `₱${deliveryFee.toFixed(2)}`;
             if (codTotalAmount) codTotalAmount.textContent = `₱${totalAmount.toFixed(2)}`;
+            const chargeableWeightLabel = document.getElementById('codChargeableWeight');
+            if (chargeableWeightLabel) chargeableWeightLabel.textContent = `Estimated chargeable weight: ${(totalGrams / 1000).toFixed(2)} kg (actual/package weight estimate; courier may reweigh)`;
         }
 
         function togglePaymentModeUI(mode) {

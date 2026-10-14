@@ -4,16 +4,25 @@ namespace App\Http\Controllers\CafeOwner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\ResellerProduct;
 use App\Services\MenuImageExtractionService;
+use App\Services\OrderReceiptNotifier;
+use App\Services\OrderStockManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class CafeOwnerMarketplaceController extends Controller
 {
     public function __construct(
         private readonly MenuImageExtractionService $menuImageExtractionService,
+        private readonly OrderReceiptNotifier $orderReceiptNotifier,
+        private readonly OrderStockManager $orderStockManager,
     ) {
     }
 
@@ -79,6 +88,25 @@ class CafeOwnerMarketplaceController extends Controller
             $marketplaceQuery->leftJoin('users as sellers', 'sellers.id', '=', 'products.seller_id');
         }
 
+        if (
+            Schema::hasTable('reseller_products')
+            && Schema::hasColumn('reseller_products', 'product_id')
+            && Schema::hasColumn('reseller_products', 'reseller_id')
+            && Schema::hasColumn('reseller_products', 'reseller_price')
+            && Schema::hasColumn('products', 'seller_id')
+        ) {
+            $marketplaceQuery->leftJoin('reseller_products as reseller_prices', function ($join) {
+                $join->on('reseller_prices.product_id', '=', 'products.id')
+                    ->on('reseller_prices.reseller_id', '=', 'products.seller_id');
+            });
+        }
+
+        if (Schema::hasColumn('products', 'seller_type')) {
+            $marketplaceQuery->whereIn('products.seller_type', ['farm_owner', 'reseller', 'roaster']);
+        }
+
+        $marketplaceQuery->whereIn('products.category', ['Coffee Beans', 'Ground Coffee']);
+
         if (Schema::hasColumn('products', 'is_active')) {
             $marketplaceQuery->where(function ($builder) {
                 $builder->where('products.is_active', true)
@@ -127,6 +155,10 @@ class CafeOwnerMarketplaceController extends Controller
                 'products.name',
                 'products.description',
                 'products.category',
+                DB::raw(Schema::hasTable('reseller_products') && Schema::hasColumn('reseller_products', 'reseller_price')
+                    ? 'COALESCE(reseller_prices.reseller_price, products.price_per_unit) as order_price'
+                    : 'products.price_per_unit as order_price'),
+                'products.price_per_unit',
                 'products.stock_quantity',
                 'products.unit',
                 'products.moq',
@@ -138,7 +170,14 @@ class CafeOwnerMarketplaceController extends Controller
             ->orderByDesc('products.updated_at')
             ->get();
 
-        return view('cafe-owner.marketplace', compact('products', 'marketplaceProducts'));
+        $orders = Order::query()
+            ->with(['product.seller'])
+            ->where('user_id', $userId)
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        return view('cafe-owner.marketplace', compact('products', 'marketplaceProducts', 'orders'));
     }
 
     public function store(Request $request)
@@ -402,6 +441,137 @@ class CafeOwnerMarketplaceController extends Controller
         }
 
         return back()->with('status', 'Product visibility updated successfully.');
+    }
+
+    public function storeOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'integer', 'exists:products,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'pickup_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'pickup_time' => ['nullable', 'date_format:H:i'],
+            'buyer_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $buyer = Auth::user();
+
+        $order = DB::transaction(function () use ($validated, $buyer) {
+            $product = Product::query()->lockForUpdate()->findOrFail((int) $validated['product_id']);
+            $sellerType = strtolower((string) ($product->seller_type ?? ''));
+
+            if (!in_array($sellerType, ['farm_owner', 'reseller', 'roaster'], true)
+                || !in_array((string) $product->category, ['Coffee Beans', 'Ground Coffee'], true)) {
+                abort(422, 'Only Coffee Beans and Ground Coffee from approved supplier listings can be ordered here.');
+            }
+
+            if ((int) ($product->seller_id ?? 0) === (int) $buyer->id) {
+                abort(422, 'You cannot order your own listing.');
+            }
+
+            if ($product->is_active === false) {
+                abort(422, 'This product is currently unavailable.');
+            }
+
+            $price = (float) ($product->price_per_unit ?? 0);
+            $availableStock = max(0, (int) ($product->stock_quantity ?? 0));
+
+            if ($sellerType === 'reseller') {
+                $resellerListing = ResellerProduct::query()
+                    ->where('product_id', $product->id)
+                    ->where('reseller_id', $product->seller_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($resellerListing) {
+                    $price = (float) $resellerListing->reseller_price;
+                    $availableStock = min($availableStock, max(0, (int) $resellerListing->stock_quantity));
+                }
+            }
+
+            if ($price <= 0) {
+                abort(422, 'This supplier has not set a valid price for this product yet.');
+            }
+
+            $quantity = (int) $validated['quantity'];
+            $minimumQuantity = max(1, (int) ($product->moq ?? 1));
+
+            if ($quantity < $minimumQuantity) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'quantity' => 'The minimum order quantity is ' . $minimumQuantity . '.',
+                ]);
+            }
+
+            if ($availableStock <= 0 || $quantity > $availableStock) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'quantity' => 'Requested quantity exceeds available stock (' . $availableStock . ').',
+                ]);
+            }
+
+            $receiptToken = Str::random(40);
+            $totalPrice = round($price * $quantity, 2);
+            $metadata = [
+                'source' => 'cafe-owner-store',
+                'buyer_name' => (string) ($buyer->name ?? 'Coffee Shop Owner'),
+                'receipt_email' => (string) ($buyer->email ?? ''),
+                'receipt_token' => $receiptToken,
+                'seller_type' => $sellerType,
+                'buyer_notes' => trim((string) ($validated['buyer_notes'] ?? '')),
+            ];
+
+            return Order::query()->create([
+                'user_id' => (int) $buyer->id,
+                'product_id' => (int) $product->id,
+                'quantity' => $quantity,
+                'total_price' => $totalPrice,
+                'total_amount' => $totalPrice,
+                'delivery_fee' => 0,
+                'payment_mode' => 'pickup',
+                'status' => 'pending',
+                'stock_reserved' => false,
+                'pickup_date' => $validated['pickup_date'] ?? null,
+                'pickup_time' => $validated['pickup_time'] ?? null,
+                'notes' => json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+            ]);
+        });
+
+        try {
+            $this->orderReceiptNotifier->sendOrderCreated($order);
+        } catch (\Throwable $exception) {
+            Log::warning('Cafe owner order receipt notification failed.', [
+                'order_id' => $order->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        return redirect()
+            ->route('cafe-owner.marketplace', ['tab' => 'orders'])
+            ->with('status', 'Your order/reservation was submitted. The supplier will review it.');
+    }
+
+    public function cancelOrder(Order $order)
+    {
+        abort_unless((int) $order->user_id === (int) Auth::id(), 403);
+
+        if (strtolower((string) $order->status) !== 'pending') {
+            return redirect()
+                ->route('cafe-owner.marketplace', ['tab' => 'orders'])
+                ->withErrors(['order' => 'Only pending orders can be cancelled.']);
+        }
+
+        $order = $this->orderStockManager->applyStatusTransition($order, 'cancelled');
+
+        try {
+            $this->orderReceiptNotifier->sendStatusUpdated($order);
+        } catch (\Throwable $exception) {
+            Log::warning('Cafe owner order cancellation notification failed.', [
+                'order_id' => $order->id,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        return redirect()
+            ->route('cafe-owner.marketplace', ['tab' => 'orders'])
+            ->with('status', 'Order cancelled successfully.');
     }
 
     protected function resolveOwnedEstablishment(int $userId): ?Establishment

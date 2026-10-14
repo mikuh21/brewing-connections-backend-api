@@ -32,6 +32,9 @@ class StoreLandingReservationRequest extends FormRequest
             'email' => ['required', 'email:rfc,dns', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'regex:/^\d{11}$/'],
+            'delivery_latitude' => ['nullable', 'required_if:payment_mode,cod', 'numeric', 'between:-90,90'],
+            'delivery_longitude' => ['nullable', 'required_if:payment_mode,cod', 'numeric', 'between:-180,180'],
+            'delivery_location_label' => ['nullable', 'string', 'max:255'],
         ];
     }
 

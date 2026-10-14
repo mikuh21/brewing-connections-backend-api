@@ -487,6 +487,15 @@
                 return this.isHidden(product.id) && haystack.includes(term);
             });
         },
+        hasBrowseProducts() {
+            const term = String(this.searchTerm || '').toLowerCase().trim();
+            return Array.from(document.querySelectorAll('#browseMarketplaceContent [data-marketplace-product]')).some((product) => {
+                const matchesSearch = (product.dataset.search || '').includes(term);
+                const matchesSeller = this.browseSellerTypeFilter === 'all'
+                    || (product.dataset.sellerType || '') === this.browseSellerTypeFilter;
+                return matchesSearch && matchesSeller;
+            });
+        },
         setBrowseSellerType(filter) {
             this.browseSellerTypeFilter = filter;
             const url = new URL(window.location.href);
@@ -836,6 +845,7 @@
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
+                data-marketplace-product
                 data-search="{{ strtolower(($product->name ?? '') . ' ' . ($product->category ?? '')) }}"
                 data-seller-type="{{ strtolower((string) ($product->seller_type ?? '')) }}"
                 x-show="(($el.dataset.search || '').includes(searchTerm.toLowerCase().trim())) && (browseSellerTypeFilter === 'all' || ($el.dataset.sellerType || '') === browseSellerTypeFilter)">
@@ -933,6 +943,13 @@
         <p class="text-sm text-gray-400 mt-1">There are currently no products available for this seller category. Try another filter.</p>
     </div>
 @endif
+<div x-cloak x-show="!hasBrowseProducts()" class="bg-white rounded-xl shadow-sm p-12 text-center">
+    <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0h-2.586a2 2 0 00-.707.293l-2.414 2.414a2 2 0 01-.707.293h-3.172a2 2 0 01-.707-.293L6.586 13H4m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5"/>
+    </svg>
+    <p class="text-lg font-display font-semibold text-gray-500">No products found</p>
+    <p class="text-sm text-gray-400 mt-1">There are currently no products available for this seller category. Try another filter.</p>
+</div>
 </div>
 </div>
 

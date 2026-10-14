@@ -178,7 +178,11 @@
                 } else {
                     this.deliveryMapInstance.setView(initial, hasPin ? 16 : 12);
                 }
-                if (hasPin) this.setDeliveryPin(initial[0], initial[1], false);
+                if (hasPin) {
+                    this.setDeliveryPin(initial[0], initial[1], false);
+                } else if (this.deliveryMarker) {
+                    this.deliveryMapInstance.removeLayer(this.deliveryMarker);
+                }
                 setTimeout(() => this.deliveryMapInstance?.invalidateSize(), 180);
                 this.deliveryMapStatus = hasPin ? 'Pinned location selected. You can move the pin if needed.' : 'Click the map or use your current location to place a pin.';
             } catch (error) {

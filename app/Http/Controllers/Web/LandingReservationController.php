@@ -68,14 +68,8 @@ class LandingReservationController extends Controller
             $totalAmount = $totalPrice;
 
             if (strtolower($paymentMode) === 'cod') {
-                $product->loadMissing('establishment:id,address');
-                $deliveryFee = (float) DeliveryFeeEstimator::estimateForProductAndRoute(
-                    $product,
-                    $requestedQty,
-                    $product->establishment?->address,
-                    (string) ($validated['delivery_location_label'] ?? $validated['address'] ?? '')
-                );
-                $totalAmount = round($totalPrice + $deliveryFee, 2);
+                $deliveryFee = 0.0;
+                $totalAmount = $totalPrice;
             }
             $receiptToken = Str::random(40);
             $metadata = [
@@ -89,14 +83,14 @@ class LandingReservationController extends Controller
                     'latitude' => (float) $validated['delivery_latitude'],
                     'longitude' => (float) $validated['delivery_longitude'],
                     'label' => $validated['delivery_location_label'] ?? null,
-                    'courier_reference' => 'J&T Express',
-                    'fee_estimate_method' => 'Provided J&T-style zone/weight matrix; inter-island range calculated at upper bound; final courier rate may vary',
+                    'total_item_weight_grams' => $this->resolveTotalItemWeightGrams($product, $requestedQty),
                 ] : null,
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,
                 'payment_mode' => $validated['payment_mode'] ?? null,
                 'delivery_fee' => $deliveryFee,
                 'total_amount' => $totalAmount,
+                'total_item_weight_grams' => $this->resolveTotalItemWeightGrams($product, $requestedQty),
                 'receipt_token' => $receiptToken,
             ];
 
@@ -300,6 +294,18 @@ class LandingReservationController extends Controller
         return redirect()
             ->route('reservations.orders.rating.form', $this->buildReceiptRouteParams($order, $receiptMeta))
             ->with('status', 'Product rating submitted successfully.');
+    }
+
+    private function resolveTotalItemWeightGrams(Product $product, int $quantity): int
+    {
+        $perUnitGrams = null;
+        if (isset($product->weight_grams) && is_numeric($product->weight_grams) && (float) $product->weight_grams > 0) {
+            $perUnitGrams = (int) round((float) $product->weight_grams);
+        }
+        if ($perUnitGrams === null && !empty($product->unit)) {
+            $perUnitGrams = DeliveryFeeEstimator::parseUnitToGrams((string) $product->unit);
+        }
+        return (int) ($perUnitGrams ?? 500) * max(1, $quantity);
     }
 
     private function storeProductRatingPhoto(Request $request): string

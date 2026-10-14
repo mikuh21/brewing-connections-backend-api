@@ -410,6 +410,8 @@ Route::prefix('cafe-owner')
         Route::post('/marketplace/products/menu/confirm', [CafeOwnerMarketplaceController::class, 'confirmExtractedMenuItems'])->name('marketplace.products.menu.confirm');
         Route::patch('/marketplace/products/{product}', [CafeOwnerMarketplaceController::class, 'updateProduct'])->name('marketplace.products.update');
         Route::patch('/marketplace/products/{product}/visibility', [CafeOwnerMarketplaceController::class, 'updateProductVisibility'])->name('marketplace.products.visibility');
+        Route::post('/marketplace/orders', [CafeOwnerMarketplaceController::class, 'storeOrder'])->name('marketplace.orders.store');
+        Route::post('/marketplace/orders/{order}/cancel', [CafeOwnerMarketplaceController::class, 'cancelOrder'])->name('marketplace.orders.cancel');
         Route::get('/recommendations', [CafeOwnerRecommendationsController::class, 'index'])->name('recommendations');
         Route::patch('/recommendations/reviews/{rating}/owner-response', [CafeOwnerRecommendationsController::class, 'updateOwnerResponse'])->name('recommendations.reviews.owner-response');
         Route::get('/map', [CafeOwnerMapController::class, 'index'])->name('map');

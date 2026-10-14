@@ -1450,9 +1450,6 @@
                                         data-price-per-unit="{{ $product->price_per_unit ?? 0 }}"
                                         data-unit="{{ $product->unit ?? '' }}"
                                         data-weight="{{ $product->weight_grams ?? '' }}"
-                                        data-origin-address="{{ $product->establishment?->address ?? '' }}"
-                                        data-origin-latitude="{{ $product->establishment?->latitude ?? '' }}"
-                                        data-origin-longitude="{{ $product->establishment?->longitude ?? '' }}"
                                         @disabled($isOutOfStock)
                                     >
                                         {{ $product->name }}{{ $isOutOfStock ? ' - Out of Stock' : '' }}
@@ -3108,6 +3105,10 @@
                 const productTotal = Math.round((pricePerUnit * quantityValue + Number.EPSILON) * 100) / 100;
                 const deliveryFeeValue = 0;
                 const totalAmountValue = productTotal;
+                const explicitWeightForReceipt = Number(selectedOptionForCalc?.dataset?.weight || 0) || null;
+                const unitForReceipt = String(selectedOptionForCalc?.dataset?.unit || '').trim();
+                const perUnitGramsForReceipt = explicitWeightForReceipt || parseUnitToGrams(unitForReceipt) || 500;
+                const totalItemWeightGrams = perUnitGramsForReceipt * quantityValue;
 
                 const receiptPayload = {
                     reservationId: generateReservationId(),
@@ -3118,7 +3119,7 @@
                     pickupDate: pickupDateValue,
                     pickupTime: pickupTimeValue,
                     paymentMode: paymentModeValue,
-                    deliveryFee: deliveryFeeValue,
+                    totalItemWeightGrams: totalItemWeightGrams,
                     productTotal: productTotal,
                     totalAmount: totalAmountValue,
                     fullName: fullNameValue,

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ResellerProduct;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -62,6 +63,7 @@ class OrderStockManager
 
                 $lockedProduct->stock_quantity = $availableStock - $quantity;
                 $lockedProduct->save();
+                $this->syncResellerListingStock($lockedProduct);
 
                 $lockedOrder->stock_reserved = true;
             }
@@ -70,6 +72,7 @@ class OrderStockManager
                 $currentStock = max(0, (int) ($lockedProduct->stock_quantity ?? 0));
                 $lockedProduct->stock_quantity = $currentStock + $quantity;
                 $lockedProduct->save();
+                $this->syncResellerListingStock($lockedProduct);
 
                 $lockedOrder->stock_reserved = false;
             }
@@ -79,6 +82,18 @@ class OrderStockManager
 
             return $lockedOrder;
         });
+    }
+
+    private function syncResellerListingStock(Product $product): void
+    {
+        if ((string) ($product->seller_type ?? '') !== 'reseller' || empty($product->seller_id)) {
+            return;
+        }
+
+        ResellerProduct::query()
+            ->where('product_id', $product->id)
+            ->where('reseller_id', $product->seller_id)
+            ->update(['stock_quantity' => max(0, (int) $product->stock_quantity)]);
     }
 
     private function normalizeStatus(string $status): string

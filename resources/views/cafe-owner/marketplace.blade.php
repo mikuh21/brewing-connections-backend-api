@@ -41,6 +41,7 @@
         showMenuImportModal: false,
         showViewModal: false,
         showOrderModal: false,
+        showOrderConfirmModal: false,
         isCreatingProduct: false,
         isSubmittingOrder: false,
         browseSellerTypeFilter: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
@@ -294,6 +295,26 @@
         },
         get orderTotal() {
             return (this.productTotal + Number(this.deliveryFee || 0)).toFixed(2);
+        },
+        requestOrderConfirmation(event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            if (this.orderForm.payment_mode === 'cod' && (this.orderForm.delivery_latitude === null || this.orderForm.delivery_longitude === null)) {
+                this.deliveryMapError = 'Please pin and confirm your delivery location before submitting.';
+                return;
+            }
+            this.deliveryMapError = '';
+            this.showOrderConfirmModal = true;
+        },
+        confirmOrderSubmission() {
+            if (!this.$refs.supplierOrderForm || this.isSubmittingOrder) return;
+            this.showOrderConfirmModal = false;
+            this.isSubmittingOrder = true;
+            this.$nextTick(() => this.$refs.supplierOrderForm.submit());
         },
         openViewer(product) {
             this.viewProduct = {
@@ -1228,7 +1249,7 @@
             <button type="button" @click="showOrderModal = false" :disabled="isSubmittingOrder" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:opacity-50">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('cafe-owner.marketplace.orders.store') }}" @submit="if (orderForm.payment_mode === 'cod' && (orderForm.delivery_latitude === null || orderForm.delivery_longitude === null)) { $event.preventDefault(); deliveryMapError = 'Please pin and confirm your delivery location before submitting.'; return; } isSubmittingOrder = true" :aria-busy="isSubmittingOrder.toString()" class="space-y-3">
+        <form x-ref="supplierOrderForm" method="POST" action="{{ route('cafe-owner.marketplace.orders.store') }}" @submit.prevent="requestOrderConfirmation($event)" :aria-busy="isSubmittingOrder.toString()" class="space-y-3">
             @csrf
             <input type="hidden" name="product_id" :value="orderProduct.id" />
             <input type="hidden" name="delivery_latitude" :value="orderForm.delivery_latitude ?? ''" />
@@ -1369,6 +1390,57 @@
                 <button type="button" @click="showDeliveryMap = false" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button>
                 <button type="button" @click="if (orderForm.delivery_latitude !== null && orderForm.delivery_longitude !== null) { showDeliveryMap = false; deliveryMapError = ''; } else { deliveryMapError = 'Please select a point on the map first.'; }" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A]">Confirm Location</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div
+    x-show="showOrderConfirmModal"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cafeOrderConfirmTitle"
+>
+    <div class="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+        <h2 id="cafeOrderConfirmTitle" class="text-xl font-display font-bold text-[#3A2E22]">Confirm Order / Reservation?</h2>
+        <p class="mt-2 text-sm text-[#6B5B4A]">Review your order and contact details before submitting your request.</p>
+        <div class="mt-4 space-y-2 rounded-xl border border-[#E7DED1] bg-[#F8F4ED] p-4 text-sm text-[#3A2E22]">
+            <div class="flex justify-between gap-3"><span class="text-[#946042]">Product</span><span class="text-right font-medium" x-text="orderProduct.name"></span></div>
+            <div class="flex justify-between gap-3"><span class="text-[#946042]">Seller</span><span class="text-right" x-text="orderProduct.seller_name"></span></div>
+            <div class="flex justify-between gap-3"><span class="text-[#946042]">Quantity</span><span x-text="orderForm.quantity + ' ' + orderProduct.unit"></span></div>
+            <div class="flex justify-between gap-3"><span class="text-[#946042]">Mode of Payment</span><span x-text="orderForm.payment_mode === 'cod' ? 'Cash on Delivery' : 'Pickup'"></span></div>
+            <template x-if="orderForm.payment_mode === 'pickup'">
+                <div class="space-y-2 border-t border-[#E7DED1] pt-2">
+                    <div class="flex justify-between gap-3"><span class="text-[#946042]">Pickup Date</span><span x-text="orderForm.pickup_date || '—'"></span></div>
+                    <div class="flex justify-between gap-3"><span class="text-[#946042]">Pickup Time</span><span x-text="orderForm.pickup_time || '—'"></span></div>
+                </div>
+            </template>
+            <template x-if="orderForm.payment_mode === 'cod'">
+                <div class="space-y-2 border-t border-[#E7DED1] pt-2">
+                    <div class="flex justify-between gap-3"><span class="text-[#946042]">Address</span><span class="max-w-[65%] break-words text-right" x-text="orderForm.address"></span></div>
+                    <div class="flex justify-between gap-3"><span class="text-[#946042]">Pinned Location</span><span class="max-w-[65%] break-words text-right" x-text="orderForm.delivery_location_label || (Number(orderForm.delivery_latitude).toFixed(6) + ', ' + Number(orderForm.delivery_longitude).toFixed(6))"></span></div>
+                    <div class="flex justify-between gap-3"><span class="text-[#946042]">Phone</span><span x-text="orderForm.phone"></span></div>
+                </div>
+            </template>
+            <div class="flex justify-between gap-3 border-t border-[#E7DED1] pt-2"><span class="text-[#946042]">Email</span><span class="max-w-[65%] break-words text-right" x-text="orderForm.email"></span></div>
+            <div class="flex justify-between gap-3 border-t border-[#E7DED1] pt-2"><span class="font-semibold">Product Total</span><span class="font-bold" x-text="'₱' + productTotal.toFixed(2)"></span></div>
+            <template x-if="orderForm.payment_mode === 'cod'">
+                <div class="flex justify-between gap-3"><span class="text-[#946042]">Total Item Weight</span><span x-text="totalItemWeightGrams.toLocaleString() + ' g (' + (totalItemWeightGrams / 1000).toFixed(2) + ' kg)'"></span></div>
+            </template>
+            <div class="flex justify-between gap-3 border-t border-[#E7DED1] pt-2"><span class="font-semibold">Order Total</span><span class="text-base font-bold text-[#2E5A3D]" x-text="'₱' + orderTotal"></span></div>
+            <p x-show="orderForm.payment_mode === 'cod'" class="rounded-md border border-[#E2D5C1] bg-white px-3 py-2 text-xs leading-relaxed text-[#8E7B67]">Note: Delivery fees are shouldered by the consumer and are separate from the order total.</p>
+            <div x-show="orderForm.buyer_notes.trim()" class="border-t border-[#E7DED1] pt-2"><span class="text-[#946042]">Notes:</span> <span x-text="orderForm.buyer_notes"></span></div>
+        </div>
+        <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button type="button" @click="showOrderConfirmModal = false" :disabled="isSubmittingOrder" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-[#3A2E22] hover:bg-gray-50 disabled:opacity-50">Go Back</button>
+            <button type="button" @click="confirmOrderSubmission()" :disabled="isSubmittingOrder" class="rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50" x-text="isSubmittingOrder ? 'Submitting…' : 'Confirm and Submit'"></button>
         </div>
     </div>
 </div>

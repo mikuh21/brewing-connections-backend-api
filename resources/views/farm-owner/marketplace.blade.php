@@ -857,7 +857,7 @@
                 $ownerLabel = $ownerTypeLabel($product->seller_type);
                 $isFarmOwnerSeller = strtolower((string) ($product->seller_type ?? '')) === 'farm_owner';
                 $ownerName = $isFarmOwnerSeller
-                    ? (trim((string) ($product->farm_name ?? '')) ?: ($product->seller_name ?: 'Unknown'))
+                    ? (trim((string) ($product->farm_name ?? $product->seller_owner_farm_name ?? '')) ?: ($product->seller_name ?: 'Unknown'))
                     : ($product->seller_name ?: 'Unknown');
                 $isCafeOwnerSeller = strtolower((string) ($product->seller_type ?? '')) === 'cafe_owner';
             @endphp
@@ -1005,7 +1005,7 @@
                                             'pickupDate' => $receiptMeta['pickup_date'] ?? null,
                                             'pickupTime' => $receiptMeta['pickup_time'] ?? null,
                                             'customer' => $receiptMeta['full_name'] ?? ($order->user->name ?? 'N/A'),
-                                            'seller' => $receiptMeta['seller'] ?? 'Coffee Marketplace',
+                                            'seller' => trim((string) ($order->product?->establishment?->name ?? '')) ?: (trim((string) ($receiptMeta['seller'] ?? '')) ?: 'Farm Establishment'),
                                             'address' => $receiptMeta['address'] ?? 'N/A',
                                             'phone' => $receiptMeta['phone'] ?? 'N/A',
                                             'status' => ucfirst((string) $order->status),

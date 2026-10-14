@@ -274,24 +274,8 @@
             return Math.max(0, Number(this.orderForm.quantity || 0)) * Math.max(0, Number(this.orderProduct.price || 0));
         },
         get deliveryFee() {
-            if (this.orderForm.payment_mode !== 'cod') return '0.00';
-
-            let grams = Number(this.orderProduct.weight_grams || 0);
-            if (grams <= 0) {
-                const unit = String(this.orderProduct.unit || '').trim().toLowerCase();
-                const gramMatch = unit.match(/^(\d+(?:\.\d+)?)\s*(g|grams?)$/);
-                const kgMatch = unit.match(/^(\d+(?:\.\d+)?)\s*(kg)$/);
-                if (gramMatch) grams = Math.round(Number(gramMatch[1]));
-                else if (kgMatch) grams = Math.round(Number(kgMatch[1]) * 1000);
-                else grams = 500;
-            }
-
-            const totalGrams = grams * Math.max(1, Number(this.orderForm.quantity || 1));
-            let fee = 0;
-            if (totalGrams > 0 && totalGrams <= 500) fee = 90;
-            else if (totalGrams <= 1000) fee = 160;
-            else if (totalGrams > 1000) fee = Math.ceil(totalGrams / 1000) * 160;
-            return fee.toFixed(2);
+            // Delivery fees are paid separately by the consumer and are not included in the order total.
+            return '0.00';
         },
         get orderTotal() {
             return (this.productTotal + Number(this.deliveryFee || 0)).toFixed(2);
@@ -1312,15 +1296,17 @@
                     <span class="text-[#8E7B67]">Product Total</span>
                     <span class="font-semibold text-[#3A2E22]">₱<span x-text="productTotal.toFixed(2)"></span></span>
                 </div>
-                <div x-show="orderForm.payment_mode === 'cod'" class="flex items-center justify-between gap-3 text-sm">
-                    <span class="text-[#8E7B67]">Estimated Delivery Fee</span>
-                    <span class="font-semibold text-[#3A2E22]">₱<span x-text="deliveryFee"></span></span>
+                <div x-show="orderForm.payment_mode === 'cod'" x-cloak class="flex items-center justify-between gap-3 text-sm">
+                    <span class="text-[#8E7B67]">Total Item Weight</span>
+                    <span class="font-semibold text-[#3A2E22]" x-text="(() => { let grams = Number(orderProduct.weight_grams || 0); if (grams <= 0) { const unit = String(orderProduct.unit || '').trim().toLowerCase(); const gm = unit.match(/^(\\d+(?:\\.\\d+)?)\\s*(g|grams?)$/); const kg = unit.match(/^(\\d+(?:\\.\\d+)?)\\s*(kg)$/); grams = gm ? Math.round(Number(gm[1])) : (kg ? Math.round(Number(kg[1]) * 1000) : 500); } const total = grams * Math.max(1, Number(orderForm.quantity || 1)); return total.toLocaleString() + ' g (' + (total / 1000).toFixed(2) + ' kg)'; })()"></span>
                 </div>
                 <div class="flex items-center justify-between gap-3 border-t border-[#E7DED1] pt-2">
-                    <span class="text-sm font-semibold text-[#3A2E22]">Total Amount</span>
+                    <span class="text-sm font-semibold text-[#3A2E22]">Total</span>
                     <span class="text-base font-bold text-[#2C4A2E]">₱<span x-text="orderTotal"></span></span>
                 </div>
-                <p x-show="orderForm.payment_mode === 'cod'" class="text-[11px] leading-relaxed text-[#8E7B67]">Delivery fee uses BrewHub's existing weight-based estimate and may vary if the recorded product weight changes.</p>
+                <p x-show="orderForm.payment_mode === 'cod'" x-cloak class="rounded-md border border-[#E2D5C1] bg-[#FAF6EE] px-2.5 py-2 text-[11px] leading-relaxed text-[#8E7B67]">
+                    <span class="font-semibold text-[#3A2E22]">Note:</span> Delivery fees are shouldered by the consumer and are separate from the order total.
+                </p>
             </div>
 
             <p class="text-[11px] leading-relaxed text-[#8E7B67]">This is a reservation request, not an immediate payment. For Cash on Delivery, pay the displayed total in cash when the order is delivered. The supplier must confirm the request before stock is reserved.</p>

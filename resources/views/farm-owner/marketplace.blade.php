@@ -1197,10 +1197,10 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50 p-3 sm:p-4"
 >
-    <div @click.away="closeReceiptViewer()" class="w-full max-w-lg md:max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[calc(100vh-3rem)]">
-        <div x-ref="receiptPrintContent" class="max-h-[calc(100vh-6rem)] overflow-y-auto">
+    <div @click.away="closeReceiptViewer()" class="relative isolate flex w-full max-w-lg md:max-w-2xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden h-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]">
+        <div x-ref="receiptPrintContent" class="relative z-0 min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div class="sticky top-0 z-20 bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 md:px-4 md:py-3 text-white">
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -1289,7 +1289,7 @@
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.generatedAt"></p>
                     </div>
                 </div>
-                <section x-show="receiptData.paymentMode === 'cod' && receiptData.deliveryLatitude !== null && receiptData.deliveryLongitude !== null" x-cloak class="mt-4 rounded-xl border border-[#E2D5C1] bg-[#F8F3EA] p-3 sm:p-4">
+                <section x-show="receiptData.paymentMode === 'cod' && receiptData.deliveryLatitude !== null && receiptData.deliveryLongitude !== null" x-cloak class="relative isolate z-0 mt-4 rounded-xl border border-[#E2D5C1] bg-[#F8F3EA] p-3 sm:p-4">
                     <h4 class="text-sm font-semibold text-[#3A2E22]">Pinned Delivery Location</h4>
                     <p class="mt-1 text-xs sm:text-sm text-[#946042] break-words" x-text="receiptData.deliveryLocationLabel || (Number(receiptData.deliveryLatitude).toFixed(6) + ', ' + Number(receiptData.deliveryLongitude).toFixed(6))"></p>
                     <div id="farmOwnerReceiptLocationMap" x-ref="receiptLocationMap" class="mt-3 w-full rounded-lg border border-[#D7C9B1] bg-white" role="img" aria-label="Map showing the buyer pinned delivery location"></div>
@@ -1298,7 +1298,7 @@
             </div>
         </div>
 
-        <div class="sticky bottom-0 z-20 px-4 py-4 pb-5 sm:px-5 md:px-5 bg-[#FAF7F1] border-t border-[#E6DDCF] shadow-[0_-6px_16px_rgba(58,46,34,0.05)] flex flex-col sm:flex-row sm:justify-end gap-2">
+        <div class="relative z-30 shrink-0 px-4 py-4 pb-5 sm:px-5 md:px-5 bg-[#FAF7F1] border-t border-[#E6DDCF] shadow-[0_-6px_16px_rgba(58,46,34,0.05)] flex flex-col sm:flex-row sm:justify-end gap-2">
             <button @click="closeReceiptViewer()" class="w-full sm:w-auto bg-white text-[#3A2E22] border border-[#C8B69A] px-3.5 py-2 rounded-lg text-sm font-body hover:bg-[#F3E9D7] transition-colors duration-200">
                 Close
             </button>
@@ -1571,7 +1571,20 @@
             width: 100% !important;
         }
     }
-    #farmOwnerReceiptLocationMap { height: min(42vh, 340px); min-height: 210px; }
+    #farmOwnerReceiptLocationMap {
+        position: relative;
+        z-index: 0;
+        isolation: isolate;
+        contain: paint;
+        height: min(42vh, 340px);
+        min-height: 210px;
+        overflow: hidden;
+    }
+    #farmOwnerReceiptLocationMap .leaflet-pane,
+    #farmOwnerReceiptLocationMap .leaflet-top,
+    #farmOwnerReceiptLocationMap .leaflet-bottom {
+        z-index: 1 !important;
+    }
     #farmOwnerReceiptLocationMap .leaflet-top,
     #farmOwnerReceiptLocationMap .leaflet-bottom { margin: 10px; }
     #farmOwnerReceiptLocationMap .leaflet-control-zoom {
@@ -1599,7 +1612,7 @@
         border-bottom: 1px solid #EEE4D7 !important;
     }
     @media (max-height: 650px) {
-        #farmOwnerReceiptLocationMap { height: 34vh; min-height: 170px; }
+        #farmOwnerReceiptLocationMap { height: 30vh; min-height: 150px; }
     }
 </style>
 

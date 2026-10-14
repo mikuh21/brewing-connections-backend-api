@@ -68,7 +68,13 @@ class LandingReservationController extends Controller
             $totalAmount = $totalPrice;
 
             if (strtolower($paymentMode) === 'cod') {
-                $deliveryFee = (float) DeliveryFeeEstimator::estimateForProduct($product, $requestedQty);
+                $product->loadMissing('establishment:id,address');
+                $deliveryFee = (float) DeliveryFeeEstimator::estimateForProductAndRoute(
+                    $product,
+                    $requestedQty,
+                    $product->establishment?->address,
+                    (string) ($validated['delivery_location_label'] ?? $validated['address'] ?? '')
+                );
                 $totalAmount = round($totalPrice + $deliveryFee, 2);
             }
             $receiptToken = Str::random(40);
@@ -84,7 +90,7 @@ class LandingReservationController extends Controller
                     'longitude' => (float) $validated['delivery_longitude'],
                     'label' => $validated['delivery_location_label'] ?? null,
                     'courier_reference' => 'J&T Express',
-                    'fee_estimate_method' => 'BrewHub weight-based estimate; final courier rate may vary',
+                    'fee_estimate_method' => 'Provided J&T-style zone/weight matrix; inter-island range calculated at upper bound; final courier rate may vary',
                 ] : null,
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,

@@ -27,6 +27,7 @@
             'farm_owner' => 'Farm Owner',
             'cafe_owner' => 'Cafe Owner',
             'reseller' => 'Reseller',
+            'roaster' => 'Roaster',
             default => 'Seller',
         };
     };
@@ -39,8 +40,10 @@
         showEditModal: false,
         showMenuImportModal: false,
         showViewModal: false,
+        showOrderModal: false,
         isCreatingProduct: false,
-        browseSellerTypeFilter: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller'], true) ? request('seller_type_filter') : 'all'),
+        isSubmittingOrder: false,
+        browseSellerTypeFilter: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
         editImagePreview: '',
         createImagePreview: '',
         menuImportImagePreview: '',
@@ -62,7 +65,7 @@
             'Burgers',
             'Pastries',
         ],
-        activeTab: 'my-listings',
+        activeTab: @js(in_array(request('tab'), ['browse', 'orders'], true) ? request('tab') : 'my-listings'),
         searchTerm: '',
         csrfToken: '{{ csrf_token() }}',
         hiddenProductIds: [],
@@ -98,6 +101,46 @@
             owner_label: '',
             owner_name: '',
             seller_type: ''
+        },
+        orderProduct: {
+            id: null,
+            name: '',
+            category: '',
+            unit: 'kg',
+            stock_quantity: 0,
+            moq: 1,
+            price: 0,
+            seller_type: '',
+            seller_name: ''
+        },
+        orderForm: {
+            quantity: 1,
+            pickup_date: '',
+            pickup_time: '',
+            buyer_notes: ''
+        },
+        openOrderModal(product) {
+            this.orderProduct = {
+                id: Number(product.id),
+                name: product.name || '',
+                category: product.category || '',
+                unit: product.unit || 'kg',
+                stock_quantity: Number(product.stock_quantity || 0),
+                moq: Math.max(1, Number(product.moq || 1)),
+                price: Number(product.order_price || product.price_per_unit || 0),
+                seller_type: String(product.seller_type || '').toLowerCase(),
+                seller_name: product.seller_name || 'Supplier'
+            };
+            this.orderForm = {
+                quantity: Math.max(1, Number(product.moq || 1)),
+                pickup_date: '',
+                pickup_time: '',
+                buyer_notes: ''
+            };
+            this.showOrderModal = true;
+        },
+        get orderTotal() {
+            return (Math.max(0, Number(this.orderForm.quantity || 0)) * Math.max(0, Number(this.orderProduct.price || 0))).toFixed(2);
         },
         openViewer(product) {
             this.viewProduct = {
@@ -499,6 +542,17 @@
         >
             Browse
         </button>
+
+        <button
+            type="button"
+            @click="activeTab = 'orders'"
+            class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
+            :style="activeTab === 'orders'
+                ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F; background: #F5F0E8;'
+                : 'color: #9E8C78; border-bottom: 3px solid transparent;'"
+        >
+            My Orders
+        </button>
     </div>
 </div>
 
@@ -706,6 +760,7 @@
         'all' => 'All Products',
         'farm_owner' => 'Farm Products',
         'reseller' => 'Reseller Products',
+        'roaster' => 'Roaster Products',
     ];
 @endphp
 
@@ -731,7 +786,13 @@
                 $displayType = trim((string) ($product->category ?? '')) ?: 'Coffee Beans';
                 $ownerLabel = $ownerTypeLabel($product->seller_type);
                 $ownerName = $product->seller_name ?: 'Unknown';
-                $isCafeOwnerSeller = strtolower((string) ($product->seller_type ?? '')) === 'cafe_owner';
+                $sellerType = strtolower((string) ($product->seller_type ?? ''));
+                $isCafeOwnerSeller = $sellerType === 'cafe_owner';
+                $orderPrice = (float) ($product->order_price ?? $product->price_per_unit ?? 0);
+                $canOrderProduct = in_array($sellerType, ['farm_owner', 'reseller', 'roaster'], true)
+                    && in_array($displayType, ['Coffee Beans', 'Ground Coffee'], true)
+                    && $orderPrice > 0
+                    && (int) ($product->stock_quantity ?? 0) > 0;
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
@@ -783,17 +844,36 @@
                         <span class="font-semibold text-[#3A2E22]">{{ $ownerName }}</span>
                     </p>
 
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center justify-between mb-3">
                         <div>
-                            
-                            @if(!$isCafeOwnerSeller)
-                            <p class="text-xs text-[#9E8C78]">per {{ $product->unit ?? 'unit' }}</p>
-                            @endif
+                            <p class="text-sm font-semibold text-[#3A2E22]">₱{{ number_format($orderPrice, 2) }} <span class="text-xs font-normal text-[#9E8C78]">/ {{ $product->unit ?? 'kg' }}</span></p>
                         </div>
-                        @if(!$isCafeOwnerSeller)
-                        <p class="text-xs text-[#9E8C78]">{{ (int) ($product->stock_quantity ?? 0) }} units</p>
-                        @endif
+                        <p class="text-xs text-[#9E8C78]">{{ (int) ($product->stock_quantity ?? 0) }} available</p>
                     </div>
+
+                    @if($canOrderProduct)
+                        <button
+                            type="button"
+                            @click='openOrderModal({{ json_encode([
+                                "id" => $product->id,
+                                "name" => $product->name,
+                                "category" => $product->category,
+                                "unit" => $product->unit ?: "kg",
+                                "stock_quantity" => $product->stock_quantity,
+                                "moq" => $product->moq,
+                                "order_price" => $orderPrice,
+                                "seller_type" => $sellerType,
+                                "seller_name" => $ownerName,
+                            ]) }})'
+                            class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-[#4A6741] px-3 py-2 text-xs font-semibold text-white hover:bg-[#3A2E22] transition-colors"
+                        >
+                            <span>Order / Reserve</span>
+                        </button>
+                    @else
+                        <button type="button" disabled class="w-full rounded-lg bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-400 cursor-not-allowed">
+                            Unavailable
+                        </button>
+                    @endif
                 </div>
             </div>
         @endforeach
@@ -805,6 +885,63 @@
     </div>
 @endif
 </div>
+</div>
+
+<div x-show="activeTab === 'orders'" id="orders" class="mt-6 space-y-4">
+    <div class="mb-4">
+        <h2 class="text-xl font-display font-bold text-[#3A2E22]">My Orders</h2>
+        <p class="text-xs text-[#9E8C78]">Track coffee bean and ground coffee reservations sent to suppliers.</p>
+    </div>
+
+    @forelse(($orders ?? collect()) as $order)
+        @php
+            $orderMetadata = json_decode((string) ($order->notes ?? ''), true);
+            $orderMetadata = is_array($orderMetadata) ? $orderMetadata : [];
+            $orderStatus = strtolower((string) ($order->status ?? 'pending'));
+            $orderProduct = $order->product;
+            $orderSupplierName = optional(optional($orderProduct)->seller)->name ?: 'Supplier';
+            $receiptToken = (string) ($orderMetadata['receipt_token'] ?? '');
+        @endphp
+        <div class="rounded-xl border border-[#E7DED1] bg-white p-4 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-[11px] uppercase tracking-wide text-[#9E8C78]">BRH-ORDER-{{ str_pad((string) $order->id, 6, '0', STR_PAD_LEFT) }}</p>
+                    <h3 class="mt-1 text-sm font-semibold text-[#3A2E22]">{{ $orderProduct->name ?? 'Product unavailable' }}</h3>
+                    <p class="mt-1 text-xs text-[#8E7B67]">{{ $orderProduct->category ?? 'Coffee product' }} · Supplier: {{ $orderSupplierName }}</p>
+                </div>
+                <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold
+                    {{ $orderStatus === 'confirmed' ? 'bg-blue-50 text-blue-700' : ($orderStatus === 'completed' ? 'bg-green-50 text-green-700' : (in_array($orderStatus, ['cancelled', 'canceled'], true) ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700')) }}">
+                    {{ ucfirst($orderStatus) }}
+                </span>
+            </div>
+            <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div><p class="text-[#9E8C78]">Quantity</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ (int) $order->quantity }} {{ $orderProduct->unit ?? 'kg' }}</p></div>
+                <div><p class="text-[#9E8C78]">Estimated Total</p><p class="mt-1 font-semibold text-[#3A2E22]">₱{{ number_format((float) $order->total_price, 2) }}</p></div>
+                <div><p class="text-[#9E8C78]">Pickup Date</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ $order->pickup_date ? \Illuminate\Support\Carbon::parse($order->pickup_date)->format('M d, Y') : 'Not set' }}</p></div>
+                <div><p class="text-[#9E8C78]">Submitted</p><p class="mt-1 font-semibold text-[#3A2E22]">{{ optional($order->created_at)->format('M d, Y') }}</p></div>
+            </div>
+            @if(!empty($orderMetadata['buyer_notes']))
+                <p class="mt-3 text-xs text-[#6B5B4A]"><span class="font-semibold">Your note:</span> {{ $orderMetadata['buyer_notes'] }}</p>
+            @endif
+            <div class="mt-4 flex flex-wrap justify-end gap-2">
+                @if($receiptToken !== '')
+                    <a href="{{ route('reservations.orders.receipt', ['order' => $order->id, 'token' => $receiptToken]) }}" target="_blank" rel="noopener" class="rounded-lg border border-[#4A6741] px-3 py-2 text-xs font-semibold text-[#4A6741] hover:bg-[#EEF4EA]">View Receipt</a>
+                @endif
+                @if($orderStatus === 'pending')
+                    <form method="POST" action="{{ route('cafe-owner.marketplace.orders.cancel', $order) }}" onsubmit="return confirm('Cancel this pending order?');">
+                        @csrf
+                        <button type="submit" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50">Cancel Order</button>
+                    </form>
+                @endif
+            </div>
+        </div>
+    @empty
+        <div class="rounded-xl border border-[#E7DED1] bg-white p-10 text-center shadow-sm">
+            <p class="text-sm font-semibold text-[#3A2E22]">No orders yet</p>
+            <p class="mt-1 text-xs text-[#9E8C78]">Browse supplier listings and select Order / Reserve to place your first request.</p>
+            <button type="button" @click="activeTab = 'browse'" class="mt-4 rounded-lg bg-[#4A6741] px-4 py-2 text-xs font-semibold text-white hover:bg-[#3A2E22]">Browse Suppliers</button>
+        </div>
+    @endforelse
 </div>
 
 <div
@@ -863,6 +1000,78 @@
             </div>
         </div>
     </div>
+
+<div
+    x-show="showOrderModal"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+>
+    <div @click.away="if (!isSubmittingOrder) showOrderModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-xl p-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-base font-display font-bold text-[#3A2E22]">Order / Reserve Coffee</h2>
+                <p class="mt-1 text-xs text-[#9E8C78]">Submit a request to the supplier. Stock is reserved when the supplier confirms.</p>
+            </div>
+            <button type="button" @click="showOrderModal = false" :disabled="isSubmittingOrder" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:opacity-50">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ route('cafe-owner.marketplace.orders.store') }}" @submit="isSubmittingOrder = true" :aria-busy="isSubmittingOrder.toString()" class="space-y-3">
+            @csrf
+            <input type="hidden" name="product_id" :value="orderProduct.id" />
+
+            <div class="rounded-lg border border-[#E7DED1] bg-[#F8F4ED] p-3">
+                <p class="text-sm font-semibold text-[#3A2E22]" x-text="orderProduct.name"></p>
+                <p class="text-xs text-[#8E7B67] mt-1"><span x-text="orderProduct.category"></span> · <span x-text="orderProduct.seller_name"></span></p>
+                <div class="mt-2 flex items-center justify-between gap-3">
+                    <span class="text-sm font-semibold text-[#3A2E22]">₱<span x-text="Number(orderProduct.price || 0).toFixed(2)"></span> / <span x-text="orderProduct.unit"></span></span>
+                    <span class="text-xs text-[#8E7B67]"><span x-text="orderProduct.stock_quantity"></span> available</span>
+                </div>
+            </div>
+
+            <div>
+                <label for="supplier-order-quantity" class="block text-xs font-semibold text-[#3A2E22]">Quantity (<span x-text="orderProduct.unit"></span>) *</label>
+                <input id="supplier-order-quantity" type="number" name="quantity" x-model.number="orderForm.quantity" :min="orderProduct.moq" :max="orderProduct.stock_quantity" step="1" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <p class="mt-1 text-[11px] text-[#8E7B67]">Minimum order: <span x-text="orderProduct.moq"></span> <span x-text="orderProduct.unit"></span></p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label for="supplier-order-date" class="block text-xs font-semibold text-[#3A2E22]">Preferred Pickup Date</label>
+                    <input id="supplier-order-date" type="date" name="pickup_date" x-model="orderForm.pickup_date" min="{{ now()->toDateString() }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                </div>
+                <div>
+                    <label for="supplier-order-time" class="block text-xs font-semibold text-[#3A2E22]">Preferred Pickup Time</label>
+                    <input id="supplier-order-time" type="time" name="pickup_time" x-model="orderForm.pickup_time" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                </div>
+            </div>
+
+            <div>
+                <label for="supplier-order-notes" class="block text-xs font-semibold text-[#3A2E22]">Notes to Supplier</label>
+                <textarea id="supplier-order-notes" name="buyer_notes" x-model="orderForm.buyer_notes" rows="2" maxlength="1000" placeholder="Optional instructions or questions..." class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between rounded-lg bg-[#EEF4EA] px-3 py-3">
+                <span class="text-sm font-semibold text-[#3A2E22]">Estimated Total</span>
+                <span class="text-base font-bold text-[#2C4A2E]">₱<span x-text="orderTotal"></span></span>
+            </div>
+
+            <p class="text-[11px] leading-relaxed text-[#8E7B67]">This is a reservation request, not an immediate payment. The supplier must confirm it before stock is reserved.</p>
+
+            <div class="flex justify-end gap-2 pt-1">
+                <button type="button" @click="showOrderModal = false" :disabled="isSubmittingOrder" class="rounded-lg bg-gray-100 px-4 py-2 text-sm text-gray-700 hover:bg-gray-200 disabled:opacity-50">Cancel</button>
+                <button type="submit" :disabled="isSubmittingOrder || !orderProduct.id || orderForm.quantity < orderProduct.moq || orderForm.quantity > orderProduct.stock_quantity" class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4A6741] px-4 py-2 text-sm font-semibold text-white hover:bg-[#3A2E22] disabled:cursor-not-allowed disabled:opacity-60">
+                    <span x-text="isSubmittingOrder ? 'Submitting...' : 'Submit Reservation'"></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div
     x-show="showEditModal"

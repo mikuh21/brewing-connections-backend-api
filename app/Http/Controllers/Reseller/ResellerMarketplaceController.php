@@ -201,7 +201,7 @@ class ResellerMarketplaceController extends Controller
                     $builder->where('seller_id', $userId);
 
                     if (Schema::hasColumn('products', 'seller_type')) {
-                        $builder->where('seller_type', 'reseller');
+                        $builder->whereIn('seller_type', ['reseller', 'roaster']);
                     }
                 })
                 ->latest()
@@ -390,7 +390,7 @@ class ResellerMarketplaceController extends Controller
             abort(403);
         }
 
-        if (Schema::hasColumn('products', 'seller_type') && (string) $order->product->seller_type !== 'reseller') {
+        if (Schema::hasColumn('products', 'seller_type') && !in_array((string) $order->product->seller_type, ['reseller', 'roaster'], true)) {
             abort(403);
         }
 

@@ -80,15 +80,11 @@
                                 </tr>
                                 @if (strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? ''))) === 'cod')
                                     <tr>
-                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Product Total</td>
-                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">PHP {{ number_format((float) ($order->total_price ?? 0), 2) }}</td>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Total Item Weight</td>
+                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">{{ number_format((float) ($receiptMeta['total_item_weight_grams'] ?? 0), 0) }} g ({{ number_format(((float) ($receiptMeta['total_item_weight_grams'] ?? 0)) / 1000, 2) }} kg)</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Estimated Delivery Fee</td>
-                                        <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">PHP {{ number_format((float) ($order->delivery_fee ?? ($receiptMeta['delivery_fee'] ?? 0)), 2) }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Total Amount</td>
+                                        <td style="padding:10px 12px;font-size:13px;color:#946042;border-top:1px solid #E2D5C1;">Total</td>
                                         <td style="padding:10px 12px;font-size:13px;border-top:1px solid #E2D5C1;">PHP {{ number_format((float) ($order->total_amount ?? ($receiptMeta['total_amount'] ?? ($order->total_price ?? 0))), 2) }}</td>
                                     </tr>
                                 @endif

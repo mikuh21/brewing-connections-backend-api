@@ -229,8 +229,11 @@
                 const mapElement = this.$refs.receiptLocationMap;
                 if (!mapElement) return;
 
-                if (!this.receiptLocationMapInstance) {
-                    this.receiptLocationMapInstance = L.map(mapElement, {
+                // Keep Leaflet instances on the DOM element instead of Alpine's reactive state.
+                // This avoids proxying Leaflet internals and lets the map be reused when the receipt reopens.
+                let receiptMap = mapElement._farmReceiptMap;
+                if (!receiptMap) {
+                    receiptMap = L.map(mapElement, {
                         zoomControl: true,
                         dragging: false,
                         touchZoom: false,
@@ -240,17 +243,18 @@
                         keyboard: false,
                         attributionControl: true
                     }).setView([latitude, longitude], 16);
+                    mapElement._farmReceiptMap = receiptMap;
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         maxZoom: 19,
                         attribution: '&copy; OpenStreetMap contributors'
-                    }).addTo(this.receiptLocationMapInstance);
-                    this.receiptLocationMapMarker = L.marker([latitude, longitude]).addTo(this.receiptLocationMapInstance);
+                    }).addTo(receiptMap);
+                    mapElement._farmReceiptMarker = L.marker([latitude, longitude]).addTo(receiptMap);
                 } else {
-                    this.receiptLocationMapInstance.setView([latitude, longitude], 16);
-                    if (this.receiptLocationMapMarker) this.receiptLocationMapMarker.setLatLng([latitude, longitude]);
+                    receiptMap.setView([latitude, longitude], 16);
+                    if (mapElement._farmReceiptMarker) mapElement._farmReceiptMarker.setLatLng([latitude, longitude]);
                 }
 
-                window.setTimeout(() => this.receiptLocationMapInstance?.invalidateSize(), 100);
+                window.setTimeout(() => mapElement._farmReceiptMap?.invalidateSize(), 100);
             } catch (error) {
                 console.error('Unable to initialize receipt delivery map:', error);
             }

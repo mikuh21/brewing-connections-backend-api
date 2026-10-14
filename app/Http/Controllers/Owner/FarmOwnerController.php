@@ -589,6 +589,11 @@ class FarmOwnerController extends Controller
             $marketplaceQuery->leftJoin('users as sellers', 'sellers.id', '=', 'products.seller_id');
         }
 
+        // Farm listings should identify the farm itself, not the owner's user account.
+        if (Schema::hasTable('establishments') && Schema::hasColumn('products', 'establishment_id')) {
+            $marketplaceQuery->leftJoin('establishments as seller_farms', 'seller_farms.id', '=', 'products.establishment_id');
+        }
+
         if (Schema::hasColumn('products', 'is_active')) {
             $marketplaceQuery->where(function ($builder) {
                 $builder->where('products.is_active', true)
@@ -641,7 +646,9 @@ class FarmOwnerController extends Controller
                 'products.image_url',
                 'products.seller_type',
                 'products.seller_id',
+                'products.establishment_id',
                 'sellers.name as seller_name',
+                'seller_farms.name as farm_name',
             ])
             ->orderByDesc('products.updated_at')
             ->get();

@@ -2585,6 +2585,9 @@
                     email: payload.email,
                     address: payload.address,
                     phone: payload.phone,
+                    delivery_latitude: payload.deliveryLatitude ?? null,
+                    delivery_longitude: payload.deliveryLongitude ?? null,
+                    delivery_location_label: payload.deliveryLocationLabel || null,
                 }),
             });
 
@@ -2883,6 +2886,13 @@
 
                 let hasError = false;
 
+                if (paymentModeValue.toLowerCase() === 'cod' && !reservationDeliveryPin) {
+                    if (reservationDeliveryLocationError) reservationDeliveryLocationError.classList.remove('hidden');
+                    hasError = true;
+                } else if (reservationDeliveryLocationError) {
+                    reservationDeliveryLocationError.classList.add('hidden');
+                }
+
                 if (!productValue) {
                     setFieldError(reservationProductSelect, 'reservationProductError', 'Please select a product.');
                     hasError = true;
@@ -3042,7 +3052,10 @@
                     fullName: fullNameValue,
                     email: emailValue,
                     address: addressValue,
-                    phone: phoneValue
+                    phone: phoneValue,
+                    deliveryLatitude: reservationDeliveryPin?.latitude ?? null,
+                    deliveryLongitude: reservationDeliveryPin?.longitude ?? null,
+                    deliveryLocationLabel: reservationDeliveryPin?.label || ''
                 };
 
                 openReservationConfirmModal(receiptPayload);
@@ -3149,6 +3162,8 @@
             // Set required attributes appropriately
             if (reservationPickupDateInput) reservationPickupDateInput.required = isPickup;
             if (reservationPickupTimeInput) reservationPickupTimeInput.required = isPickup;
+            if (reservationDeliveryLocationField) reservationDeliveryLocationField.classList.toggle('hidden', !isCod);
+            if (!isCod && reservationDeliveryLocationError) reservationDeliveryLocationError.classList.add('hidden');
 
             // When COD, update the summary
             if (isCod) {

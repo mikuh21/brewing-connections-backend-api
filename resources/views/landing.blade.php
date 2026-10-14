@@ -1451,6 +1451,8 @@
                                         data-unit="{{ $product->unit ?? '' }}"
                                         data-weight="{{ $product->weight_grams ?? '' }}"
                                         data-origin-address="{{ $product->establishment?->address ?? '' }}"
+                                        data-origin-latitude="{{ $product->establishment?->latitude ?? '' }}"
+                                        data-origin-longitude="{{ $product->establishment?->longitude ?? '' }}"
                                         @disabled($isOutOfStock)
                                     >
                                         {{ $product->name }}{{ $isOutOfStock ? ' - Out of Stock' : '' }}
@@ -1513,18 +1515,7 @@
                             </div>
                         </div>
 
-                        <div id="reservationCodSummary" class="rounded-lg border border-[#E2D5C1] bg-[#FAF6EE] p-3 hidden">
-                            <p class="text-sm font-semibold text-[#3A2E22] font-poppins">Order Summary</p>
-                            <div class="text-sm text-[#3A2E22] font-body mt-2 space-y-1">
-                                <div class="flex items-center justify-between"><span>Product Total:</span> <span id="codProductTotal">₱0.00</span></div>
-                                <div class="flex items-center justify-between"><span>Estimated Delivery Fee:</span> <span id="codDeliveryFee">₱0.00</span></div>
-                                <div class="pt-2 border-t border-[#E8DCC9]">
-                                    <div class="text-xs text-[#946042]">TOTAL TO PAY:</div>
-                                    <div id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</div>
-                                </div>
-                                <p class="text-xs text-[#6B5B4A] mt-2">*Estimated using the provided J&T-style zone/weight matrix. Major inter-island calculations use the upper end of each listed range; this is not a live courier quote.</p>
-                            </div>
-                        </div>
+
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
@@ -1557,6 +1548,20 @@
                             </button>
                             <p id="reservationDeliveryLocationSummary" class="mt-2 text-xs text-[#6B5B4A] hidden"></p>
                             <p id="reservationDeliveryLocationError" class="mt-1 text-xs text-[#B43F3F] font-body hidden">Please pin and confirm your delivery location.</p>
+                        </div>
+                        <div id="reservationCodSummary" class="mt-3 rounded-lg border border-[#E2D5C1] bg-[#FAF6EE] p-3 hidden">
+                            <p class="text-sm font-semibold text-[#3A2E22] font-poppins">Order Summary</p>
+                            <div class="mt-2 space-y-1.5 text-sm text-[#3A2E22] font-body">
+                                <div class="flex items-center justify-between gap-3"><span>Item weight:</span><span id="codItemWeight" class="text-right">—</span></div>
+                                <div class="flex items-center justify-between gap-3"><span>Delivery distance:</span><span id="codDeliveryDistance" class="text-right">Pin location to estimate</span></div>
+                                <div class="flex items-center justify-between gap-3"><span>Product Total:</span><span id="codProductTotal">₱0.00</span></div>
+                                <div class="flex items-center justify-between gap-3"><span>Estimated Delivery Fee:</span><span id="codDeliveryFee">₱0.00</span></div>
+                                <div class="pt-2 border-t border-[#E8DCC9]">
+                                    <div class="text-xs text-[#946042]">TOTAL TO PAY:</div>
+                                    <div id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</div>
+                                </div>
+                                <p class="text-xs text-[#6B5B4A] mt-2">*Distance is an approximate straight-line distance from the seller's pinned coordinates to your delivery pin, not road distance. Estimated using the provided J&T-style zone/weight matrix; this is not a live courier quote.</p>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
@@ -2102,6 +2107,8 @@
         const codProductTotal = document.getElementById('codProductTotal');
         const codDeliveryFee = document.getElementById('codDeliveryFee');
         const codTotalAmount = document.getElementById('codTotalAmount');
+        const codItemWeight = document.getElementById('codItemWeight');
+        const codDeliveryDistance = document.getElementById('codDeliveryDistance');
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
@@ -2193,7 +2200,9 @@
             if (reservationDeliveryLocationSummary) { reservationDeliveryLocationSummary.textContent = (label || "Pinned map location") + " (" + pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6) + ")"; reservationDeliveryLocationSummary.classList.remove("hidden"); }
             if (reservationPinLocationButtonText) reservationPinLocationButtonText.textContent = "Change Pinned Location";
             // Keep the customer's manually entered address intact; store the reverse-geocoded pin label separately.
-            if (reservationDeliveryLocationError) reservationDeliveryLocationError.classList.add("hidden"); closeReservationDeliveryMap();
+            if (reservationDeliveryLocationError) reservationDeliveryLocationError.classList.add("hidden");
+            updateCodSummary();
+            closeReservationDeliveryMap();
         });
         document.addEventListener("keydown", event => { if (event.key === "Escape" && reservationDeliveryMapModal && !reservationDeliveryMapModal.classList.contains("hidden")) closeReservationDeliveryMap(); });
         function getQueryParam(name) {
@@ -3262,11 +3271,33 @@
             const deliveryFee = computeDeliveryFeeByWeight(totalGrams, deliveryZone);
             const totalAmount = Math.round(((productTotal + deliveryFee) + Number.EPSILON) * 100) / 100;
 
+            const originLat = Number(selectedOption?.dataset?.originLatitude);
+            const originLng = Number(selectedOption?.dataset?.originLongitude);
+            const destinationLat = Number(reservationDeliveryPin?.latitude);
+            const destinationLng = Number(reservationDeliveryPin?.longitude);
+            const hasOriginCoordinates = Number.isFinite(originLat) && Number.isFinite(originLng)
+                && selectedOption?.dataset?.originLatitude !== '' && selectedOption?.dataset?.originLongitude !== '';
+            const hasDestinationCoordinates = Number.isFinite(destinationLat) && Number.isFinite(destinationLng)
+                && !!reservationDeliveryPin;
+            let distanceKm = null;
+            if (hasOriginCoordinates && hasDestinationCoordinates) {
+                const radians = value => value * Math.PI / 180;
+                const dLat = radians(destinationLat - originLat);
+                const dLng = radians(destinationLng - originLng);
+                const a = Math.sin(dLat / 2) ** 2
+                    + Math.cos(radians(originLat)) * Math.cos(radians(destinationLat)) * Math.sin(dLng / 2) ** 2;
+                distanceKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+            }
+
+            if (codItemWeight) codItemWeight.textContent = `${perUnitGrams.toLocaleString()} g × ${quantity} = ${totalGrams.toLocaleString()} g (${(totalGrams / 1000).toFixed(2)} kg)`;
+            if (codDeliveryDistance) {
+                codDeliveryDistance.textContent = distanceKm === null
+                    ? (hasDestinationCoordinates ? 'Seller coordinates unavailable' : 'Pin location to estimate')
+                    : `≈ ${distanceKm.toFixed(1)} km (direct)`;
+            }
             if (codProductTotal) codProductTotal.textContent = `₱${productTotal.toFixed(2)}`;
             if (codDeliveryFee) codDeliveryFee.textContent = `₱${deliveryFee.toFixed(2)}`;
             if (codTotalAmount) codTotalAmount.textContent = `₱${totalAmount.toFixed(2)}`;
-            const chargeableWeightLabel = document.getElementById('codChargeableWeight');
-            if (chargeableWeightLabel) chargeableWeightLabel.textContent = `Estimated chargeable weight: ${(totalGrams / 1000).toFixed(2)} kg (actual/package weight estimate; courier may reweigh)`;
         }
 
         function togglePaymentModeUI(mode) {

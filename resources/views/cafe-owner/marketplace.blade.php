@@ -456,6 +456,7 @@
             } else {
                 url.searchParams.set('seller_type_filter', filter);
             }
+            url.searchParams.set('tab', 'browse');
             url.hash = 'browse';
             window.history.replaceState({}, '', url.toString());
         },

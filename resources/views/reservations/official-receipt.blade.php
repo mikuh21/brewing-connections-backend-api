@@ -6,6 +6,15 @@
 @php
     $pickupDateRaw = (string) ($receiptMeta['pickup_date'] ?? '');
     $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
+    $deliveryLocation = is_array($receiptMeta['delivery_location'] ?? null) ? $receiptMeta['delivery_location'] : [];
+    $pinnedLocationLabel = trim((string) ($deliveryLocation['label'] ?? $receiptMeta['delivery_location_label'] ?? ''));
+    $pinnedLatitude = $deliveryLocation['latitude'] ?? $receiptMeta['delivery_latitude'] ?? null;
+    $pinnedLongitude = $deliveryLocation['longitude'] ?? $receiptMeta['delivery_longitude'] ?? null;
+    $pinnedLocationDisplay = $pinnedLocationLabel !== ''
+        ? $pinnedLocationLabel
+        : (($pinnedLatitude !== null && $pinnedLongitude !== null)
+            ? number_format((float) $pinnedLatitude, 6) . ', ' . number_format((float) $pinnedLongitude, 6)
+            : 'N/A');
     $existingRating = $order->productRating;
     $existingRatingScore = $existingRating?->overall_rating ? (int) round((float) $existingRating->overall_rating) : 0;
     $existingRatingImageUrl = $existingRating?->image_url;
@@ -67,6 +76,12 @@
                     <p class="text-sm text-[#946042] font-body">Address</p>
                     <p class="text-sm text-[#3A2E22] font-body break-words">{{ $receiptMeta['address'] ?? 'N/A' }}</p>
                 </div>
+                @if ($mode === 'cod')
+                    <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
+                        <p class="text-sm text-[#946042] font-body">Pinned Delivery Location</p>
+                        <p class="text-sm text-[#3A2E22] font-body break-words">{{ $pinnedLocationDisplay }}</p>
+                    </div>
+                @endif
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
                     <p class="text-sm text-[#946042] font-body">Phone</p>
                     <p class="text-sm text-[#3A2E22] font-body">{{ $receiptMeta['phone'] ?? 'N/A' }}</p>

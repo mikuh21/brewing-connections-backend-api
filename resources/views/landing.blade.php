@@ -1595,7 +1595,7 @@
             <div class="flex items-center justify-between border-b border-[#DCCBB2] px-4 py-3 sm:px-5"><div><h3 id="reservationDeliveryMapTitle" class="font-display text-lg font-bold text-[#3A2E22] sm:text-xl">Pin Delivery Location</h3><p class="mt-1 text-xs text-[#6B5B4A]">Click the map or drag the pin to your exact delivery address.</p></div><button id="reservationDeliveryMapClose" type="button" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">×</button></div>
             <div class="reservation-delivery-map-content p-3 sm:p-4"><div class="mb-2 flex flex-wrap gap-2"><button id="reservationUseCurrentLocation" type="button" class="rounded-lg border border-[#2E5A3D] bg-white px-3 py-2 text-sm font-medium text-[#2E5A3D] hover:bg-[#edf4ea]">Use My Current Location</button><span id="reservationMapStatus" class="self-center text-xs text-[#6B5B4A]" aria-live="polite">Choose your delivery point on the map.</span></div>
                 <div id="reservationDeliveryMap" class="w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
-                <p class="mt-2 text-xs text-[#6B5B4A]">The pin is required for Cash on Delivery and is saved only with this reservation.</p>
+                <p id="reservationPinnedLocationDisplay" class="mt-2 text-xs text-[#6B5B4A] break-words" aria-live="polite" hidden></p>
                 <div class="mt-3 flex justify-end gap-2"><button id="reservationDeliveryMapCancel" type="button" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button><button id="reservationDeliveryMapConfirm" type="button" disabled class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50">Confirm Location</button></div></div>
         </div>
     </div>
@@ -2153,6 +2153,22 @@
             if (reservationDeliveryMarker) reservationDeliveryMarker.setLatLng([lat, lng]);
             if (reservationDeliveryMapConfirm) reservationDeliveryMapConfirm.disabled = false;
             if (reservationMapStatus) reservationMapStatus.textContent = "Pin selected. Confirm to use this delivery location.";
+            const pinnedDisplay = document.getElementById("reservationPinnedLocationDisplay");
+            if (pinnedDisplay) {
+                pinnedDisplay.hidden = false;
+                pinnedDisplay.textContent = "Pinned: " + Number(lat).toFixed(6) + ", " + Number(lng).toFixed(6);
+            }
+            const selectedLatitude = Number(lat);
+            const selectedLongitude = Number(lng);
+            reverseGeocodeReservationPin(reservationDeliveryPin).then(label => {
+                if (!reservationDeliveryPin ||
+                    reservationDeliveryPin.latitude !== selectedLatitude ||
+                    reservationDeliveryPin.longitude !== selectedLongitude) return;
+                reservationDeliveryPin.label = label;
+                if (pinnedDisplay) {
+                    pinnedDisplay.textContent = "Pinned: " + (label || (selectedLatitude.toFixed(6) + ", " + selectedLongitude.toFixed(6)));
+                }
+            });
         }
         async function openReservationDeliveryMap() {
             reservationDeliveryMapModal.classList.remove("hidden"); reservationDeliveryMapModal.classList.add("flex"); document.body.classList.add("overflow-hidden");
@@ -2187,6 +2203,8 @@
         reservationDeliveryMapConfirm?.addEventListener("click", async () => {
             if (!reservationDeliveryPin) return; const pin = { ...reservationDeliveryPin }; reservationMapStatus.textContent = "Confirming location…";
             const label = await reverseGeocodeReservationPin(pin); reservationDeliveryPin = { ...pin, label: label };
+            const pinnedDisplay = document.getElementById("reservationPinnedLocationDisplay");
+            if (pinnedDisplay) { pinnedDisplay.hidden = false; pinnedDisplay.textContent = "Pinned: " + (label || (pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6))); }
             if (reservationDeliveryLocationSummary) { reservationDeliveryLocationSummary.textContent = (label || "Pinned map location") + " (" + pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6) + ")"; reservationDeliveryLocationSummary.classList.remove("hidden"); }
             if (reservationPinLocationButtonText) reservationPinLocationButtonText.textContent = "Change Pinned Location";
             // Keep the customer's manually entered address intact; store the reverse-geocoded pin label separately.

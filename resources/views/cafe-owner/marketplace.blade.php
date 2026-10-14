@@ -124,7 +124,121 @@
             address: @js((string) (Auth::user()->address ?? '')),
             phone: @js((string) (Auth::user()->contact_number ?? '')),
             email: @js((string) (Auth::user()->email ?? '')),
-            buyer_notes: ''
+            buyer_notes: '',
+            delivery_latitude: null,
+            delivery_longitude: null,
+            delivery_location_label: ''
+        },
+        showDeliveryMap: false,
+        deliveryMapStatus: 'Choose your delivery point on the map.',
+        deliveryMapInstance: null,
+        deliveryMarker: null,
+        deliveryLeafletPromise: null,
+        deliveryMapError: '',
+        async loadDeliveryLeaflet() {
+            if (window.L) return window.L;
+            if (!this.deliveryLeafletPromise) {
+                this.deliveryLeafletPromise = new Promise((resolve, reject) => {
+                    if (!document.querySelector('link[data-cafe-delivery-leaflet]')) {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                        link.dataset.cafeDeliveryLeaflet = 'true';
+                        document.head.appendChild(link);
+                    }
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                    script.onload = () => resolve(window.L);
+                    script.onerror = () => reject(new Error('Unable to load the map. Please check your connection and try again.'));
+                    document.head.appendChild(script);
+                });
+            }
+            return this.deliveryLeafletPromise;
+        },
+        async openDeliveryMap() {
+            this.showDeliveryMap = true;
+            this.deliveryMapError = '';
+            this.deliveryMapStatus = 'Loading map…';
+            await this.$nextTick();
+            try {
+                const L = await this.loadDeliveryLeaflet();
+                const hasPin = this.orderForm.delivery_latitude !== null && this.orderForm.delivery_longitude !== null;
+                const initial = hasPin
+                    ? [Number(this.orderForm.delivery_latitude), Number(this.orderForm.delivery_longitude)]
+                    : [13.9411, 121.1634];
+                if (!this.deliveryMapInstance) {
+                    this.deliveryMapInstance = L.map(this.$refs.deliveryMap, { scrollWheelZoom: true }).setView(initial, hasPin ? 16 : 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors',
+                        maxZoom: 19
+                    }).addTo(this.deliveryMapInstance);
+                    this.deliveryMapInstance.on('click', async (event) => {
+                        this.setDeliveryPin(event.latlng.lat, event.latlng.lng);
+                    });
+                } else {
+                    this.deliveryMapInstance.setView(initial, hasPin ? 16 : 12);
+                }
+                if (hasPin) this.setDeliveryPin(initial[0], initial[1], false);
+                setTimeout(() => this.deliveryMapInstance?.invalidateSize(), 180);
+                this.deliveryMapStatus = hasPin ? 'Pinned location selected. You can move the pin if needed.' : 'Click the map or use your current location to place a pin.';
+            } catch (error) {
+                this.deliveryMapStatus = error?.message || 'Unable to load the map.';
+            }
+        },
+        async setDeliveryPin(latitude, longitude, reverseGeocode = true) {
+            this.orderForm.delivery_latitude = Number(latitude);
+            this.orderForm.delivery_longitude = Number(longitude);
+            this.deliveryMapError = '';
+            if (this.deliveryMapInstance && window.L) {
+                if (!this.deliveryMarker) {
+                    this.deliveryMarker = window.L.marker([latitude, longitude], { draggable: true }).addTo(this.deliveryMapInstance);
+                    this.deliveryMarker.on('dragend', (event) => {
+                        const point = event.target.getLatLng();
+                        this.setDeliveryPin(point.lat, point.lng);
+                    });
+                } else {
+                    this.deliveryMarker.setLatLng([latitude, longitude]).addTo(this.deliveryMapInstance);
+                }
+            }
+            this.orderForm.delivery_location_label = '';
+            this.deliveryMapStatus = 'Pin selected. Looking up address…';
+            if (reverseGeocode) {
+                try {
+                    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+                    url.search = new URLSearchParams({
+                        format: 'jsonv2',
+                        lat: String(latitude),
+                        lon: String(longitude),
+                        zoom: '18',
+                        addressdetails: '1'
+                    }).toString();
+                    const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.orderForm.delivery_location_label = String(data.display_name || '').slice(0, 255);
+                    }
+                } catch (_) {}
+            }
+            this.deliveryMapStatus = this.orderForm.delivery_location_label
+                ? 'Pinned: ' + this.orderForm.delivery_location_label
+                : 'Pinned coordinates: ' + Number(latitude).toFixed(6) + ', ' + Number(longitude).toFixed(6);
+        },
+        useCurrentDeliveryLocation() {
+            if (!navigator.geolocation) {
+                this.deliveryMapStatus = 'Your browser does not support current location. Click the map to place a pin.';
+                return;
+            }
+            this.deliveryMapStatus = 'Getting your current location…';
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.setDeliveryPin(position.coords.latitude, position.coords.longitude);
+                    this.deliveryMapInstance?.setView([position.coords.latitude, position.coords.longitude], 16);
+                },
+                () => {
+                    this.deliveryMapStatus = 'Could not get your location. Allow location access or click the map to place a pin.';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
         },
         openOrderModal(product) {
             this.orderProduct = {
@@ -147,8 +261,13 @@
                 address: this.defaultDeliveryAddress,
                 phone: this.defaultDeliveryPhone,
                 email: this.defaultReceiptEmail,
-                buyer_notes: ''
+                buyer_notes: '',
+                delivery_latitude: null,
+                delivery_longitude: null,
+                delivery_location_label: ''
             };
+            this.deliveryMapError = '';
+            this.deliveryMapStatus = 'Choose your delivery point on the map.';
             this.showOrderModal = true;
         },
         get productTotal() {
@@ -1110,9 +1229,12 @@
             <button type="button" @click="showOrderModal = false" :disabled="isSubmittingOrder" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:opacity-50">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('cafe-owner.marketplace.orders.store') }}" @submit="isSubmittingOrder = true" :aria-busy="isSubmittingOrder.toString()" class="space-y-3">
+        <form method="POST" action="{{ route('cafe-owner.marketplace.orders.store') }}" @submit="if (orderForm.payment_mode === 'cod' && (orderForm.delivery_latitude === null || orderForm.delivery_longitude === null)) { $event.preventDefault(); deliveryMapError = 'Please pin and confirm your delivery location before submitting.'; return; } isSubmittingOrder = true" :aria-busy="isSubmittingOrder.toString()" class="space-y-3">
             @csrf
             <input type="hidden" name="product_id" :value="orderProduct.id" />
+            <input type="hidden" name="delivery_latitude" :value="orderForm.delivery_latitude ?? ''" />
+            <input type="hidden" name="delivery_longitude" :value="orderForm.delivery_longitude ?? ''" />
+            <input type="hidden" name="delivery_location_label" :value="orderForm.delivery_location_label || ''" />
 
             <div class="rounded-lg border border-[#E7DED1] bg-[#F8F4ED] p-3">
                 <p class="text-sm font-semibold text-[#3A2E22]" x-text="orderProduct.name"></p>
@@ -1161,6 +1283,19 @@
                 <textarea id="supplier-order-address" name="address" x-model="orderForm.address" autocomplete="street-address" maxlength="255" rows="2" placeholder="Enter complete address" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]"></textarea>
             </div>
 
+            <div x-show="orderForm.payment_mode === 'cod'" x-cloak class="space-y-2">
+                <button type="button" @click="openDeliveryMap()" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#2E5A3D] bg-white px-4 py-2.5 text-sm font-medium text-[#2E5A3D] hover:bg-[#F3E9D7] transition-colors">
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                    <span x-text="orderForm.delivery_latitude !== null ? 'Change Pinned Location' : 'Pin Delivery Location'"></span>
+                </button>
+                <p x-show="orderForm.delivery_latitude !== null" x-cloak class="text-xs text-[#6B5B4A] break-words">
+                    <span class="font-semibold">Pinned location:</span>
+                    <span x-text="orderForm.delivery_location_label || (Number(orderForm.delivery_latitude).toFixed(6) + ', ' + Number(orderForm.delivery_longitude).toFixed(6))"></span>
+                </p>
+                <p x-show="deliveryMapError" x-cloak class="text-xs text-[#B43F3F]" x-text="deliveryMapError"></p>
+                <p class="text-[11px] text-[#8E7B67]">A pinned map location is required for Cash on Delivery.</p>
+            </div>
+
             <div>
                 <label for="supplier-order-phone" class="block text-sm text-[#3A2E22] font-body mb-1">Phone Number</label>
                 <input id="supplier-order-phone" type="text" name="phone" x-model="orderForm.phone" @input="orderForm.phone = $event.target.value.replace(/[^0-9]/g, '').slice(0, 11); $event.target.value = orderForm.phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" maxlength="11" placeholder="e.g. 09XXXXXXXXX" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" />
@@ -1197,6 +1332,43 @@
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<div
+    x-show="showDeliveryMap"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-3 sm:p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cafeDeliveryMapTitle"
+>
+    <div class="w-full max-w-3xl overflow-hidden rounded-2xl border border-[#DCCBB2] bg-[#F3E9D7] shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#DCCBB2] px-4 py-3 sm:px-5">
+            <div>
+                <h2 id="cafeDeliveryMapTitle" class="text-lg font-display font-bold text-[#3A2E22]">Pin Delivery Location</h2>
+                <p class="mt-1 text-xs text-[#6B5B4A]">Click the map or drag the pin to the exact delivery point.</p>
+            </div>
+            <button type="button" @click="showDeliveryMap = false" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">&times;</button>
+        </div>
+        <div class="p-3 sm:p-4">
+            <div class="mb-2 flex flex-wrap items-center gap-2">
+                <button type="button" @click="useCurrentDeliveryLocation()" class="rounded-lg border border-[#2E5A3D] bg-white px-3 py-2 text-sm font-medium text-[#2E5A3D] hover:bg-[#edf4ea]">Use My Current Location</button>
+                <span class="self-center text-xs text-[#6B5B4A]" x-text="deliveryMapStatus" aria-live="polite"></span>
+            </div>
+            <div x-ref="deliveryMap" class="h-72 sm:h-96 w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
+            <p class="mt-2 text-xs text-[#6B5B4A]">Your pin is saved with this order. Please ensure the typed address above matches the pinned location.</p>
+            <div class="mt-3 flex justify-end gap-2">
+                <button type="button" @click="showDeliveryMap = false" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button>
+                <button type="button" @click="if (orderForm.delivery_latitude !== null && orderForm.delivery_longitude !== null) { showDeliveryMap = false; deliveryMapError = ''; } else { deliveryMapError = 'Please select a point on the map first.'; }" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A]">Confirm Location</button>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -6,6 +6,8 @@
 @php
     $pickupDateRaw = (string) ($receiptMeta['pickup_date'] ?? '');
     $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
+    $mode = strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? 'pickup')));
+    $modeLabel = $mode === 'cod' ? 'Cash on Delivery' : ($mode === 'pickup' ? 'Pickup' : ucfirst($mode));
     $deliveryLocation = is_array($receiptMeta['delivery_location'] ?? null) ? $receiptMeta['delivery_location'] : [];
     $pinnedLocationLabel = trim((string) ($deliveryLocation['label'] ?? $receiptMeta['delivery_location_label'] ?? ''));
     $pinnedLatitude = $deliveryLocation['latitude'] ?? $receiptMeta['delivery_latitude'] ?? null;
@@ -86,10 +88,6 @@
                     <p class="text-sm text-[#946042] font-body">Phone</p>
                     <p class="text-sm text-[#3A2E22] font-body">{{ $receiptMeta['phone'] ?? 'N/A' }}</p>
                 </div>
-                @php
-                    $mode = strtolower((string) ($order->payment_mode ?? ($receiptMeta['payment_mode'] ?? 'pickup')));
-                    $modeLabel = $mode === 'cod' ? 'Cash on Delivery' : ($mode === 'pickup' ? 'Pickup' : ucfirst($mode));
-                @endphp
                 <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
                     <p class="text-sm text-[#946042] font-body">Mode of Payment</p>
                     <p class="text-sm text-[#3A2E22] font-body">{{ $modeLabel }}</p>

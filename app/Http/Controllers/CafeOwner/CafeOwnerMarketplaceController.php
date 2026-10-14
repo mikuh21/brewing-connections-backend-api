@@ -156,6 +156,7 @@ class CafeOwnerMarketplaceController extends Controller
                 'products.name',
                 'products.description',
                 'products.category',
+                DB::raw(Schema::hasColumn('products', 'weight_grams') ? 'products.weight_grams' : 'NULL as weight_grams'),
                 DB::raw(Schema::hasTable('reseller_products')
                     && Schema::hasColumn('reseller_products', 'product_id')
                     && Schema::hasColumn('reseller_products', 'reseller_id')

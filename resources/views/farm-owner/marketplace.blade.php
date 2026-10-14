@@ -930,7 +930,7 @@
     </div>
     <div
         x-cloak
-        x-show="!Array.from($el.previousElementSibling.querySelectorAll('[data-browse-product-card]')).some(card => card.style.display !== 'none')"
+        x-show="!Array.from($root.querySelectorAll('[data-browse-product-card]')).some(card => (activeBrowseSellerType === 'all' || (card.dataset.sellerType || '') === activeBrowseSellerType) && (card.dataset.search || '').includes(searchTerm.toLowerCase().trim()))"
         class="bg-white rounded-xl shadow-sm p-12 text-center mt-4"
     >
         <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

@@ -29,6 +29,7 @@
             'farm_owner' => 'Farm Owner',
             'cafe_owner' => 'Cafe Owner',
             'reseller' => 'Reseller',
+            'roaster' => 'Roaster',
             default => 'Seller',
         };
     };
@@ -72,6 +73,7 @@
         editImagePreview: '',
         createImagePreview: '',
         activeTab: 'my-listings',
+        activeBrowseSellerType: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
         statusFilter: 'all',
         orderSearch: '',
         searchTerm: '',
@@ -825,22 +827,25 @@
 </div>
 
 @php
-    $browseSellerTypeFilter = request('seller_type_filter', 'all');
     $browseSellerTypeOptions = [
         'all' => 'All Products',
         'farm_owner' => 'Farm Products',
         'reseller' => 'Reseller Products',
+        'roaster' => 'Roaster Products',
     ];
 @endphp
 
 <div class="mb-5 flex flex-wrap gap-2">
     @foreach($browseSellerTypeOptions as $filterKey => $filterLabel)
-        <a
-            href="{{ route('farm-owner.marketplace', array_merge(request()->query(), ['seller_type_filter' => $filterKey === 'all' ? null : $filterKey])) }}#browse"
-            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors {{ $browseSellerTypeFilter === $filterKey || ($filterKey === 'all' && !in_array($browseSellerTypeFilter, ['farm_owner', 'reseller'], true)) ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]' }}"
+        <button
+            type="button"
+            @click="activeBrowseSellerType = '{{ $filterKey }}'"
+            :aria-pressed="activeBrowseSellerType === '{{ $filterKey }}'"
+            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors"
+            :class="activeBrowseSellerType === '{{ $filterKey }}' ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]'"
         >
             {{ $filterLabel }}
-        </a>
+        </button>
     @endforeach
 </div>
 
@@ -855,8 +860,9 @@
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
-                data-search="{{ strtolower(($product->name ?? '') . ' ' . ($product->category ?? '')) }}"
-                x-show="($el.dataset.search || '').includes(searchTerm.toLowerCase().trim())">
+                data-search="{{ strtolower(($product->name ?? '') . ' ' . ($product->category ?? '') . ' ' . ($ownerName ?? '')) }}"
+                data-seller-type="{{ strtolower((string) ($product->seller_type ?? '')) }}"
+                x-show="(activeBrowseSellerType === 'all' || ($el.dataset.sellerType || '') === activeBrowseSellerType) && ($el.dataset.search || '').includes(searchTerm.toLowerCase().trim())">
                 <div class="relative">
                     @if($product->image_url)
                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-36 object-cover" />
@@ -919,9 +925,6 @@
         @endforeach
     </div>
 
-    <div class="mt-8">
-        {{ $marketplaceProducts->links() }}
-    </div>
 @else
     <div class="bg-white rounded-xl shadow-sm p-10 text-center">
         <p class="text-sm text-gray-400">No marketplace products from other sellers found.</p>
@@ -1295,7 +1298,7 @@
             </div>
         </div>
 
-        <div class="px-4 py-2.5 sm:px-5 md:px-4 md:py-2 bg-[#FAF7F1] border-t border-[#E6DDCF] flex flex-col sm:flex-row sm:justify-end gap-2">
+        <div class="sticky bottom-0 z-20 px-4 py-4 pb-5 sm:px-5 md:px-5 bg-[#FAF7F1] border-t border-[#E6DDCF] shadow-[0_-6px_16px_rgba(58,46,34,0.05)] flex flex-col sm:flex-row sm:justify-end gap-2">
             <button @click="closeReceiptViewer()" class="w-full sm:w-auto bg-white text-[#3A2E22] border border-[#C8B69A] px-3.5 py-2 rounded-lg text-sm font-body hover:bg-[#F3E9D7] transition-colors duration-200">
                 Close
             </button>

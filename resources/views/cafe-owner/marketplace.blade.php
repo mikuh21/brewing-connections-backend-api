@@ -1126,7 +1126,7 @@
 
             <div>
                 <label for="supplier-order-phone" class="block text-sm text-[#3A2E22] font-body mb-1">Phone Number</label>
-                <input id="supplier-order-phone" type="text" name="phone" x-model="orderForm.phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" maxlength="11" placeholder="e.g. 09XXXXXXXXX" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" />
+                <input id="supplier-order-phone" type="text" name="phone" x-model="orderForm.phone" @input="orderForm.phone = $event.target.value.replace(/[^0-9]/g, '').slice(0, 11); $event.target.value = orderForm.phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" maxlength="11" placeholder="e.g. 09XXXXXXXXX" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" />
                 <p class="mt-1 text-xs text-[#B43F3F] font-body" x-show="orderForm.phone && !/^[0-9]{11}$/.test(orderForm.phone)" x-cloak>Phone number must contain exactly 11 digits.</p>
             </div>
 

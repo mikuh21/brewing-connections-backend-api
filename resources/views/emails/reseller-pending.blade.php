@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reseller Account Pending Review</title>
+    <title>Welcome to BrewHub</title>
 </head>
 <body style="margin:0;padding:0;background:#f7f2e8;font-family:Arial,sans-serif;color:#3A2E22;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f2e8;padding:24px 12px;">
@@ -18,11 +18,11 @@
                     <tr>
                         <td style="padding:24px;line-height:1.6;font-size:15px;">
                             <p style="margin:0 0 12px;">Hi {{ $user->name }},</p>
-                            <p style="margin:0 0 12px;">Thank you for registering as a reseller on BrewHub.</p>
-                            <p style="margin:0 0 12px;">Your account is currently pending review by our admin team. This usually takes 1-2 business days.</p>
-                            <p style="margin:0 0 16px;">We will send another email once your reseller account is verified.</p>
+                            <p style="margin:0 0 12px;">Welcome to BrewHub! Your registration was successful, and we're glad to have you as part of the BrewHub Team.</p>
+                            <p style="margin:0 0 12px;">Your reseller account has been created successfully. Before you can access all reseller features, our admin team must review and verify your account. This usually takes 1-2 business days.</p>
+                            <p style="margin:0 0 16px;">We'll email you again when your reseller account is verified.</p>
                             <p style="margin:0 0 22px;">
-                                <a href="{{ route('login') }}" style="display:inline-block;background:#2E5A3D;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Open BrewHub</a>
+                                <a href="{{ route('login') }}" style="display:inline-block;background:#2E5A3D;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;">Log In Now</a>
                             </p>
                             <p style="margin:0;color:#7b6a55;font-size:13px;">If you did not request this account, please contact support.</p>
                         </td>

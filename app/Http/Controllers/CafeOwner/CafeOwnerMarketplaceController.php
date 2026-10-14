@@ -155,7 +155,11 @@ class CafeOwnerMarketplaceController extends Controller
                 'products.name',
                 'products.description',
                 'products.category',
-                DB::raw(Schema::hasTable('reseller_products') && Schema::hasColumn('reseller_products', 'reseller_price')
+                DB::raw(Schema::hasTable('reseller_products')
+                    && Schema::hasColumn('reseller_products', 'product_id')
+                    && Schema::hasColumn('reseller_products', 'reseller_id')
+                    && Schema::hasColumn('reseller_products', 'reseller_price')
+                    && Schema::hasColumn('products', 'seller_id')
                     ? 'COALESCE(reseller_prices.reseller_price, products.price_per_unit) as order_price'
                     : 'products.price_per_unit as order_price'),
                 'products.price_per_unit',
@@ -468,7 +472,7 @@ class CafeOwnerMarketplaceController extends Controller
                 abort(422, 'You cannot order your own listing.');
             }
 
-            if ($product->is_active === false) {
+            if ($product->is_active === false || $product->is_active === 0 || $product->is_active === '0') {
                 abort(422, 'This product is currently unavailable.');
             }
 

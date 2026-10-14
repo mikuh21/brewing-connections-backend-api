@@ -190,6 +190,10 @@
                 owner_label: product.owner_label || 'Seller',
                 owner_name: product.owner_name || 'Unknown',
                 seller_type: String(product.seller_type || '').toLowerCase(),
+                can_order: Boolean(product.can_order),
+                order_price: Number(product.order_price || 0),
+                weight_grams: Number(product.weight_grams || 0),
+                seller_name: product.seller_name || product.owner_name || 'Supplier',
             };
             this.showViewModal = true;
         },
@@ -861,7 +865,11 @@
                                 "image_url" => $product->image_url,
                                 "owner_label" => $ownerLabel,
                                 "owner_name" => $ownerName,
-                                "seller_type" => $product->seller_type,
+                                "seller_type" => $sellerType,
+                                "can_order" => $canOrderProduct,
+                                "order_price" => $orderPrice,
+                                "weight_grams" => $product->weight_grams ?? null,
+                                "seller_name" => $ownerName,
                             ]) }})'
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
                             title="View full details"
@@ -1047,8 +1055,16 @@
                 </div>
             </div>
 
-            <div class="px-4 pb-4 flex justify-end">
-                <button type="button" @click="showViewModal = false" class="px-4 py-2 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] transition-colors">Close</button>
+            <div class="px-4 pb-4 flex flex-wrap justify-end gap-2">
+                <button type="button" @click="showViewModal = false" class="px-4 py-2 text-sm rounded-lg border border-[#D8CBBB] bg-white text-[#3A2E22] hover:bg-[#F8F4ED] transition-colors">Close</button>
+                <button
+                    x-show="viewProduct.can_order"
+                    type="button"
+                    @click="openOrderModal({ id: viewProduct.id, name: viewProduct.name, category: viewProduct.category, unit: viewProduct.unit || 'kg', stock_quantity: viewProduct.stock_quantity, moq: viewProduct.moq, order_price: viewProduct.order_price, weight_grams: viewProduct.weight_grams, seller_type: viewProduct.seller_type, seller_name: viewProduct.seller_name }); showViewModal = false"
+                    class="px-4 py-2 text-sm font-semibold rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] transition-colors"
+                >
+                    Order / Reserve
+                </button>
             </div>
         </div>
     </div>

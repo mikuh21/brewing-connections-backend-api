@@ -855,7 +855,10 @@
             @php
                 $displayType = trim((string) ($product->category ?? '')) ?: 'Coffee Beans';
                 $ownerLabel = $ownerTypeLabel($product->seller_type);
-                $ownerName = $product->seller_name ?: 'Unknown';
+                $isFarmOwnerSeller = strtolower((string) ($product->seller_type ?? '')) === 'farm_owner';
+                $ownerName = $isFarmOwnerSeller
+                    ? (trim((string) ($product->farm_name ?? '')) ?: ($product->seller_name ?: 'Unknown'))
+                    : ($product->seller_name ?: 'Unknown');
                 $isCafeOwnerSeller = strtolower((string) ($product->seller_type ?? '')) === 'cafe_owner';
             @endphp
 

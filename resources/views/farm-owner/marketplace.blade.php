@@ -351,22 +351,6 @@
                 '.v{font-size:13px;color:#3A2E22;word-break:break-word;}' +
                 '@media (max-width:640px){body{padding:10px}.grid{grid-template-columns:1fr}.row{grid-template-columns:104px 1fr;}}' +
                 '@media print{body{padding:0;background:#fff}.receipt-wrap{box-shadow:none;border:none;max-width:none}}' +
-                '    #farmOwnerReceiptLocationMap { height: min(42vh, 340px); min-height: 210px; }
-    #farmOwnerReceiptLocationMap .leaflet-top,
-    #farmOwnerReceiptLocationMap .leaflet-bottom { margin: 10px; }
-    #farmOwnerReceiptLocationMap .leaflet-control-zoom {
-        border: 1px solid #E7DED1 !important; box-shadow: 0 8px 24px rgba(58, 46, 34, 0.10) !important;
-        border-radius: 14px !important; overflow: hidden; background: #FFFFFF !important;
-    }
-    #farmOwnerReceiptLocationMap .leaflet-control-zoom a {
-        width: 40px !important; height: 40px !important; line-height: 40px !important;
-        font-size: 20px !important; color: #3A2E22 !important; border: none !important;
-        background: #FFFFFF !important; transition: background 0.2s ease, color 0.2s ease;
-    }
-    #farmOwnerReceiptLocationMap .leaflet-control-zoom a:hover { background: #F3EEE6 !important; color: #4A6741 !important; }
-    #farmOwnerReceiptLocationMap .leaflet-control-zoom a:first-child { border-bottom: 1px solid #EEE4D7 !important; }
-    @media (max-height: 650px) { #farmOwnerReceiptLocationMap { height: 34vh; min-height: 170px; } }
-
 </style>' +
                 '</head><body><div class=\'receipt-wrap\'>' +
                 '<div class=\'header\'>' +
@@ -1583,6 +1567,36 @@
         .farm-marketplace-page .farm-marketplace-order-search input {
             width: 100% !important;
         }
+    }
+    #farmOwnerReceiptLocationMap { height: min(42vh, 340px); min-height: 210px; }
+    #farmOwnerReceiptLocationMap .leaflet-top,
+    #farmOwnerReceiptLocationMap .leaflet-bottom { margin: 10px; }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom {
+        border: 1px solid #E7DED1 !important;
+        box-shadow: 0 8px 24px rgba(58, 46, 34, 0.10) !important;
+        border-radius: 14px !important;
+        overflow: hidden;
+        background: #FFFFFF !important;
+    }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom a {
+        width: 40px !important;
+        height: 40px !important;
+        line-height: 40px !important;
+        font-size: 20px !important;
+        color: #3A2E22 !important;
+        border: none !important;
+        background: #FFFFFF !important;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom a:hover {
+        background: #F3EEE6 !important;
+        color: #4A6741 !important;
+    }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom a:first-child {
+        border-bottom: 1px solid #EEE4D7 !important;
+    }
+    @media (max-height: 650px) {
+        #farmOwnerReceiptLocationMap { height: 34vh; min-height: 170px; }
     }
 </style>
 

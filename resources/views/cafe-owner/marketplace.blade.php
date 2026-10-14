@@ -1296,7 +1296,7 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="if (!isSubmittingOrder) showOrderModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-xl p-4 max-h-[90vh] overflow-y-auto">
+    <div @click.away="if (!isSubmittingOrder && !showDeliveryMap) showOrderModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-xl p-4 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h2 class="text-base font-display font-bold text-[#3A2E22]">Order / Reserve Coffee</h2>

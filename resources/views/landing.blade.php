@@ -3321,20 +3321,27 @@
                 const selectedStock = Number(button.dataset.stock || 0);
 
                 if (reservationProductSelect && selectedProduct) {
-                    const optionExists = Array.from(reservationProductSelect.options)
-                        .some(option => option.value === selectedProduct);
+                    // Product names are not unique. Match the exact product ID so a Reserve
+                    // click never selects a different listing with the same display name.
+                    const productOptions = Array.from(reservationProductSelect.options);
+                    let matchingIndex = productOptions.findIndex(option =>
+                        Number(option?.dataset?.productId || 0) === selectedProductId
+                    );
 
-                    if (!optionExists) {
+                    if (matchingIndex < 0) {
                         const newOption = new Option(selectedProduct, selectedProduct);
                         newOption.dataset.productId = String(selectedProductId || '');
                         newOption.dataset.moq = String(selectedMoq);
                         newOption.dataset.seller = String(selectedSeller);
                         newOption.dataset.stock = String(selectedStock || 0);
                         reservationProductSelect.add(newOption);
+                        matchingIndex = reservationProductSelect.options.length - 1;
                     }
 
-                    reservationProductSelect.value = selectedProduct;
-                    reservationProductSelect.dispatchEvent(new Event('change'));
+                    // Set selectedIndex rather than .value: duplicate product names share
+                    // the same value, and .value would always select the first duplicate.
+                    reservationProductSelect.selectedIndex = matchingIndex;
+                    reservationProductSelect.dispatchEvent(new Event('change', { bubbles: true }));
                 }
 
                 applyReservationLimits(selectedMoq, selectedStock, true);

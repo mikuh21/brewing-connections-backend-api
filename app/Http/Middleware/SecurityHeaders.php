@@ -43,6 +43,9 @@ class SecurityHeaders
         // Keep the stronger policy everywhere else and scope this exception to
         // the dashboard routes that use the standard Alpine runtime.
         if (
+            // The public landing page shares the standard Alpine runtime for its
+            // global logout modal, so its Alpine expressions need the same scoped allowance.
+            $request->path() === '/' ||
             $request->is('admin') ||
             $request->is('admin/*') ||
             $request->is('farm-owner') ||

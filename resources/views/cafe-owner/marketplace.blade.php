@@ -205,8 +205,8 @@
                     this.deliveryMarker.setLatLng([latitude, longitude]).addTo(this.deliveryMapInstance);
                 }
             }
-            this.orderForm.delivery_location_label = '';
-            this.deliveryMapStatus = 'Pin selected. Looking up address…';
+            if (reverseGeocode) this.orderForm.delivery_location_label = '';
+            this.deliveryMapStatus = reverseGeocode ? 'Pin selected. Looking up address…' : 'Pinned location selected.';
             if (reverseGeocode) {
                 try {
                     const url = new URL('https://nominatim.openstreetmap.org/reverse');

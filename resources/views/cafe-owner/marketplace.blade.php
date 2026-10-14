@@ -1441,7 +1441,10 @@
                 <span class="self-center text-xs text-[#6B5B4A]" x-text="deliveryMapStatus" aria-live="polite"></span>
             </div>
             <div x-ref="deliveryMap" class="cafe-delivery-map-canvas h-72 sm:h-96 w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
-            <p class="mt-2 text-xs text-[#6B5B4A]">Your pin is saved with this order. Please ensure the typed address above matches the pinned location.</p>
+            <p x-show="orderForm.delivery_latitude !== null && orderForm.delivery_longitude !== null" x-cloak class="mt-2 text-xs text-[#6B5B4A] break-words" aria-live="polite">
+                <span class="font-semibold">Pinned:</span>
+                <span x-text="orderForm.delivery_location_label || (Number(orderForm.delivery_latitude).toFixed(6) + ', ' + Number(orderForm.delivery_longitude).toFixed(6))"></span>
+            </p>
             <div class="mt-3 flex justify-end gap-2">
                 <button type="button" @click="showDeliveryMap = false" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button>
                 <button type="button" @click="if (orderForm.delivery_latitude !== null && orderForm.delivery_longitude !== null) { showDeliveryMap = false; deliveryMapError = ''; } else { deliveryMapError = 'Please select a point on the map first.'; }" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A]">Confirm Location</button>

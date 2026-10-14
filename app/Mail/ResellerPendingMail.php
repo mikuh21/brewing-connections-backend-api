@@ -23,7 +23,7 @@ class ResellerPendingMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your BrewHub Reseller Account Is Under Review'
+            subject: 'Welcome to BrewHub — Your Reseller Registration Was Successful'
         );
     }
 

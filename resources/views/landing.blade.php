@@ -2059,6 +2059,61 @@
         let receiptModalCloseTimer = null;
         let reservationToastTimer = null;
 
+        function loadReservationLeaflet() {
+            if (window.L) return Promise.resolve(window.L);
+            if (leafletLoadPromise) return leafletLoadPromise;
+            leafletLoadPromise = new Promise((resolve, reject) => {
+                if (!document.querySelector("link[data-reservation-leaflet]")) { const link = document.createElement("link"); link.rel = "stylesheet"; link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; link.dataset.reservationLeaflet = "true"; document.head.appendChild(link); }
+                const script = document.createElement("script"); script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"; script.dataset.reservationLeaflet = "true";
+                script.onload = () => window.L ? resolve(window.L) : reject(new Error("Map library did not initialize."));
+                script.onerror = () => reject(new Error("Unable to load map. Check your connection and try again.")); document.head.appendChild(script);
+            }); return leafletLoadPromise;
+        }
+        function setReservationDeliveryPin(lat, lng) {
+            reservationDeliveryPin = { latitude: Number(lat), longitude: Number(lng), label: "" };
+            if (reservationDeliveryMarker) reservationDeliveryMarker.setLatLng([lat, lng]);
+            if (reservationDeliveryMapConfirm) reservationDeliveryMapConfirm.disabled = false;
+            if (reservationMapStatus) reservationMapStatus.textContent = "Pin selected. Confirm to use this delivery location.";
+        }
+        async function openReservationDeliveryMap() {
+            reservationDeliveryMapModal.classList.remove("hidden"); reservationDeliveryMapModal.classList.add("flex"); document.body.classList.add("overflow-hidden");
+            if (reservationMapStatus) reservationMapStatus.textContent = "Loading map…";
+            try { const L = await loadReservationLeaflet();
+                if (!reservationDeliveryMap) {
+                    const initial = reservationDeliveryPin ? [reservationDeliveryPin.latitude, reservationDeliveryPin.longitude] : [13.9411, 121.1634];
+                    reservationDeliveryMap = L.map("reservationDeliveryMap", { scrollWheelZoom: true }).setView(initial, reservationDeliveryPin ? 16 : 12);
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap contributors", maxZoom: 19 }).addTo(reservationDeliveryMap);
+                    reservationDeliveryMarker = L.marker(initial, { draggable: true }); if (reservationDeliveryPin) reservationDeliveryMarker.addTo(reservationDeliveryMap);
+                    reservationDeliveryMap.on("click", e => { reservationDeliveryMarker.addTo(reservationDeliveryMap); setReservationDeliveryPin(e.latlng.lat, e.latlng.lng); });
+                    reservationDeliveryMarker.on("dragend", e => { const p = e.target.getLatLng(); setReservationDeliveryPin(p.lat, p.lng); });
+                } else if (reservationDeliveryPin) { reservationDeliveryMap.setView([reservationDeliveryPin.latitude, reservationDeliveryPin.longitude], 16); reservationDeliveryMarker.setLatLng([reservationDeliveryPin.latitude, reservationDeliveryPin.longitude]).addTo(reservationDeliveryMap); }
+                setTimeout(() => reservationDeliveryMap.invalidateSize(), 180);
+                if (reservationMapStatus && !reservationDeliveryPin) reservationMapStatus.textContent = "Click the map to place your pin, or use your current location.";
+            } catch (error) { if (reservationMapStatus) reservationMapStatus.textContent = error.message || "Unable to load map."; }
+        }
+        function closeReservationDeliveryMap() { reservationDeliveryMapModal.classList.add("hidden"); reservationDeliveryMapModal.classList.remove("flex"); if (!hasVisibleModal(reservationConfirmModal) && !hasVisibleModal(receiptModal)) document.body.classList.remove("overflow-hidden"); }
+        async function reverseGeocodeReservationPin(pin) {
+            try { const url = new URL("https://nominatim.openstreetmap.org/reverse"); url.search = new URLSearchParams({ format: "jsonv2", lat: String(pin.latitude), lon: String(pin.longitude), zoom: "18", addressdetails: "1" }).toString();
+                const response = await fetch(url.toString(), { headers: { Accept: "application/json" } }); if (!response.ok) return ""; const data = await response.json(); return String(data.display_name || "").slice(0, 255);
+            } catch (_error) { return ""; }
+        }
+        reservationPinLocationButton?.addEventListener("click", openReservationDeliveryMap);
+        [reservationDeliveryMapClose, reservationDeliveryMapCancel].forEach(button => button?.addEventListener("click", closeReservationDeliveryMap));
+        reservationDeliveryMapModal?.addEventListener("click", event => { if (event.target === reservationDeliveryMapModal) closeReservationDeliveryMap(); });
+        reservationUseCurrentLocation?.addEventListener("click", () => {
+            if (!navigator.geolocation) { reservationMapStatus.textContent = "Location is unsupported. Please pin manually."; return; }
+            reservationMapStatus.textContent = "Requesting location permission…";
+            navigator.geolocation.getCurrentPosition(position => { const lat = position.coords.latitude, lng = position.coords.longitude; reservationDeliveryMap.setView([lat, lng], 17); reservationDeliveryMarker.addTo(reservationDeliveryMap); setReservationDeliveryPin(lat, lng); }, () => { reservationMapStatus.textContent = "Location access failed. Allow permission or pin manually."; }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+        });
+        reservationDeliveryMapConfirm?.addEventListener("click", async () => {
+            if (!reservationDeliveryPin) return; const pin = { ...reservationDeliveryPin }; reservationMapStatus.textContent = "Confirming location…";
+            const label = await reverseGeocodeReservationPin(pin); reservationDeliveryPin = { ...pin, label: label };
+            if (reservationDeliveryLocationSummary) { reservationDeliveryLocationSummary.textContent = (label || "Pinned map location") + " (" + pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6) + ")"; reservationDeliveryLocationSummary.classList.remove("hidden"); }
+            if (reservationPinLocationButtonText) reservationPinLocationButtonText.textContent = "Change Pinned Location";
+            if (reservationAddressInput && label) reservationAddressInput.value = label.slice(0, 255);
+            if (reservationDeliveryLocationError) reservationDeliveryLocationError.classList.add("hidden"); closeReservationDeliveryMap();
+        });
+        document.addEventListener("keydown", event => { if (event.key === "Escape" && reservationDeliveryMapModal && !reservationDeliveryMapModal.classList.contains("hidden")) closeReservationDeliveryMap(); });
         function getQueryParam(name) {
             const params = new URLSearchParams(window.location.search || '');
             return String(params.get(name) || '').trim();

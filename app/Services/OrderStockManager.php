@@ -28,7 +28,11 @@ class OrderStockManager
 
             $currentStatus = $this->normalizeStatus((string) ($lockedOrder->status ?? 'pending'));
             $shouldReserveStock = in_array($normalizedNext, ['confirmed', 'completed'], true);
-            $shouldReleaseStock = $normalizedNext === 'cancelled';
+            // Stock is consumed only while an order is confirmed/completed.
+            // If a confirmed order is moved back to pending, restore its quantity.
+            $wasStockConsuming = in_array($currentStatus, ['confirmed', 'completed'], true);
+            $shouldReleaseStock = $normalizedNext === 'cancelled'
+                || ($normalizedNext === 'pending' && $wasStockConsuming);
 
             $lockedOrder->loadMissing('product:id,stock_quantity');
             $productId = (int) ($lockedOrder->product?->id ?? 0);

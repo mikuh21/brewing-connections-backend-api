@@ -79,6 +79,13 @@ class LandingReservationController extends Controller
                 'receipt_email' => $validated['email'],
                 'address' => $validated['address'],
                 'phone' => $validated['phone'],
+                'delivery_location' => strtolower((string) ($validated['payment_mode'] ?? '')) === 'cod' ? [
+                    'latitude' => (float) $validated['delivery_latitude'],
+                    'longitude' => (float) $validated['delivery_longitude'],
+                    'label' => $validated['delivery_location_label'] ?? null,
+                    'courier_reference' => 'J&T Express',
+                    'fee_estimate_method' => 'BrewHub weight-based estimate; final courier rate may vary',
+                ] : null,
                 'pickup_date' => $validated['pickup_date'] ?? null,
                 'pickup_time' => $validated['pickup_time'] ?? null,
                 'payment_mode' => $validated['payment_mode'] ?? null,

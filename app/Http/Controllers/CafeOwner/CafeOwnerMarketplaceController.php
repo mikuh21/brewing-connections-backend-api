@@ -460,6 +460,9 @@ class CafeOwnerMarketplaceController extends Controller
             'email' => ['required', 'email:rfc,dns', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'regex:/^\\d{11}$/'],
+            'delivery_latitude' => ['nullable', 'required_if:payment_mode,cod', 'numeric', 'between:-90,90'],
+            'delivery_longitude' => ['nullable', 'required_if:payment_mode,cod', 'numeric', 'between:-180,180'],
+            'delivery_location_label' => ['nullable', 'string', 'max:255'],
             'buyer_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -526,6 +529,11 @@ class CafeOwnerMarketplaceController extends Controller
             $totalAmount = round($productTotal + $deliveryFee, 2);
             $deliveryAddress = trim((string) ($validated['address'] ?? ''));
             $deliveryPhone = trim((string) ($validated['phone'] ?? ''));
+            $deliveryLocation = $paymentMode === 'cod' ? [
+                'latitude' => (float) $validated['delivery_latitude'],
+                'longitude' => (float) $validated['delivery_longitude'],
+                'label' => trim((string) ($validated['delivery_location_label'] ?? '')) ?: null,
+            ] : null;
             $metadata = [
                 'source' => 'cafe-owner-store',
                 'buyer_name' => (string) ($buyer->name ?? 'Coffee Shop Owner'),
@@ -540,6 +548,10 @@ class CafeOwnerMarketplaceController extends Controller
                 'total_amount' => $totalAmount,
                 'address' => $paymentMode === 'cod' ? $deliveryAddress : '',
                 'phone' => $paymentMode === 'cod' ? $deliveryPhone : '',
+                'delivery_location' => $deliveryLocation,
+                'delivery_latitude' => $deliveryLocation['latitude'] ?? null,
+                'delivery_longitude' => $deliveryLocation['longitude'] ?? null,
+                'delivery_location_label' => $deliveryLocation['label'] ?? null,
                 'pickup_date' => $paymentMode === 'pickup' ? ($validated['pickup_date'] ?? null) : null,
                 'pickup_time' => $paymentMode === 'pickup' ? ($validated['pickup_time'] ?? null) : null,
             ];

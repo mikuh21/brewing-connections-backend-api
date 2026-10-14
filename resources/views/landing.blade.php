@@ -1552,6 +1552,9 @@
                                 <div class="flex items-center justify-between gap-3"><span>Total Item Weight:</span><span id="codItemWeight" class="text-right">—</span></div>
                                 <div class="flex items-center justify-between gap-3"><span>Total:</span><span id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</span></div>
                             </div>
+                            <p class="mt-2 rounded-md border border-[#E2D5C1] bg-white/70 px-2.5 py-2 text-xs leading-relaxed text-[#8E7B67] font-body">
+                                <span class="font-semibold text-[#3A2E22]">Note:</span> Delivery fees are shouldered by the consumer and are separate from the order total.
+                            </p>
                         </div>
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">

@@ -523,10 +523,14 @@ class CafeOwnerMarketplaceController extends Controller
             $receiptToken = Str::random(40);
             $productTotal = round($price * $quantity, 2);
             $paymentMode = (string) $validated['payment_mode'];
-            $deliveryFee = $paymentMode === 'cod'
-                ? DeliveryFeeEstimator::estimateForProduct($product, $quantity)
-                : 0.0;
-            $totalAmount = round($productTotal + $deliveryFee, 2);
+            // BrewHub keeps delivery charges separate from the order total; do not estimate
+            // or add a delivery fee to the consumer's product total here.
+            $deliveryFee = 0.0;
+            $totalAmount = $productTotal;
+            $perUnitGrams = isset($product->weight_grams) && is_numeric($product->weight_grams) && (float) $product->weight_grams > 0
+                ? (int) $product->weight_grams
+                : (DeliveryFeeEstimator::parseUnitToGrams((string) ($product->unit ?? '')) ?? 500);
+            $totalItemWeightGrams = $perUnitGrams * $quantity;
             $deliveryAddress = trim((string) ($validated['address'] ?? ''));
             $deliveryPhone = trim((string) ($validated['phone'] ?? ''));
             $deliveryLocation = $paymentMode === 'cod' ? [
@@ -546,6 +550,7 @@ class CafeOwnerMarketplaceController extends Controller
                 'product_total' => $productTotal,
                 'delivery_fee' => $deliveryFee,
                 'total_amount' => $totalAmount,
+                'total_item_weight_grams' => $totalItemWeightGrams,
                 'address' => $paymentMode === 'cod' ? $deliveryAddress : '',
                 'phone' => $paymentMode === 'cod' ? $deliveryPhone : '',
                 'delivery_location' => $deliveryLocation,

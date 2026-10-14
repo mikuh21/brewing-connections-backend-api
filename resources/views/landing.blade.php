@@ -2152,7 +2152,7 @@
             reservationDeliveryPin = { latitude: Number(lat), longitude: Number(lng), label: "" };
             if (reservationDeliveryMarker) reservationDeliveryMarker.setLatLng([lat, lng]);
             if (reservationDeliveryMapConfirm) reservationDeliveryMapConfirm.disabled = false;
-            if (reservationMapStatus) reservationMapStatus.textContent = "Pin selected. Confirm to use this delivery location.";
+            if (reservationMapStatus) reservationMapStatus.textContent = "Pin selected. Looking up address…";
             const pinnedDisplay = document.getElementById("reservationPinnedLocationDisplay");
             if (pinnedDisplay) {
                 pinnedDisplay.hidden = false;
@@ -2168,6 +2168,7 @@
                 if (pinnedDisplay) {
                     pinnedDisplay.textContent = "Pinned: " + (label || (selectedLatitude.toFixed(6) + ", " + selectedLongitude.toFixed(6)));
                 }
+                if (reservationMapStatus) reservationMapStatus.textContent = "Pin selected. Confirm to use this delivery location.";
             });
         }
         async function openReservationDeliveryMap() {

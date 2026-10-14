@@ -1451,7 +1451,6 @@
                                         data-unit="{{ $product->unit ?? '' }}"
                                         data-weight="{{ $product->weight_grams ?? '' }}"
                                         data-origin-address="{{ $product->establishment?->address ?? '' }}"
-                                        data-origin-address="{{ $product->establishment?->address ?? '' }}"
                                         @disabled($isOutOfStock)
                                     >
                                         {{ $product->name }}{{ $isOutOfStock ? ' - Out of Stock' : '' }}

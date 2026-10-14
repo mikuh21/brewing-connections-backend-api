@@ -277,6 +277,17 @@
         get productTotal() {
             return Math.max(0, Number(this.orderForm.quantity || 0)) * Math.max(0, Number(this.orderProduct.price || 0));
         },
+        get totalItemWeightGrams() {
+            let grams = Number(this.orderProduct.weight_grams || 0);
+            if (grams <= 0) {
+                const unit = String(this.orderProduct.unit || '').trim().toLowerCase();
+                const amount = Number.parseFloat(unit);
+                if (Number.isFinite(amount) && unit.includes('kg')) grams = Math.round(amount * 1000);
+                else if (Number.isFinite(amount) && unit.includes('g')) grams = Math.round(amount);
+                else grams = 500;
+            }
+            return Math.max(0, grams) * Math.max(1, Number(this.orderForm.quantity || 1));
+        },
         get deliveryFee() {
             // Delivery fees are paid separately by the consumer and are not included in the order total.
             return '0.00';
@@ -1302,7 +1313,7 @@
                 </div>
                 <div x-show="orderForm.payment_mode === 'cod'" x-cloak class="flex items-center justify-between gap-3 text-sm">
                     <span class="text-[#8E7B67]">Total Item Weight</span>
-                    <span class="font-semibold text-[#3A2E22]" x-text="(() => { let grams = Number(orderProduct.weight_grams || 0); if (grams <= 0) { const unit = String(orderProduct.unit || '').trim().toLowerCase(); const gm = unit.match(/^(\\d+(?:\\.\\d+)?)\\s*(g|grams?)$/); const kg = unit.match(/^(\\d+(?:\\.\\d+)?)\\s*(kg)$/); grams = gm ? Math.round(Number(gm[1])) : (kg ? Math.round(Number(kg[1]) * 1000) : 500); } const total = grams * Math.max(1, Number(orderForm.quantity || 1)); return total.toLocaleString() + ' g (' + (total / 1000).toFixed(2) + ' kg)'; })()"></span>
+                    <span class="font-semibold text-[#3A2E22]" x-text="totalItemWeightGrams.toLocaleString() + ' g (' + (totalItemWeightGrams / 1000).toFixed(2) + ' kg)'"></span>
                 </div>
                 <div class="flex items-center justify-between gap-3 border-t border-[#E7DED1] pt-2">
                     <span class="text-sm font-semibold text-[#3A2E22]">Total</span>

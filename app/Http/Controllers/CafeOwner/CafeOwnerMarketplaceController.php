@@ -176,9 +176,13 @@ class CafeOwnerMarketplaceController extends Controller
             ->orderByDesc('products.updated_at')
             ->get();
 
+        // This tab is specifically for orders submitted through the Coffee Shop Owner
+        // supplier marketplace. Other reservations (for example, landing-web orders)
+        // can share the same user_id and must not appear as marketplace orders here.
         $orders = Order::query()
             ->with(['product.seller'])
             ->where('user_id', $userId)
+            ->where('notes', 'like', '%"source":"cafe-owner-store"%')
             ->latest()
             ->limit(50)
             ->get();

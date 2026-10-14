@@ -60,6 +60,7 @@
             deliveryFee: '0.00',
             totalAmount: '0.00',
             total: '0.00',
+            totalItemWeight: 'N/A',
             deliveryLocationLabel: '',
             deliveryLatitude: null,
             deliveryLongitude: null
@@ -191,6 +192,7 @@
                 deliveryFee: payload?.deliveryFee || payload?.delivery_fee || '0.00',
                 totalAmount: payload?.totalAmount || payload?.total_amount || payload?.total || '0.00',
                 total: payload?.total || '0.00',
+                totalItemWeight: payload?.totalItemWeight || payload?.total_item_weight || 'N/A',
                 deliveryLocationLabel: payload?.deliveryLocationLabel || payload?.delivery_location_label || '',
                 deliveryLatitude: (payload?.deliveryLatitude ?? payload?.delivery_latitude) !== null && (payload?.deliveryLatitude ?? payload?.delivery_latitude) !== '' && Number.isFinite(Number(payload?.deliveryLatitude ?? payload?.delivery_latitude)) ? Number(payload?.deliveryLatitude ?? payload?.delivery_latitude) : null,
                 deliveryLongitude: (payload?.deliveryLongitude ?? payload?.delivery_longitude) !== null && (payload?.deliveryLongitude ?? payload?.delivery_longitude) !== '' && Number.isFinite(Number(payload?.deliveryLongitude ?? payload?.delivery_longitude)) ? Number(payload?.deliveryLongitude ?? payload?.delivery_longitude) : null,
@@ -297,8 +299,7 @@
                 pickupDate: esc(this.formatPickupDate(this.receiptData?.pickupDate)),
                 pickupTime: esc(this.formatPickupTime(this.receiptData?.pickupTime)),
                 productTotal: esc(this.receiptData?.productTotal),
-                deliveryFee: esc(this.receiptData?.deliveryFee),
-                totalAmount: esc(this.receiptData?.totalAmount),
+                totalItemWeight: esc(this.receiptData?.totalItemWeight),
                 total: esc(this.receiptData?.total),
                 customer: esc(this.receiptData?.customer),
                 address: esc(this.receiptData?.address),
@@ -316,7 +317,7 @@
                 : '';
 
             const deliveryRow = receipt.paymentMode === 'cod'
-                ? '<div class=\'row\'><div class=\'k\'>Estimated Delivery Fee</div><div class=\'v\'>PHP ' + receipt.deliveryFee + '</div></div>'
+                ? '<div class=\'row\'><div class=\'k\'>Total Item Weight</div><div class=\'v\'>' + receipt.totalItemWeight + '</div></div>'
                 : '';
 
             const printWindow = window.open('', '_blank', 'width=900,height=700');
@@ -350,7 +351,23 @@
                 '.v{font-size:13px;color:#3A2E22;word-break:break-word;}' +
                 '@media (max-width:640px){body{padding:10px}.grid{grid-template-columns:1fr}.row{grid-template-columns:104px 1fr;}}' +
                 '@media print{body{padding:0;background:#fff}.receipt-wrap{box-shadow:none;border:none;max-width:none}}' +
-                '</style>' +
+                '    #farmOwnerReceiptLocationMap { height: min(42vh, 340px); min-height: 210px; }
+    #farmOwnerReceiptLocationMap .leaflet-top,
+    #farmOwnerReceiptLocationMap .leaflet-bottom { margin: 10px; }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom {
+        border: 1px solid #E7DED1 !important; box-shadow: 0 8px 24px rgba(58, 46, 34, 0.10) !important;
+        border-radius: 14px !important; overflow: hidden; background: #FFFFFF !important;
+    }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom a {
+        width: 40px !important; height: 40px !important; line-height: 40px !important;
+        font-size: 20px !important; color: #3A2E22 !important; border: none !important;
+        background: #FFFFFF !important; transition: background 0.2s ease, color 0.2s ease;
+    }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom a:hover { background: #F3EEE6 !important; color: #4A6741 !important; }
+    #farmOwnerReceiptLocationMap .leaflet-control-zoom a:first-child { border-bottom: 1px solid #EEE4D7 !important; }
+    @media (max-height: 650px) { #farmOwnerReceiptLocationMap { height: 34vh; min-height: 170px; } }
+
+</style>' +
                 '</head><body><div class=\'receipt-wrap\'>' +
                 '<div class=\'header\'>' +
                 '<div class=\'chip\'><p class=\'chip-label\'>Generated</p><p class=\'chip-value\'>' + receipt.generatedAt + '</p></div>' +
@@ -370,7 +387,7 @@
                 pickupDetails +
                 '<div class=\'row\'><div class=\'k\'>Product Total</div><div class=\'v\'>PHP ' + receipt.productTotal + '</div></div>' +
                 deliveryRow +
-                '<div class=\'row\'><div class=\'k\'>Total Amount</div><div class=\'v\'>PHP ' + receipt.totalAmount + '</div></div>' +
+                '<div class=\'row\'><div class=\'k\'>Total</div><div class=\'v\'>PHP ' + receipt.total + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Customer</div><div class=\'v\'>' + receipt.customer + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Address</div><div class=\'v\'>' + receipt.address + '</div></div>' +
                 (receipt.paymentMode === 'cod' ? '<div class=\'row\'><div class=\'k\'>Pinned Delivery Location</div><div class=\'v\'>' + receipt.deliveryLocationLabel + '</div></div>' : '') +
@@ -985,6 +1002,10 @@
                                         $receiptMeta = json_decode((string) ($order->notes ?? ''), true);
                                         $receiptMeta = is_array($receiptMeta) ? $receiptMeta : [];
                                         $receiptProductName = $order->product->name ?? ($receiptMeta['product_name'] ?? 'N/A');
+                                        $receiptWeightGrams = data_get($receiptMeta, 'total_item_weight_grams', data_get($receiptMeta, 'delivery_location.total_item_weight_grams'));
+                                        $receiptWeightDisplay = $receiptWeightGrams !== null && is_numeric($receiptWeightGrams)
+                                            ? number_format((float) $receiptWeightGrams, 0) . ' g (' . number_format((float) $receiptWeightGrams / 1000, 2) . ' kg)'
+                                            : 'N/A';
                                         $reservationCode = 'BRH-ORDER-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT);
                                         $receiptPayload = [
                                             'generatedAt' => optional($order->created_at)->format('M d, Y h:i A') ?? now()->format('M d, Y h:i A'),
@@ -1003,6 +1024,7 @@
                                             'deliveryFee' => $receiptMeta['delivery_fee'] ?? number_format((float) ($order->delivery_fee ?? 0), 2),
                                             'totalAmount' => $receiptMeta['total_amount'] ?? number_format((float) ($order->total_amount ?? $order->total_price), 2),
                                             'total' => number_format((float) $order->total_price, 2),
+                                            'totalItemWeight' => $receiptWeightDisplay,
                                             'deliveryLocationLabel' => trim((string) (data_get($receiptMeta, 'delivery_location.label') ?? ($receiptMeta['delivery_location_label'] ?? ''))),
                                             'deliveryLatitude' => data_get($receiptMeta, 'delivery_location.latitude', $receiptMeta['delivery_latitude'] ?? null),
                                             'deliveryLongitude' => data_get($receiptMeta, 'delivery_location.longitude', $receiptMeta['delivery_longitude'] ?? null),
@@ -1192,7 +1214,7 @@
 >
     <div @click.away="closeReceiptViewer()" class="w-full max-w-lg md:max-w-2xl rounded-2xl bg-white shadow-2xl overflow-hidden max-h-[calc(100vh-3rem)]">
         <div x-ref="receiptPrintContent" class="max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <div class="bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 md:px-4 md:py-3 text-white">
+            <div class="sticky top-0 z-20 bg-[#3A2E22] px-4 py-3 sm:px-5 sm:py-4 md:px-4 md:py-3 text-white">
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <p class="text-xs tracking-[0.2em] uppercase text-[#F3E9D7]/80 font-body">BrewHub</p>
@@ -1242,12 +1264,12 @@
                                 <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.productTotal"></span></p>
                             </div>
                             <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
-                                <p class="text-xs sm:text-sm text-[#946042] font-body">Estimated Delivery Fee</p>
-                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.deliveryFee"></span></p>
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total Item Weight</p>
+                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.totalItemWeight"></p>
                             </div>
                             <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
-                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total Amount</p>
-                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.totalAmount"></span></p>
+                                <p class="text-xs sm:text-sm text-[#946042] font-body">Total</p>
+                                <p class="text-xs sm:text-sm text-[#3A2E22] font-body">PHP <span x-text="receiptData.total"></span></p>
                             </div>
                         </div>
                     </template>
@@ -1283,7 +1305,7 @@
                 <section x-show="receiptData.paymentMode === 'cod' && receiptData.deliveryLatitude !== null && receiptData.deliveryLongitude !== null" x-cloak class="mt-4 rounded-xl border border-[#E2D5C1] bg-[#F8F3EA] p-3 sm:p-4">
                     <h4 class="text-sm font-semibold text-[#3A2E22]">Pinned Delivery Location</h4>
                     <p class="mt-1 text-xs sm:text-sm text-[#946042] break-words" x-text="receiptData.deliveryLocationLabel || (Number(receiptData.deliveryLatitude).toFixed(6) + ', ' + Number(receiptData.deliveryLongitude).toFixed(6))"></p>
-                    <div x-ref="receiptLocationMap" class="mt-3 h-64 sm:h-72 w-full rounded-lg border border-[#D7C9B1] bg-white" role="img" aria-label="Map showing the buyer pinned delivery location"></div>
+                    <div id="farmOwnerReceiptLocationMap" x-ref="receiptLocationMap" class="mt-3 w-full rounded-lg border border-[#D7C9B1] bg-white" role="img" aria-label="Map showing the buyer pinned delivery location"></div>
                     <p class="mt-2 text-[11px] text-[#8E7B67]">View-only map. Use the plus and minus controls to zoom.</p>
                 </section>
             </div>

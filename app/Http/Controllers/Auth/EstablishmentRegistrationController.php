@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Establishment;
+use App\Mail\RegistrationWelcomeMail;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class EstablishmentRegistrationController extends Controller
 {
@@ -106,8 +109,27 @@ class EstablishmentRegistrationController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()
+        $welcomeEmailSent = true;
+        try {
+            Mail::to($user->email)->send(new RegistrationWelcomeMail(
+                $user,
+                trim($validated['establishment_name']),
+                $validated['establishment_type']
+            ));
+        } catch (Throwable $exception) {
+            // Registration must remain successful even if the mail service is temporarily unavailable.
+            report($exception);
+            $welcomeEmailSent = false;
+        }
+
+        $redirect = redirect()
             ->route($role === 'farm_owner' ? 'farm-owner.map' : 'cafe-owner.map')
             ->with('success', 'Your account is ready. Pin your establishment on the map to publish its location.');
+
+        if (!$welcomeEmailSent) {
+            $redirect->with('warning', 'Your account was created, but the welcome email could not be sent right now.');
+        }
+
+        return $redirect;
     }
 }

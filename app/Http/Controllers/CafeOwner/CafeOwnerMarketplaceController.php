@@ -457,8 +457,9 @@ class CafeOwnerMarketplaceController extends Controller
             'payment_mode' => ['required', 'in:pickup,cod'],
             'pickup_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today', 'required_if:payment_mode,pickup'],
             'pickup_time' => ['nullable', 'date_format:H:i', 'required_if:payment_mode,pickup'],
-            'address' => ['nullable', 'required_if:payment_mode,cod', 'string', 'max:255'],
-            'phone' => ['nullable', 'required_if:payment_mode,cod', 'string', 'regex:/^[0-9]{11}$/'],
+            'email' => ['required', 'email:rfc,dns', 'max:255'],
+            'address' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'regex:/^\\d{11}$/'],
             'buyer_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -529,7 +530,7 @@ class CafeOwnerMarketplaceController extends Controller
                 'source' => 'cafe-owner-store',
                 'buyer_name' => (string) ($buyer->name ?? 'Coffee Shop Owner'),
                 'full_name' => (string) ($buyer->name ?? 'Coffee Shop Owner'),
-                'receipt_email' => (string) ($buyer->email ?? ''),
+                'receipt_email' => (string) $validated['email'],
                 'receipt_token' => $receiptToken,
                 'seller_type' => $sellerType,
                 'buyer_notes' => trim((string) ($validated['buyer_notes'] ?? '')),
@@ -559,14 +560,7 @@ class CafeOwnerMarketplaceController extends Controller
             ]);
         });
 
-        try {
-            $this->orderReceiptNotifier->sendOrderCreated($order);
-        } catch (\Throwable $exception) {
-            Log::warning('Cafe owner order receipt notification failed.', [
-                'order_id' => $order->id,
-                'error' => $exception->getMessage(),
-            ]);
-        }
+        $this->orderReceiptNotifier->sendOrderCreated($order);
 
         return redirect()
             ->route('cafe-owner.marketplace', ['tab' => 'orders'])

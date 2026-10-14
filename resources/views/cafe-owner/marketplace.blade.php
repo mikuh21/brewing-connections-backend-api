@@ -7,6 +7,28 @@
 @section('title', 'My Products - BrewHub')
 
 @section('content')
+<style>
+    /* Match the landing page delivery-map modal dimensions and short-screen behavior. */
+    .cafe-delivery-map-card {
+        max-height: calc(100vh - 1rem);
+        max-height: calc(100dvh - 1rem);
+        display: flex;
+        flex-direction: column;
+    }
+    .cafe-delivery-map-content {
+        min-height: 0;
+        overflow-y: auto;
+    }
+    .cafe-delivery-map-canvas {
+        height: min(42vh, 340px) !important;
+        min-height: 210px;
+    }
+    @media (max-height: 650px) {
+        .cafe-delivery-map-card { max-height: calc(100dvh - 0.75rem); }
+        .cafe-delivery-map-content { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+        .cafe-delivery-map-canvas { height: 34vh !important; min-height: 170px; }
+    }
+</style>
 @php
     $productsMeta = $products->map(function ($product) {
         return [
@@ -1377,7 +1399,7 @@
     aria-modal="true"
     aria-labelledby="cafeDeliveryMapTitle"
 >
-    <div class="w-full max-w-3xl overflow-hidden rounded-2xl border border-[#DCCBB2] bg-[#F3E9D7] shadow-2xl">
+    <div class="cafe-delivery-map-card w-full max-w-3xl overflow-hidden rounded-2xl border border-[#DCCBB2] bg-[#F3E9D7] shadow-2xl">
         <div class="flex items-center justify-between border-b border-[#DCCBB2] px-4 py-3 sm:px-5">
             <div>
                 <h2 id="cafeDeliveryMapTitle" class="text-lg font-display font-bold text-[#3A2E22]">Pin Delivery Location</h2>
@@ -1385,12 +1407,12 @@
             </div>
             <button type="button" @click="showDeliveryMap = false" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">&times;</button>
         </div>
-        <div class="p-3 sm:p-4">
+        <div class="cafe-delivery-map-content p-3 sm:p-4">
             <div class="mb-2 flex flex-wrap items-center gap-2">
                 <button type="button" @click="useCurrentDeliveryLocation()" class="rounded-lg border border-[#2E5A3D] bg-white px-3 py-2 text-sm font-medium text-[#2E5A3D] hover:bg-[#edf4ea]">Use My Current Location</button>
                 <span class="self-center text-xs text-[#6B5B4A]" x-text="deliveryMapStatus" aria-live="polite"></span>
             </div>
-            <div x-ref="deliveryMap" class="h-72 sm:h-96 w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
+            <div x-ref="deliveryMap" class="cafe-delivery-map-canvas h-72 sm:h-96 w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
             <p class="mt-2 text-xs text-[#6B5B4A]">Your pin is saved with this order. Please ensure the typed address above matches the pinned location.</p>
             <div class="mt-3 flex justify-end gap-2">
                 <button type="button" @click="showDeliveryMap = false" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button>

@@ -2520,31 +2520,59 @@
 
             pendingReservationPayload = payload;
 
-            const confirmProduct = document.getElementById('confirmReservationProduct');
-            const confirmQuantity = document.getElementById('confirmReservationQuantity');
-            const confirmSeller = document.getElementById('confirmReservationSeller');
-            const confirmPaymentMode = document.getElementById('confirmReservationPaymentMode');
+            const paymentModeKey = String(payload.paymentMode || '').trim().toLowerCase();
+            const isCod = paymentModeKey === 'cod';
+            const formatMoney = (value) => `₱${(Number(value || 0)).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const formatDate = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) return '-';
+                if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) {
+                    const date = new Date(`${raw}T00:00:00`);
+                    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: '2-digit' });
+                }
+                return raw;
+            };
+            const formatTime = (value) => {
+                const raw = String(value || '').trim();
+                if (!raw) return '-';
+                if (/^\\d{2}:\\d{2}$/.test(raw)) {
+                    const date = new Date(`1970-01-01T${raw}:00`);
+                    if (!Number.isNaN(date.getTime())) return date.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true });
+                }
+                return raw;
+            };
+            const setText = (id, value) => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = value === null || value === undefined || String(value).trim() === '' ? '-' : String(value);
+            };
+            const toggleRow = (id, visible) => {
+                const element = document.getElementById(id);
+                if (element) element.classList.toggle('hidden', !visible);
+            };
 
-            if (confirmProduct) {
-                confirmProduct.textContent = payload.product;
-            }
-
-            if (confirmQuantity) {
-                confirmQuantity.textContent = payload.quantity;
-            }
-
-            if (confirmSeller) {
-                confirmSeller.textContent = payload.seller;
-            }
-
-            if (confirmPaymentMode) {
-                const paymentModeKey = String(payload.paymentMode || '').trim().toLowerCase();
-                confirmPaymentMode.textContent = paymentModeKey === 'cod'
-                    ? 'Cash on Delivery'
-                    : paymentModeKey === 'pickup'
-                        ? 'Pickup'
-                        : payload.paymentMode || '-';
-            }
+            setText('confirmReservationProduct', payload.product);
+            setText('confirmReservationQuantity', payload.quantity);
+            setText('confirmReservationSeller', payload.seller);
+            setText('confirmReservationPaymentMode', isCod ? 'Cash on Delivery' : paymentModeKey === 'pickup' ? 'Pickup' : payload.paymentMode);
+            setText('confirmReservationPickupDate', formatDate(payload.pickupDate));
+            setText('confirmReservationPickupTime', formatTime(payload.pickupTime));
+            setText('confirmReservationWeight', `${Number(payload.totalItemWeightGrams || 0).toLocaleString()} g (${(Number(payload.totalItemWeightGrams || 0) / 1000).toFixed(2)} kg)`);
+            setText('confirmReservationProductTotal', formatMoney(payload.productTotal));
+            setText('confirmReservationTotal', formatMoney(payload.totalAmount || payload.productTotal));
+            setText('confirmReservationName', payload.fullName);
+            setText('confirmReservationEmail', payload.email);
+            setText('confirmReservationPhone', payload.phone);
+            setText('confirmReservationAddress', payload.address);
+            const pinnedLocation = String(payload.deliveryLocationLabel || '').trim()
+                || (payload.deliveryLatitude !== null && payload.deliveryLatitude !== undefined && payload.deliveryLongitude !== null && payload.deliveryLongitude !== undefined
+                    ? `${Number(payload.deliveryLatitude).toFixed(6)}, ${Number(payload.deliveryLongitude).toFixed(6)}`
+                    : '');
+            setText('confirmReservationPinnedLocation', pinnedLocation);
+            toggleRow('confirmReservationPickupDateRow', !isCod);
+            toggleRow('confirmReservationPickupTimeRow', !isCod);
+            toggleRow('confirmReservationWeightRow', isCod);
+            toggleRow('confirmReservationDeliveryDisclaimer', isCod);
+            toggleRow('confirmReservationPinnedLocationRow', isCod);
 
             if (reservationConfirmError) {
                 reservationConfirmError.textContent = '';
@@ -3396,27 +3424,43 @@
     <div id="reservationConfirmModal" class="fixed inset-0 hidden flex items-center justify-center px-4 opacity-0 transition-opacity duration-200 ease-out" style="z-index: 3000;">
         <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" style="z-index: 3000;"></div>
 
-        <div id="reservationConfirmModalPanel" class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full opacity-0 scale-95 transition-all duration-200 ease-out" style="z-index: 3001;">
-            <div class="p-6">
+        <div id="reservationConfirmModalPanel" class="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto opacity-0 scale-95 transition-all duration-200 ease-out" style="z-index: 3001;">
+            <div class="p-5 sm:p-6">
                 <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">Confirm reservation?</h2>
-                <p class="text-[#3A2E22] mb-4 font-body">Please review your reservation details before generating your receipt.</p>
+                <p class="text-[#3A2E22] mb-4 font-body">Review your order, contact, and delivery or pickup details before continuing.</p>
 
-                <div class="rounded-lg border border-[#E2D5C1] bg-[#F8F3EA] p-3 mb-6 space-y-1 text-sm font-body text-[#3A2E22]">
-                    <p><span class="text-[#946042]">Product:</span> <span id="confirmReservationProduct">-</span></p>
-                    <p><span class="text-[#946042]">Quantity:</span> <span id="confirmReservationQuantity">-</span></p>
-                    <p><span class="text-[#946042]">Seller:</span> <span id="confirmReservationSeller">-</span></p>
-                    <p><span class="text-[#946042]">Mode of Payment:</span> <span id="confirmReservationPaymentMode">-</span></p>
+                <div class="mb-4">
+                    <h3 class="text-sm font-semibold text-[#3A2E22] mb-2">Order Details</h3>
+                    <div class="rounded-lg border border-[#E2D5C1] bg-[#F8F3EA] p-3 space-y-1.5 text-sm font-body text-[#3A2E22]">
+                        <p><span class="text-[#946042]">Product:</span> <span id="confirmReservationProduct">-</span></p>
+                        <p><span class="text-[#946042]">Quantity:</span> <span id="confirmReservationQuantity">-</span></p>
+                        <p><span class="text-[#946042]">Seller:</span> <span id="confirmReservationSeller">-</span></p>
+                        <p><span class="text-[#946042]">Mode of Payment:</span> <span id="confirmReservationPaymentMode">-</span></p>
+                        <p id="confirmReservationPickupDateRow" class="hidden"><span class="text-[#946042]">Pickup Date:</span> <span id="confirmReservationPickupDate">-</span></p>
+                        <p id="confirmReservationPickupTimeRow" class="hidden"><span class="text-[#946042]">Pickup Time:</span> <span id="confirmReservationPickupTime">-</span></p>
+                        <p id="confirmReservationWeightRow" class="hidden"><span class="text-[#946042]">Total Item Weight:</span> <span id="confirmReservationWeight">-</span></p>
+                        <p><span class="text-[#946042]">Product Subtotal:</span> <span id="confirmReservationProductTotal">-</span></p>
+                        <p class="border-t border-[#E2D5C1] pt-2 font-semibold"><span class="text-[#946042]">Order Total:</span> <span id="confirmReservationTotal">-</span></p>
+                    </div>
+                    <p id="confirmReservationDeliveryDisclaimer" class="hidden mt-2 rounded-md border border-[#E2D5C1] bg-white px-3 py-2 text-xs leading-relaxed text-[#8E7B67] font-body"><span class="font-semibold text-[#3A2E22]">Note:</span> Delivery fees are shouldered by the consumer and are separate from the order total.</p>
+                </div>
+
+                <div class="mb-5">
+                    <h3 class="text-sm font-semibold text-[#3A2E22] mb-2">Customer Details</h3>
+                    <div class="rounded-lg border border-[#E2D5C1] p-3 space-y-1.5 text-sm font-body text-[#3A2E22] break-words">
+                        <p><span class="text-[#946042]">Full Name:</span> <span id="confirmReservationName">-</span></p>
+                        <p><span class="text-[#946042]">Email:</span> <span id="confirmReservationEmail">-</span></p>
+                        <p><span class="text-[#946042]">Phone Number:</span> <span id="confirmReservationPhone">-</span></p>
+                        <p><span class="text-[#946042]">Address:</span> <span id="confirmReservationAddress">-</span></p>
+                        <p id="confirmReservationPinnedLocationRow" class="hidden"><span class="text-[#946042]">Pinned Delivery Location:</span> <span id="confirmReservationPinnedLocation">-</span></p>
+                    </div>
                 </div>
 
                 <p id="reservationConfirmError" class="hidden text-sm text-[#B43F3F] font-body mb-4"></p>
 
-                <div class="flex gap-3">
-                    <button id="reservationConfirmCancelButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg border border-gray-300 text-gray-700 text-base font-semibold hover:bg-gray-50 transition-colors">
-                        Cancel
-                    </button>
-                    <button id="reservationConfirmProceedButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#2E5A3D] text-white text-base font-semibold hover:bg-[#1E3A2A] transition-colors">
-                        Continue
-                    </button>
+                <div class="flex flex-col-reverse sm:flex-row gap-3">
+                    <button id="reservationConfirmCancelButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg border border-gray-300 text-gray-700 text-base font-semibold hover:bg-gray-50 transition-colors">Go Back</button>
+                    <button id="reservationConfirmProceedButton" class="flex-1 inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#2E5A3D] text-white text-base font-semibold hover:bg-[#1E3A2A] transition-colors">Confirm &amp; Continue</button>
                 </div>
             </div>
         </div>

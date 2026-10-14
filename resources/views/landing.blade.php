@@ -4,6 +4,54 @@
 
 @push('styles')
 <style>
+    /* Keep the delivery pin dialog fully inside the viewport, including short laptop screens. */
+    .reservation-delivery-map-card {
+        max-height: calc(100vh - 1rem);
+        max-height: calc(100dvh - 1rem);
+        display: flex;
+        flex-direction: column;
+    }
+    .reservation-delivery-map-content {
+        min-height: 0;
+        overflow-y: auto;
+    }
+    #reservationDeliveryMap {
+        height: min(42vh, 340px);
+        min-height: 210px;
+    }
+    #reservationDeliveryMap .leaflet-top,
+    #reservationDeliveryMap .leaflet-bottom {
+        margin: 10px;
+    }
+    #reservationDeliveryMap .leaflet-control-zoom {
+        border: 1px solid #E7DED1 !important;
+        box-shadow: 0 8px 24px rgba(58, 46, 34, 0.10) !important;
+        border-radius: 14px !important;
+        overflow: hidden;
+        background: #FFFFFF !important;
+    }
+    #reservationDeliveryMap .leaflet-control-zoom a {
+        width: 40px !important;
+        height: 40px !important;
+        line-height: 40px !important;
+        font-size: 20px !important;
+        color: #3A2E22 !important;
+        border: none !important;
+        background: #FFFFFF !important;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+    #reservationDeliveryMap .leaflet-control-zoom a:hover {
+        background: #F3EEE6 !important;
+        color: #4A6741 !important;
+    }
+    #reservationDeliveryMap .leaflet-control-zoom a:first-child {
+        border-bottom: 1px solid #EEE4D7 !important;
+    }
+    @media (max-height: 650px) {
+        .reservation-delivery-map-card { max-height: calc(100dvh - 0.75rem); }
+        .reservation-delivery-map-content { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+        #reservationDeliveryMap { height: 34vh; min-height: 170px; }
+    }
 
     /* Featured establishment carousel */
     .landing-carousel {
@@ -1501,9 +1549,11 @@
                             <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                         </div>
 
-                        <div id="reservationDeliveryLocationField" class="hidden">
-                            <label class="block text-sm text-[#3A2E22] font-body mb-1">Delivery Location <span class="text-[#B43F3F]">*</span></label>
-                            <button id="reservationPinLocationButton" type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#2E5A3D] bg-white px-4 py-3 text-sm font-medium text-[#2E5A3D] hover:bg-[#F3E9D7] transition-colors"><span id="reservationPinLocationButtonText">Pin My Location</span></button>
+                        <div id="reservationDeliveryLocationField" class="hidden mt-2">
+                            <button id="reservationPinLocationButton" type="button" class="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[#2E5A3D] bg-white px-4 py-2.5 text-sm font-medium text-[#2E5A3D] hover:bg-[#F3E9D7] transition-colors">
+                                <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                                <span id="reservationPinLocationButtonText">Pin My Location</span>
+                            </button>
                             <p id="reservationDeliveryLocationSummary" class="mt-2 text-xs text-[#6B5B4A] hidden"></p>
                             <p id="reservationDeliveryLocationError" class="mt-1 text-xs text-[#B43F3F] font-body hidden">Please pin and confirm your delivery location.</p>
                         </div>
@@ -1541,13 +1591,13 @@
     </section>
 
     <!-- Independent delivery pin map; does not use or modify establishment GIS state -->
-    <div id="reservationDeliveryMapModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="reservationDeliveryMapTitle">
-        <div class="w-full max-w-3xl overflow-hidden rounded-2xl bg-[#F3E9D7] shadow-2xl">
-            <div class="flex items-center justify-between border-b border-[#DCCBB2] px-5 py-4"><div><h3 id="reservationDeliveryMapTitle" class="font-display text-xl font-bold text-[#3A2E22]">Pin Delivery Location</h3><p class="mt-1 text-xs text-[#6B5B4A]">Click the map or drag the pin to your exact delivery address.</p></div><button id="reservationDeliveryMapClose" type="button" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">×</button></div>
-            <div class="p-4 sm:p-5"><div class="mb-3 flex flex-wrap gap-2"><button id="reservationUseCurrentLocation" type="button" class="rounded-lg border border-[#2E5A3D] bg-white px-3 py-2 text-sm font-medium text-[#2E5A3D] hover:bg-[#edf4ea]">Use My Current Location</button><span id="reservationMapStatus" class="self-center text-xs text-[#6B5B4A]" aria-live="polite">Choose your delivery point on the map.</span></div>
-                <div id="reservationDeliveryMap" class="h-[340px] w-full rounded-xl border border-[#DCCBB2] bg-white sm:h-[420px]"></div>
-                <p class="mt-3 text-xs text-[#6B5B4A]">The pin is required for Cash on Delivery and is saved only with this reservation.</p>
-                <div class="mt-4 flex justify-end gap-2"><button id="reservationDeliveryMapCancel" type="button" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button><button id="reservationDeliveryMapConfirm" type="button" disabled class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50">Confirm Location</button></div></div>
+    <div id="reservationDeliveryMapModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 p-2 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="reservationDeliveryMapTitle">
+        <div class="reservation-delivery-map-card w-full max-w-3xl overflow-hidden rounded-2xl bg-[#F3E9D7] shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#DCCBB2] px-4 py-3 sm:px-5"><div><h3 id="reservationDeliveryMapTitle" class="font-display text-lg font-bold text-[#3A2E22] sm:text-xl">Pin Delivery Location</h3><p class="mt-1 text-xs text-[#6B5B4A]">Click the map or drag the pin to your exact delivery address.</p></div><button id="reservationDeliveryMapClose" type="button" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">×</button></div>
+            <div class="reservation-delivery-map-content p-3 sm:p-4"><div class="mb-2 flex flex-wrap gap-2"><button id="reservationUseCurrentLocation" type="button" class="rounded-lg border border-[#2E5A3D] bg-white px-3 py-2 text-sm font-medium text-[#2E5A3D] hover:bg-[#edf4ea]">Use My Current Location</button><span id="reservationMapStatus" class="self-center text-xs text-[#6B5B4A]" aria-live="polite">Choose your delivery point on the map.</span></div>
+                <div id="reservationDeliveryMap" class="w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
+                <p class="mt-2 text-xs text-[#6B5B4A]">The pin is required for Cash on Delivery and is saved only with this reservation.</p>
+                <div class="mt-3 flex justify-end gap-2"><button id="reservationDeliveryMapCancel" type="button" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button><button id="reservationDeliveryMapConfirm" type="button" disabled class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50">Confirm Location</button></div></div>
         </div>
     </div>
     <!-- About / Barako Features -->

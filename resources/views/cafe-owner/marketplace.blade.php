@@ -277,9 +277,9 @@
                     }
                 } catch (_) {}
             }
-            this.deliveryMapStatus = this.orderForm.delivery_location_label
-                ? 'Pinned: ' + this.orderForm.delivery_location_label
-                : 'Pinned coordinates: ' + Number(latitude).toFixed(6) + ', ' + Number(longitude).toFixed(6);
+            // Keep the top-line status instructional, matching the landing-page map.
+            // The resolved address is displayed only below the map.
+            this.deliveryMapStatus = 'Pin selected. Confirm to use this delivery location.';
         },
         useCurrentDeliveryLocation() {
             if (!navigator.geolocation) {

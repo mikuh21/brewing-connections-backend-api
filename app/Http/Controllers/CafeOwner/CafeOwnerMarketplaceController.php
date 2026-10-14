@@ -458,7 +458,7 @@ class CafeOwnerMarketplaceController extends Controller
             'pickup_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today', 'required_if:payment_mode,pickup'],
             'pickup_time' => ['nullable', 'date_format:H:i', 'required_if:payment_mode,pickup'],
             'address' => ['nullable', 'required_if:payment_mode,cod', 'string', 'max:255'],
-            'phone' => ['nullable', 'required_if:payment_mode,cod', 'string', 'regex:/^\\d{11}$/'],
+            'phone' => ['nullable', 'required_if:payment_mode,cod', 'string', 'regex:/^[0-9]{11}$/'],
             'buyer_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 

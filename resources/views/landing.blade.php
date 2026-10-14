@@ -2798,6 +2798,8 @@
             const receiptQuantityElement = document.getElementById('receiptQuantity');
             const receiptNameElement = document.getElementById('receiptName');
             const receiptAddressElement = document.getElementById('receiptAddress');
+            const receiptPinnedLocationRow = document.getElementById('receiptPinnedLocationRow');
+            const receiptPinnedLocationElement = document.getElementById('receiptPinnedLocation');
             const receiptPhoneElement = document.getElementById('receiptPhone');
             const receiptPickupDateElement = document.getElementById('receiptPickupDate');
             const receiptPickupTimeElement = document.getElementById('receiptPickupTime');
@@ -2832,6 +2834,19 @@
 
             if (receiptAddressElement) {
                 receiptAddressElement.textContent = data.address;
+            }
+
+            const pinnedLocationLabel = String(data.deliveryLocationLabel || data.delivery_location_label || '').trim();
+            const pinnedLatitude = data.deliveryLatitude ?? data.delivery_latitude ?? null;
+            const pinnedLongitude = data.deliveryLongitude ?? data.delivery_longitude ?? null;
+            const pinnedLocationDisplay = pinnedLocationLabel
+                || (pinnedLatitude !== null && pinnedLongitude !== null
+                    ? `${Number(pinnedLatitude).toFixed(6)}, ${Number(pinnedLongitude).toFixed(6)}`
+                    : '-');
+            if (receiptPinnedLocationElement) receiptPinnedLocationElement.textContent = pinnedLocationDisplay;
+            if (receiptPinnedLocationRow) {
+                receiptPinnedLocationRow.classList.toggle('hidden', String(data.paymentMode || data.payment_mode || '').toLowerCase() !== 'cod');
+                receiptPinnedLocationRow.classList.toggle('grid', String(data.paymentMode || data.payment_mode || '').toLowerCase() === 'cod');
             }
 
             if (receiptPhoneElement) {
@@ -3519,6 +3534,10 @@
                         <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                             <p class="text-xs sm:text-sm text-[#946042] font-body">Address</p>
                             <p id="receiptAddress" class="text-xs sm:text-sm text-[#3A2E22] font-body break-words">-</p>
+                        </div>
+                        <div id="receiptPinnedLocationRow" class="hidden grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
+                            <p class="text-xs sm:text-sm text-[#946042] font-body">Pinned Delivery Location</p>
+                            <p id="receiptPinnedLocation" class="text-xs sm:text-sm text-[#3A2E22] font-body break-words">-</p>
                         </div>
                         <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] gap-2.5 px-3 py-2 sm:px-4">
                             <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>

@@ -2526,7 +2526,7 @@
             const formatDate = (value) => {
                 const raw = String(value || '').trim();
                 if (!raw) return '-';
-                if (/^\\d{4}-\\d{2}-\\d{2}$/.test(raw)) {
+                if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
                     const date = new Date(`${raw}T00:00:00`);
                     if (!Number.isNaN(date.getTime())) return date.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: '2-digit' });
                 }
@@ -2535,7 +2535,7 @@
             const formatTime = (value) => {
                 const raw = String(value || '').trim();
                 if (!raw) return '-';
-                if (/^\\d{2}:\\d{2}$/.test(raw)) {
+                if (/^\d{2}:\d{2}$/.test(raw)) {
                     const date = new Date(`1970-01-01T${raw}:00`);
                     if (!Number.isNaN(date.getTime())) return date.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true });
                 }

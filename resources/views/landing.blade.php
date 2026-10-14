@@ -1450,6 +1450,8 @@
                                         data-price-per-unit="{{ $product->price_per_unit ?? 0 }}"
                                         data-unit="{{ $product->unit ?? '' }}"
                                         data-weight="{{ $product->weight_grams ?? '' }}"
+                                        data-origin-address="{{ $product->establishment?->address ?? '' }}"
+                                        data-origin-address="{{ $product->establishment?->address ?? '' }}"
                                         @disabled($isOutOfStock)
                                     >
                                         {{ $product->name }}{{ $isOutOfStock ? ' - Out of Stock' : '' }}
@@ -1521,7 +1523,7 @@
                                     <div class="text-xs text-[#946042]">TOTAL TO PAY:</div>
                                     <div id="codTotalAmount" class="text-lg font-poppins font-semibold text-[#3A2E22]">₱0.00</div>
                                 </div>
-                                <p class="text-xs text-[#6B5B4A] mt-2">*Provisional BrewHub estimate using a J&T-style weight reference. This is not a live J&T quote; final fees depend on courier origin/destination rates and verified parcel measurements.</p>
+                                <p class="text-xs text-[#6B5B4A] mt-2">*Estimated using the provided J&T-style zone/weight matrix. Major inter-island calculations use the upper end of each listed range; this is not a live courier quote.</p>
                             </div>
                         </div>
 
@@ -3114,7 +3116,10 @@
                     const unit = String(selectedOptionForCalc?.dataset?.unit || '').trim();
                     const perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
                     const totalGramsCalc = perUnitGrams * quantityValue;
-                    deliveryFeeValue = computeDeliveryFeeByWeight(totalGramsCalc);
+                    const originAddress = String(selectedOptionForCalc?.dataset?.originAddress || '');
+                    const destinationAddress = String(reservationDeliveryPin?.label || '');
+                    const deliveryZone = getDeliveryZone(originAddress, destinationAddress);
+                    deliveryFeeValue = computeDeliveryFeeByWeight(totalGramsCalc, deliveryZone);
                     totalAmountValue = Math.round(((productTotal + deliveryFeeValue) + Number.EPSILON) * 100) / 100;
                 }
 
@@ -3187,21 +3192,53 @@
             return null;
         }
 
-        function computeDeliveryFeeByWeight(totalGrams) {
-            if (!Number.isFinite(totalGrams) || totalGrams <= 0) {
-                return 0;
+        function normalizeDeliveryRegion(address) {
+            const value = String(address || '').toLowerCase();
+            const groups = [
+                { region: 'NCR', island: 'Luzon', terms: ['metro manila', 'national capital region', ' ncr', 'manila city', 'quezon city', 'makati', 'pasig', 'taguig', 'paranaque', 'las pinas', 'muntinlupa', 'caloocan', 'malabon', 'navotas', 'marikina', 'mandaluyong', 'san juan city', 'valenzuela', 'pateros'] },
+                { region: 'CALABARZON', island: 'Luzon', terms: ['batangas', 'cavite', 'laguna', 'rizal', 'quezon province', 'calabarzon', 'lip[a] city'] },
+                { region: 'MIMAROPA', island: 'Luzon', terms: ['oriental mindoro', 'occidental mindoro', 'marinduque', 'romblon', 'palawan', 'mimaropa'] },
+                { region: 'Central Luzon', island: 'Luzon', terms: ['aurora', 'bataan', 'bulacan', 'nueva ecija', 'pampanga', 'tarlac', 'zambales', 'central luzon'] },
+                { region: 'Ilocos', island: 'Luzon', terms: ['ilocos norte', 'ilocos sur', 'la union', 'pangasinan', 'ilocos region'] },
+                { region: 'Cagayan Valley', island: 'Luzon', terms: ['batanes', 'cagayan', 'isabela province', 'nueva vizcaya', 'quirino', 'cagayan valley'] },
+                { region: 'Cordillera', island: 'Luzon', terms: ['abra', 'apayao', 'benguet', 'ifugao', 'kalinga', 'mountain province', 'cordillera'] },
+                { region: 'Bicol', island: 'Luzon', terms: ['albay', 'camarines norte', 'camarines sur', 'catanduanes', 'masbate', 'sorsogon', 'bicol'] },
+                { region: 'Western Visayas', island: 'Visayas', terms: ['aklan', 'antique', 'capiz', 'guimaras', 'iloilo', 'western visayas'] },
+                { region: 'Central Visayas', island: 'Visayas', terms: ['bohol', 'cebu', 'negros oriental', 'siquijor', 'central visayas'] },
+                { region: 'Eastern Visayas', island: 'Visayas', terms: ['biliran', 'eastern samar', 'leyte', 'northern samar', 'samar', 'southern leyte', 'eastern visayas'] },
+                { region: 'Zamboanga Peninsula', island: 'Mindanao', terms: ['zamboanga del norte', 'zamboanga del sur', 'zamboanga sibugay', 'zamboanga peninsula'] },
+                { region: 'Northern Mindanao', island: 'Mindanao', terms: ['bukidnon', 'camiguin', 'lanao del norte', 'misamis occidental', 'misamis oriental', 'northern mindanao'] },
+                { region: 'Davao', island: 'Mindanao', terms: ['davao de oro', 'davao del norte', 'davao del sur', 'davao occidental', 'davao oriental', 'davao region'] },
+                { region: 'SOCCSKSARGEN', island: 'Mindanao', terms: ['cotabato', 'sarangani', 'south cotabato', 'sultan kudarat', 'soccsksargen'] },
+                { region: 'Caraga', island: 'Mindanao', terms: [' agusan', 'dinagat', 'surigao del norte', 'surigao del sur', 'caraga'] },
+                { region: 'BARMM', island: 'Mindanao', terms: ['basilan', 'lanao del sur', 'maguindanao', 'sulu', 'tawi-tawi', 'barmm'] },
+            ];
+            for (const group of groups) {
+                if (group.terms.some(term => value.includes(term))) return { region: group.region, island: group.island };
             }
+            return null;
+        }
 
-            if (totalGrams <= 500) {
-                return 90;
-            }
+        function getDeliveryZone(originAddress, destinationAddress) {
+            const origin = normalizeDeliveryRegion(originAddress);
+            const destination = normalizeDeliveryRegion(destinationAddress);
+            if (!origin || !destination) return 'cross-region';
+            if (origin.island !== destination.island) return 'inter-island';
+            return origin.region === destination.region ? 'intra-region' : 'cross-region';
+        }
 
-            if (totalGrams <= 1000) {
-                return 160;
-            }
-
-            const kg = Math.ceil(totalGrams / 1000);
-            return 160 * kg;
+        function computeDeliveryFeeByWeight(totalGrams, zone) {
+            if (!Number.isFinite(totalGrams) || totalGrams <= 0) return 0;
+            const rates = {
+                'intra-region': { small: 85, medium: 115, large: 155, extraKg: 30 },
+                'cross-region': { small: 95, medium: 165, large: 190, extraKg: 50 },
+                'inter-island': { small: 105, medium: 195, large: 220, extraKg: 85 }
+            };
+            const rate = rates[zone] || rates['cross-region'];
+            if (totalGrams <= 500) return rate.small;
+            if (totalGrams <= 1000) return rate.medium;
+            if (totalGrams <= 3000) return rate.large;
+            return rate.large + (Math.ceil((totalGrams - 3000) / 1000) * rate.extraKg);
         }
 
         function getSelectedOption() {
@@ -3220,7 +3257,10 @@
             const productTotal = Math.round((price * quantity + Number.EPSILON) * 100) / 100;
             let perUnitGrams = explicitWeight || parseUnitToGrams(unit) || 500;
             const totalGrams = perUnitGrams * quantity;
-            const deliveryFee = computeDeliveryFeeByWeight(totalGrams);
+            const originAddress = String(selectedOption?.dataset?.originAddress || '');
+            const destinationAddress = String(reservationDeliveryPin?.label || '');
+            const deliveryZone = getDeliveryZone(originAddress, destinationAddress);
+            const deliveryFee = computeDeliveryFeeByWeight(totalGrams, deliveryZone);
             const totalAmount = Math.round(((productTotal + deliveryFee) + Number.EPSILON) * 100) / 100;
 
             if (codProductTotal) codProductTotal.textContent = `₱${productTotal.toFixed(2)}`;

@@ -90,15 +90,11 @@
                     </div>
                 @else
                     <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
-                        <p class="text-sm text-[#946042] font-body">Product Total</p>
-                        <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) ($order->total_price ?? 0), 2) }}</p>
+                        <p class="text-sm text-[#946042] font-body">Total Item Weight</p>
+                        <p class="text-sm text-[#3A2E22] font-body">{{ number_format((float) ($receiptMeta['total_item_weight_grams'] ?? 0), 0) }} g ({{ number_format(((float) ($receiptMeta['total_item_weight_grams'] ?? 0)) / 1000, 2) }} kg)</p>
                     </div>
                     <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
-                        <p class="text-sm text-[#946042] font-body">Estimated Delivery Fee</p>
-                        <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) ($order->delivery_fee ?? ($receiptMeta['delivery_fee'] ?? 0)), 2) }}</p>
-                    </div>
-                    <div class="grid grid-cols-[120px_1fr] gap-2.5 px-4 py-2.5">
-                        <p class="text-sm text-[#946042] font-body">Total Amount</p>
+                        <p class="text-sm text-[#946042] font-body">Total</p>
                         <p class="text-sm text-[#3A2E22] font-body">PHP {{ number_format((float) ($order->total_amount ?? ($receiptMeta['total_amount'] ?? ($order->total_price ?? 0))), 2) }}</p>
                     </div>
                 @endif

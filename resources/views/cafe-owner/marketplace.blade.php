@@ -925,8 +925,12 @@
     </div>
 
 @else
-    <div class="bg-white rounded-xl shadow-sm p-10 text-center">
-        <p class="text-sm text-gray-400">No marketplace products from other sellers found.</p>
+    <div class="bg-white rounded-xl shadow-sm p-12 text-center">
+        <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293L6.586 13H4m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5"/>
+        </svg>
+        <p class="text-lg font-display font-semibold text-gray-500">No products found</p>
+        <p class="text-sm text-gray-400 mt-1">There are currently no products available for this seller category. Try another filter.</p>
     </div>
 @endif
 </div>

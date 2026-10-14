@@ -596,20 +596,8 @@ class FarmOwnerController extends Controller
             });
         }
 
-        if (Schema::hasColumn('products', 'seller_id')) {
-            $marketplaceQuery->where(function ($builder) use ($user) {
-                $builder->whereNull('products.seller_id')
-                    ->orWhere('products.seller_id', '!=', (int) $user->id);
-            });
-        }
-
-        if (Schema::hasColumn('products', 'user_id')) {
-            $marketplaceQuery->where(function ($builder) use ($user) {
-                $builder->whereNull('products.user_id')
-                    ->orWhere('products.user_id', '!=', (int) $user->id);
-            });
-        }
-
+        // Exclude only the currently selected farm from Browse. Other farms belonging
+        // to this same account must remain discoverable in the marketplace.
         if ($establishment && Schema::hasColumn('products', 'establishment_id')) {
             $marketplaceQuery->where(function ($builder) use ($establishment) {
                 $builder->whereNull('products.establishment_id')
@@ -636,8 +624,8 @@ class FarmOwnerController extends Controller
         }
 
         $sellerTypeFilter = request('seller_type_filter');
-        if (Schema::hasColumn('products', 'seller_type') && in_array($sellerTypeFilter, ['farm_owner', 'reseller'], true)) {
-            $marketplaceQuery->where('products.seller_type', $sellerTypeFilter);
+        if (Schema::hasColumn('products', 'seller_type')) {
+            $marketplaceQuery->whereIn('products.seller_type', ['farm_owner', 'reseller', 'roaster']);
         }
 
         $marketplaceProducts = $marketplaceQuery
@@ -656,8 +644,7 @@ class FarmOwnerController extends Controller
                 'sellers.name as seller_name',
             ])
             ->orderByDesc('products.updated_at')
-            ->paginate(12, ['*'], 'market_page')
-            ->withQueryString();
+            ->get();
 
         $orders = collect();
         $productRatings = collect();

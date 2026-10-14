@@ -59,7 +59,10 @@
             productTotal: '0.00',
             deliveryFee: '0.00',
             totalAmount: '0.00',
-            total: '0.00'
+            total: '0.00',
+            deliveryLocationLabel: '',
+            deliveryLatitude: null,
+            deliveryLongitude: null
         },
         ratingImagePreview: {
             src: '',
@@ -188,8 +191,69 @@
                 deliveryFee: payload?.deliveryFee || payload?.delivery_fee || '0.00',
                 totalAmount: payload?.totalAmount || payload?.total_amount || payload?.total || '0.00',
                 total: payload?.total || '0.00',
+                deliveryLocationLabel: payload?.deliveryLocationLabel || payload?.delivery_location_label || '',
+                deliveryLatitude: (payload?.deliveryLatitude ?? payload?.delivery_latitude) !== null && (payload?.deliveryLatitude ?? payload?.delivery_latitude) !== '' && Number.isFinite(Number(payload?.deliveryLatitude ?? payload?.delivery_latitude)) ? Number(payload?.deliveryLatitude ?? payload?.delivery_latitude) : null,
+                deliveryLongitude: (payload?.deliveryLongitude ?? payload?.delivery_longitude) !== null && (payload?.deliveryLongitude ?? payload?.delivery_longitude) !== '' && Number.isFinite(Number(payload?.deliveryLongitude ?? payload?.delivery_longitude)) ? Number(payload?.deliveryLongitude ?? payload?.delivery_longitude) : null,
             };
             this.showReceiptModal = true;
+            this.$nextTick(() => this.initializeReceiptLocationMap());
+        },
+        async initializeReceiptLocationMap() {
+            const latitude = this.receiptData.deliveryLatitude;
+            const longitude = this.receiptData.deliveryLongitude;
+            if (latitude === null || longitude === null) return;
+
+            try {
+                if (!window.L) {
+                    if (!this.receiptLeafletPromise) {
+                        this.receiptLeafletPromise = new Promise((resolve, reject) => {
+                            if (!document.querySelector('link[data-farm-receipt-leaflet]')) {
+                                const link = document.createElement('link');
+                                link.rel = 'stylesheet';
+                                link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                                link.dataset.farmReceiptLeaflet = 'true';
+                                document.head.appendChild(link);
+                            }
+                            const script = document.createElement('script');
+                            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                            script.dataset.farmReceiptLeaflet = 'true';
+                            script.onload = () => window.L ? resolve(window.L) : reject(new Error('Map library did not initialize.'));
+                            script.onerror = () => reject(new Error('Unable to load the map.'));
+                            document.head.appendChild(script);
+                        });
+                    }
+                    await this.receiptLeafletPromise;
+                }
+
+                const L = window.L;
+                const mapElement = this.$refs.receiptLocationMap;
+                if (!mapElement) return;
+
+                if (!this.receiptLocationMapInstance) {
+                    this.receiptLocationMapInstance = L.map(mapElement, {
+                        zoomControl: true,
+                        dragging: false,
+                        touchZoom: false,
+                        doubleClickZoom: false,
+                        scrollWheelZoom: false,
+                        boxZoom: false,
+                        keyboard: false,
+                        attributionControl: true
+                    }).setView([latitude, longitude], 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(this.receiptLocationMapInstance);
+                    this.receiptLocationMapMarker = L.marker([latitude, longitude]).addTo(this.receiptLocationMapInstance);
+                } else {
+                    this.receiptLocationMapInstance.setView([latitude, longitude], 16);
+                    if (this.receiptLocationMapMarker) this.receiptLocationMapMarker.setLatLng([latitude, longitude]);
+                }
+
+                window.setTimeout(() => this.receiptLocationMapInstance?.invalidateSize(), 100);
+            } catch (error) {
+                console.error('Unable to initialize receipt delivery map:', error);
+            }
         },
         openRatingImageViewer(src, alt) {
             if (!src) {
@@ -234,6 +298,7 @@
                 total: esc(this.receiptData?.total),
                 customer: esc(this.receiptData?.customer),
                 address: esc(this.receiptData?.address),
+                deliveryLocationLabel: esc(this.receiptData?.deliveryLocationLabel || (this.receiptData?.deliveryLatitude !== null && this.receiptData?.deliveryLongitude !== null ? `${Number(this.receiptData.deliveryLatitude).toFixed(6)}, ${Number(this.receiptData.deliveryLongitude).toFixed(6)}` : '-')),
                 phone: esc(this.receiptData?.phone),
             };
 
@@ -304,6 +369,7 @@
                 '<div class=\'row\'><div class=\'k\'>Total Amount</div><div class=\'v\'>PHP ' + receipt.totalAmount + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Customer</div><div class=\'v\'>' + receipt.customer + '</div></div>' +
                 '<div class=\'row\'><div class=\'k\'>Address</div><div class=\'v\'>' + receipt.address + '</div></div>' +
+                (receipt.paymentMode === 'cod' ? '<div class=\'row\'><div class=\'k\'>Pinned Delivery Location</div><div class=\'v\'>' + receipt.deliveryLocationLabel + '</div></div>' : '') +
                 '<div class=\'row\'><div class=\'k\'>Phone</div><div class=\'v\'>' + receipt.phone + '</div></div>' +
                 '</div>' +
                 '</div></div></body></html>'
@@ -933,6 +999,9 @@
                                             'deliveryFee' => $receiptMeta['delivery_fee'] ?? number_format((float) ($order->delivery_fee ?? 0), 2),
                                             'totalAmount' => $receiptMeta['total_amount'] ?? number_format((float) ($order->total_amount ?? $order->total_price), 2),
                                             'total' => number_format((float) $order->total_price, 2),
+                                            'deliveryLocationLabel' => trim((string) (data_get($receiptMeta, 'delivery_location.label') ?? ($receiptMeta['delivery_location_label'] ?? ''))),
+                                            'deliveryLatitude' => data_get($receiptMeta, 'delivery_location.latitude', $receiptMeta['delivery_latitude'] ?? null),
+                                            'deliveryLongitude' => data_get($receiptMeta, 'delivery_location.longitude', $receiptMeta['delivery_longitude'] ?? null),
                                         ];
                                     @endphp
                                     @if($status === 'pending')
@@ -1190,6 +1259,14 @@
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Address</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body break-words" x-text="receiptData.address"></p>
                     </div>
+                    <div x-show="receiptData.paymentMode === 'cod' && receiptData.deliveryLocationLabel" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Pinned Delivery Location</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body break-words" x-text="receiptData.deliveryLocationLabel"></p>
+                    </div>
+                    <div x-show="receiptData.paymentMode === 'cod' && !receiptData.deliveryLocationLabel && receiptData.deliveryLatitude !== null && receiptData.deliveryLongitude !== null" class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
+                        <p class="text-xs sm:text-sm text-[#946042] font-body">Pinned Delivery Location</p>
+                        <p class="text-xs sm:text-sm text-[#3A2E22] font-body break-words" x-text="Number(receiptData.deliveryLatitude).toFixed(6) + ', ' + Number(receiptData.deliveryLongitude).toFixed(6)"></p>
+                    </div>
                     <div class="grid grid-cols-[104px_1fr] sm:grid-cols-[126px_1fr] md:grid-cols-[146px_1fr] gap-2.5 px-3 py-2 md:py-1.5 sm:px-4">
                         <p class="text-xs sm:text-sm text-[#946042] font-body">Phone</p>
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.phone"></p>
@@ -1199,6 +1276,12 @@
                         <p class="text-xs sm:text-sm text-[#3A2E22] font-body" x-text="receiptData.generatedAt"></p>
                     </div>
                 </div>
+                <section x-show="receiptData.paymentMode === 'cod' && receiptData.deliveryLatitude !== null && receiptData.deliveryLongitude !== null" x-cloak class="mt-4 rounded-xl border border-[#E2D5C1] bg-[#F8F3EA] p-3 sm:p-4">
+                    <h4 class="text-sm font-semibold text-[#3A2E22]">Pinned Delivery Location</h4>
+                    <p class="mt-1 text-xs sm:text-sm text-[#946042] break-words" x-text="receiptData.deliveryLocationLabel || (Number(receiptData.deliveryLatitude).toFixed(6) + ', ' + Number(receiptData.deliveryLongitude).toFixed(6))"></p>
+                    <div x-ref="receiptLocationMap" class="mt-3 h-64 sm:h-72 w-full rounded-lg border border-[#D7C9B1] bg-white" role="img" aria-label="Map showing the buyer pinned delivery location"></div>
+                    <p class="mt-2 text-[11px] text-[#8E7B67]">View-only map. Use the plus and minus controls to zoom.</p>
+                </section>
             </div>
         </div>
 

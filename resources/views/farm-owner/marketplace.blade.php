@@ -351,7 +351,7 @@
                 '.v{font-size:13px;color:#3A2E22;word-break:break-word;}' +
                 '@media (max-width:640px){body{padding:10px}.grid{grid-template-columns:1fr}.row{grid-template-columns:104px 1fr;}}' +
                 '@media print{body{padding:0;background:#fff}.receipt-wrap{box-shadow:none;border:none;max-width:none}}' +
-</style>' +
+                '</style>' +
                 '</head><body><div class=\'receipt-wrap\'>' +
                 '<div class=\'header\'>' +
                 '<div class=\'chip\'><p class=\'chip-label\'>Generated</p><p class=\'chip-value\'>' + receipt.generatedAt + '</p></div>' +

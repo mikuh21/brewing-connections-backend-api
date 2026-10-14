@@ -7,6 +7,7 @@ use App\Models\Establishment;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\ResellerProduct;
+use App\Services\DeliveryFeeEstimator;
 use App\Services\MenuImageExtractionService;
 use App\Services\OrderReceiptNotifier;
 use App\Services\OrderStockManager;
@@ -452,8 +453,11 @@ class CafeOwnerMarketplaceController extends Controller
         $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'quantity' => ['required', 'integer', 'min:1'],
-            'pickup_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today'],
-            'pickup_time' => ['nullable', 'date_format:H:i'],
+            'payment_mode' => ['required', 'in:pickup,cod'],
+            'pickup_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:today', 'required_if:payment_mode,pickup'],
+            'pickup_time' => ['nullable', 'date_format:H:i', 'required_if:payment_mode,pickup'],
+            'address' => ['nullable', 'required_if:payment_mode,cod', 'string', 'max:255'],
+            'phone' => ['nullable', 'required_if:payment_mode,cod', 'string', 'regex:/^\\d{11}$/'],
             'buyer_notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -512,28 +516,44 @@ class CafeOwnerMarketplaceController extends Controller
             }
 
             $receiptToken = Str::random(40);
-            $totalPrice = round($price * $quantity, 2);
+            $productTotal = round($price * $quantity, 2);
+            $paymentMode = (string) $validated['payment_mode'];
+            $deliveryFee = $paymentMode === 'cod'
+                ? DeliveryFeeEstimator::estimateForProduct($product, $quantity)
+                : 0.0;
+            $totalAmount = round($productTotal + $deliveryFee, 2);
+            $deliveryAddress = trim((string) ($validated['address'] ?? ''));
+            $deliveryPhone = trim((string) ($validated['phone'] ?? ''));
             $metadata = [
                 'source' => 'cafe-owner-store',
                 'buyer_name' => (string) ($buyer->name ?? 'Coffee Shop Owner'),
+                'full_name' => (string) ($buyer->name ?? 'Coffee Shop Owner'),
                 'receipt_email' => (string) ($buyer->email ?? ''),
                 'receipt_token' => $receiptToken,
                 'seller_type' => $sellerType,
                 'buyer_notes' => trim((string) ($validated['buyer_notes'] ?? '')),
+                'payment_mode' => $paymentMode,
+                'product_total' => $productTotal,
+                'delivery_fee' => $deliveryFee,
+                'total_amount' => $totalAmount,
+                'address' => $paymentMode === 'cod' ? $deliveryAddress : '',
+                'phone' => $paymentMode === 'cod' ? $deliveryPhone : '',
+                'pickup_date' => $paymentMode === 'pickup' ? ($validated['pickup_date'] ?? null) : null,
+                'pickup_time' => $paymentMode === 'pickup' ? ($validated['pickup_time'] ?? null) : null,
             ];
 
             return Order::query()->create([
                 'user_id' => (int) $buyer->id,
                 'product_id' => (int) $product->id,
                 'quantity' => $quantity,
-                'total_price' => $totalPrice,
-                'total_amount' => $totalPrice,
-                'delivery_fee' => 0,
-                'payment_mode' => 'pickup',
+                'total_price' => $productTotal,
+                'total_amount' => $totalAmount,
+                'delivery_fee' => $deliveryFee,
+                'payment_mode' => $paymentMode,
                 'status' => 'pending',
                 'stock_reserved' => false,
-                'pickup_date' => $validated['pickup_date'] ?? null,
-                'pickup_time' => $validated['pickup_time'] ?? null,
+                'pickup_date' => $paymentMode === 'pickup' ? ($validated['pickup_date'] ?? null) : null,
+                'pickup_time' => $paymentMode === 'pickup' ? ($validated['pickup_time'] ?? null) : null,
                 'notes' => json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
             ]);
         });

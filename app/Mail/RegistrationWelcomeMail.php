@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Mail;
+namespace App\Mail;
 
-use App\\Models\\User;
-use Illuminate\\Bus\\Queueable;
-use Illuminate\\Mail\\Mailable;
-use Illuminate\\Mail\\Mailables\\Content;
-use Illuminate\\Mail\\Mailables\\Envelope;
-use Illuminate\\Queue\\SerializesModels;
+use App\Models\User;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
 
 class RegistrationWelcomeMail extends Mailable
 {

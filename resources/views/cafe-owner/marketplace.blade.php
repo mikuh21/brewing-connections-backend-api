@@ -42,6 +42,9 @@
         showViewModal: false,
         showOrderModal: false,
         showOrderConfirmModal: false,
+        showCancelOrderModal: false,
+        cancelOrderAction: '',
+        cancelOrderReference: '',
         isCreatingProduct: false,
         isSubmittingOrder: false,
         browseSellerTypeFilter: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
@@ -1148,10 +1151,13 @@
                     <a href="{{ route('reservations.orders.receipt', ['order' => $order->id, 'token' => $receiptToken]) }}" target="_blank" rel="noopener" class="rounded-lg border border-[#4A6741] px-3 py-2 text-xs font-semibold text-[#4A6741] hover:bg-[#EEF4EA]">View Receipt</a>
                 @endif
                 @if($orderStatus === 'pending')
-                    <form method="POST" action="{{ route('cafe-owner.marketplace.orders.cancel', $order) }}" onsubmit="return confirm('Cancel this pending order?');">
-                        @csrf
-                        <button type="submit" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50">Cancel Order</button>
-                    </form>
+                    <button
+                        type="button"
+                        data-cancel-url="{{ route('cafe-owner.marketplace.orders.cancel', $order) }}"
+                        data-order-reference="{{ $order->product->name ?? 'this order' }}"
+                        @click="cancelOrderAction = $el.dataset.cancelUrl; cancelOrderReference = $el.dataset.orderReference; showCancelOrderModal = true"
+                        class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50"
+                    >Cancel Order</button>
                 @endif
             </div>
         </div>
@@ -1442,6 +1448,46 @@
             <button type="button" @click="showOrderConfirmModal = false" :disabled="isSubmittingOrder" class="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-[#3A2E22] hover:bg-gray-50 disabled:opacity-50">Go Back</button>
             <button type="button" @click="confirmOrderSubmission()" :disabled="isSubmittingOrder" class="rounded-lg bg-[#2E5A3D] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50" x-text="isSubmittingOrder ? 'Submitting…' : 'Confirm and Submit'"></button>
         </div>
+    </div>
+</div>
+
+<div
+    x-show="showCancelOrderModal"
+    x-cloak
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="cancelSupplierOrderTitle"
+    @keydown.escape.window="showCancelOrderModal = false"
+>
+    <div @click.away="showCancelOrderModal = false" class="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div class="border-b border-[#E7DED1] p-5 sm:p-6">
+            <div class="flex items-start gap-3">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <h2 id="cancelSupplierOrderTitle" class="text-lg font-display font-bold text-[#3A2E22]">Cancel Pending Order?</h2>
+                    <p class="mt-1 text-sm leading-relaxed text-[#6B5B4A]">Are you sure you want to cancel your order for <span class="font-semibold text-[#3A2E22]" x-text="cancelOrderReference"></span>? This action cannot be undone.</p>
+                    <p class="mt-2 text-xs text-[#9E8C78]">Only cancel if you no longer want this supplier order.</p>
+                </div>
+            </div>
+        </div>
+        <form method="POST" :action="cancelOrderAction" @submit="showCancelOrderModal = false">
+            @csrf
+            <div class="flex flex-col-reverse gap-2 bg-[#F8F4ED] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+                <button type="button" @click="showCancelOrderModal = false" class="rounded-lg border border-[#D8CCBD] bg-white px-4 py-2.5 text-sm font-semibold text-[#3A2E22] hover:bg-[#F5F0E8]">Keep Order</button>
+                <button type="submit" class="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">Yes, Cancel Order</button>
+            </div>
+        </form>
     </div>
 </div>
 

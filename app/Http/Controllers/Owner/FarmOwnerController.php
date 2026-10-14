@@ -650,13 +650,21 @@ class FarmOwnerController extends Controller
                 'sellers.name as seller_name',
                 'seller_farms.name as farm_name',
             ])
+            ->addSelect([
+                'seller_owner_farm_name' => Establishment::query()
+                    ->select('establishments.name')
+                    ->whereColumn('establishments.owner_id', 'products.seller_id')
+                    ->whereNull('establishments.deleted_at')
+                    ->orderBy('establishments.id')
+                    ->limit(1),
+            ])
             ->orderByDesc('products.updated_at')
             ->get();
 
         $orders = collect();
         $productRatings = collect();
         if ($establishment && (int) $establishment->owner_id === (int) $user->id) {
-            $orders = Order::with(['user:id,name', 'product:id,name,establishment_id'])
+            $orders = Order::with(['user:id,name', 'product:id,name,establishment_id', 'product.establishment:id,name'])
                 ->whereHas('product', function ($query) use ($establishment) {
                     $query->where('establishment_id', $establishment->id);
                 })

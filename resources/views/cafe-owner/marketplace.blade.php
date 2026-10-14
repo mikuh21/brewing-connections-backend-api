@@ -115,13 +115,15 @@
         },
         defaultDeliveryAddress: @js((string) (Auth::user()->address ?? '')),
         defaultDeliveryPhone: @js((string) (Auth::user()->contact_number ?? '')),
+        defaultReceiptEmail: @js((string) (Auth::user()->email ?? '')),
         orderForm: {
             quantity: 1,
-            payment_mode: 'pickup',
+            payment_mode: '',
             pickup_date: '',
             pickup_time: '',
             address: @js((string) (Auth::user()->address ?? '')),
             phone: @js((string) (Auth::user()->contact_number ?? '')),
+            email: @js((string) (Auth::user()->email ?? '')),
             buyer_notes: ''
         },
         openOrderModal(product) {
@@ -139,11 +141,12 @@
             };
             this.orderForm = {
                 quantity: Math.max(1, Number(product.moq || 1)),
-                payment_mode: 'pickup',
+                payment_mode: '',
                 pickup_date: '',
                 pickup_time: '',
                 address: this.defaultDeliveryAddress,
                 phone: this.defaultDeliveryPhone,
+                email: this.defaultReceiptEmail,
                 buyer_notes: ''
             };
             this.showOrderModal = true;
@@ -1090,11 +1093,13 @@
             </div>
 
             <div>
-                <label for="supplier-payment-mode" class="block text-xs font-semibold text-[#3A2E22]">Mode of Payment *</label>
-                <select id="supplier-payment-mode" name="payment_mode" x-model="orderForm.payment_mode" required class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                <label class="block text-sm text-[#3A2E22] font-body mb-1">Mode of Payment</label>
+                <select id="supplier-payment-mode" name="payment_mode" x-model="orderForm.payment_mode" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
+                    <option value="" disabled>Select Mode of Payment</option>
                     <option value="pickup">Pickup</option>
                     <option value="cod">Cash on Delivery</option>
                 </select>
+                <p class="mt-1 text-xs text-[#B43F3F] font-body" x-show="!orderForm.payment_mode" x-cloak>Please select a mode of payment.</p>
             </div>
 
             <div x-show="orderForm.payment_mode === 'pickup'" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1108,16 +1113,21 @@
                 </div>
             </div>
 
-            <div x-show="orderForm.payment_mode === 'cod'" x-cloak class="space-y-3 rounded-lg border border-[#E7DED1] p-3">
-                <div>
-                    <label for="supplier-order-address" class="block text-xs font-semibold text-[#3A2E22]">Delivery Address *</label>
-                    <textarea id="supplier-order-address" name="address" x-model="orderForm.address" :required="orderForm.payment_mode === 'cod'" maxlength="255" rows="2" placeholder="Enter the full address for delivery" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
-                </div>
-                <div>
-                    <label for="supplier-order-phone" class="block text-xs font-semibold text-[#3A2E22]">Contact Number *</label>
-                    <input id="supplier-order-phone" type="tel" name="phone" x-model="orderForm.phone" :required="orderForm.payment_mode === 'cod'" inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11-digit mobile number" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                    <p class="mt-1 text-[11px] text-[#8E7B67]">Enter 11 digits, including the leading 0.</p>
-                </div>
+            <div>
+                <label for="supplier-order-email" class="block text-sm text-[#3A2E22] font-body mb-1">Email</label>
+                <input id="supplier-order-email" x-ref="supplierOrderEmail" type="email" name="email" x-model="orderForm.email" autocomplete="email" placeholder="Enter your email" maxlength="255" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" />
+                <p class="mt-1 text-xs text-[#B43F3F] font-body" x-show="orderForm.email && !$refs.supplierOrderEmail?.checkValidity()" x-cloak>Please enter a valid email address.</p>
+            </div>
+
+            <div>
+                <label for="supplier-order-address" class="block text-sm text-[#3A2E22] font-body mb-1">Address (House No., Street, Barangay, City, Province)</label>
+                <textarea id="supplier-order-address" name="address" x-model="orderForm.address" autocomplete="street-address" maxlength="255" rows="2" placeholder="Enter complete address" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]"></textarea>
+            </div>
+
+            <div>
+                <label for="supplier-order-phone" class="block text-sm text-[#3A2E22] font-body mb-1">Phone Number</label>
+                <input id="supplier-order-phone" type="text" name="phone" x-model="orderForm.phone" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" maxlength="11" placeholder="e.g. 09XXXXXXXXX" required class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" />
+                <p class="mt-1 text-xs text-[#B43F3F] font-body" x-show="orderForm.phone && !/^[0-9]{11}$/.test(orderForm.phone)" x-cloak>Phone number must contain exactly 11 digits.</p>
             </div>
 
             <div>

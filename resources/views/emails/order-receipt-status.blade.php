@@ -9,6 +9,15 @@
     @php
         $pickupDateRaw = (string) ($receiptMeta['pickup_date'] ?? '');
         $pickupTimeRaw = (string) ($receiptMeta['pickup_time'] ?? '');
+        $deliveryLocation = is_array($receiptMeta['delivery_location'] ?? null) ? $receiptMeta['delivery_location'] : [];
+        $pinnedLocationLabel = trim((string) ($deliveryLocation['label'] ?? $receiptMeta['delivery_location_label'] ?? ''));
+        $pinnedLatitude = $deliveryLocation['latitude'] ?? $receiptMeta['delivery_latitude'] ?? null;
+        $pinnedLongitude = $deliveryLocation['longitude'] ?? $receiptMeta['delivery_longitude'] ?? null;
+        $pinnedLocationDisplay = $pinnedLocationLabel !== ''
+            ? $pinnedLocationLabel
+            : (($pinnedLatitude !== null && $pinnedLongitude !== null)
+                ? number_format((float) $pinnedLatitude, 6) . ', ' . number_format((float) $pinnedLongitude, 6)
+                : 'N/A');
 
         $pickupDateDisplay = 'N/A';
         if ($pickupDateRaw !== '') {
@@ -118,6 +127,9 @@
                             <p style="margin:16px 0 0 0;font-size:12px;color:#6B5B4A;line-height:1.6;">
                                 Customer: {{ $receiptMeta['full_name'] ?? ($order->user?->name ?? 'N/A') }}<br>
                                 Address: {{ $receiptMeta['address'] ?? 'N/A' }}<br>
+                                @if ($paymentModeRaw === 'cod')
+                                    Pinned Delivery Location: {{ $pinnedLocationDisplay }}<br>
+                                @endif
                                 Phone: {{ $receiptMeta['phone'] ?? 'N/A' }}<br>
                                 @if ($paymentModeRaw === 'pickup')
                                     Pickup Date: {{ $pickupDateDisplay }}<br>

@@ -78,6 +78,7 @@ class Establishment extends Model
         'name',
         'type',
         'description',
+        'trivia_history',
         'address',
         'barangay',
         'latitude',

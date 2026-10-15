@@ -63,7 +63,12 @@
                                 </tr>
                                 <tr>
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;border-bottom:1px solid #E2D5C1;">Status</td>
-                                    <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #E2D5C1;">{{ ucfirst((string) $order->status) }}</td>
+                                    <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #E2D5C1;">{{ match (strtolower((string) $order->status)) {
+                                        'ready_for_pickup' => 'Ready for Pickup',
+                                        'shipped' => 'Shipped',
+                                        'cancelled', 'canceled' => 'Canceled',
+                                        default => ucfirst((string) $order->status),
+                                    } }}</td>
                                 </tr>
                                 <tr>
                                     <td style="padding:10px 12px;font-size:13px;color:#946042;border-bottom:1px solid #E2D5C1;">Product</td>

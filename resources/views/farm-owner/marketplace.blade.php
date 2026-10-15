@@ -995,7 +995,7 @@
                             @endphp
                             <tr
                                 class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors"
-                                x-show="statusFilter === 'all' || statusFilter === '{{ $orderStatusFilterValue }}' && (orderSearch === '' || @js(strtolower($order->user->name ?? '')).includes(orderSearch.toLowerCase()) || @js(strtolower($order->product->name ?? '')).includes(orderSearch.toLowerCase()))"
+                                x-show="(statusFilter === 'all' || statusFilter === '{{ $orderStatusFilterValue }}') && (orderSearch.trim() === '' || @js(strtolower($order->user->name ?? '')).includes(orderSearch.trim().toLowerCase()) || @js(strtolower($order->product->name ?? '')).includes(orderSearch.trim().toLowerCase()))"
                             >
                                 <td class="px-4 py-3 text-sm font-medium text-[#3A2E22]">#{{ $order->id }}</td>
                                 <td class="px-4 py-3 text-sm text-[#6B5B4A]">{{ $order->user->name ?? 'N/A' }}</td>

@@ -230,6 +230,7 @@
     $profileCompletenessChecks = [
         'Profile image' => $profileEstablishment?->image,
         'Description' => $profileEstablishment?->description,
+        'Trivia / History' => $profileEstablishment?->trivia_history,
         'Website (optional)' => $profileEstablishment?->website,
         'Operating hours' => $profileEstablishment?->visit_hours,
         'Map location' => ($profileEstablishment?->latitude !== null && $profileEstablishment?->longitude !== null) ? 'set' : null,

@@ -137,6 +137,7 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
+    x-init="editMode = window.location.hash === '#trivia-history-section'"
     class="cafe-profile-page space-y-8"
 >
     <form method="POST" action="{{ route('cafe-owner.my-cafe.update') }}" enctype="multipart/form-data" class="space-y-8">

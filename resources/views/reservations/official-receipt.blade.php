@@ -57,7 +57,12 @@
                 </div>
                 <div class="rounded-lg border border-[#D7C9B1] bg-[#F3E9D7]/45 px-4 py-3">
                     <p class="text-xs uppercase tracking-[0.14em] text-[#946042] font-body">Order Status</p>
-                    <p class="text-base text-[#3A2E22] font-poppins font-semibold mt-1">{{ ucfirst((string) $order->status) }}</p>
+                    <p class="text-base text-[#3A2E22] font-poppins font-semibold mt-1">{{ match (strtolower((string) $order->status)) {
+                        'ready_for_pickup' => 'Ready for Pickup',
+                        'shipped' => 'Shipped',
+                        'cancelled', 'canceled' => 'Canceled',
+                        default => ucfirst((string) $order->status),
+                    } }}</p>
                 </div>
             </div>
 

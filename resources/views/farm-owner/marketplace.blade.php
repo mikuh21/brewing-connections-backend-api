@@ -1028,7 +1028,12 @@
                                             'seller' => trim((string) ($order->product?->establishment?->name ?? '')) ?: (trim((string) ($receiptMeta['seller'] ?? '')) ?: 'Farm Establishment'),
                                             'address' => $receiptMeta['address'] ?? 'N/A',
                                             'phone' => $receiptMeta['phone'] ?? 'N/A',
-                                            'status' => ucfirst((string) $order->status),
+                                            'status' => match (strtolower((string) $order->status)) {
+                                                'ready_for_pickup' => 'Ready for Pickup',
+                                                'shipped' => 'Shipped',
+                                                'cancelled', 'canceled' => 'Canceled',
+                                                default => ucfirst((string) $order->status),
+                                            },
                                             'paymentMode' => strtolower((string) ($order->payment_mode ?? $receiptMeta['payment_mode'] ?? 'pickup')),
                                             'productTotal' => $receiptMeta['product_total'] ?? number_format((float) ($order->product_total ?? $order->total_price), 2),
                                             'deliveryFee' => $receiptMeta['delivery_fee'] ?? number_format((float) ($order->delivery_fee ?? 0), 2),

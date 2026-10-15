@@ -2257,6 +2257,13 @@
             return String(params.get(name) || '').trim();
         }
 
+        function normalizeReservationPaymentMode(value) {
+            const normalized = String(value || '').trim().toLowerCase().replace(/[ -]+/g, '_');
+            if (normalized === 'pickup') return 'pickup';
+            if (normalized === 'cod' || normalized === 'cash_on_delivery') return 'cod';
+            return '';
+        }
+
         function selectReservationProductById(rawProductId) {
             const productId = Number(rawProductId || 0);
             if (!reservationProductSelect || !Number.isInteger(productId) || productId <= 0) {
@@ -2295,6 +2302,12 @@
             const phoneValue = String(prefillData.phone || '').replace(/\s+/g, '');
             const pickupDateValue = String(prefillData.pickup_date || '').trim();
             const pickupTimeValue = String(prefillData.pickup_time || '').trim();
+            const paymentModeValue = normalizeReservationPaymentMode(prefillData.payment_mode ?? prefillData.paymentMode);
+
+            if (paymentModeValue && reservationPaymentModeSelect) {
+                reservationPaymentModeSelect.value = paymentModeValue;
+                reservationPaymentModeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
 
             if (reservationFullNameInput && !String(reservationFullNameInput.value || '').trim() && fullNameValue) {
                 reservationFullNameInput.value = fullNameValue;
@@ -2432,7 +2445,15 @@
             const queryQuantity = Number(getQueryParam('quantity') || 0);
             const queryPickupDate = String(getQueryParam('pickup_date') || '').trim();
             const queryPickupTime = String(getQueryParam('pickup_time') || '').trim();
+            const queryPaymentMode = normalizeReservationPaymentMode(getQueryParam('payment_mode') || getQueryParam('paymentMode'));
             const prefillToken = getQueryParam('prefill_token');
+
+            // Apply the selected mobile-app payment mode before loading optional prefill data.
+            // This also works for direct website links that do not include a prefill token.
+            if (queryPaymentMode && reservationPaymentModeSelect) {
+                reservationPaymentModeSelect.value = queryPaymentMode;
+                reservationPaymentModeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            }
 
             if (Number.isInteger(queryProductId) && queryProductId > 0) {
                 const didSelect = selectReservationProductById(queryProductId);

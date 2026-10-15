@@ -69,6 +69,7 @@ class ResellerProfileController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
             'profile_photo' => ['nullable', 'image', 'max:5120'],
+            'trivia_history' => ['nullable', 'string', 'max:5000'],
         ];
 
         if (in_array('address', $userLocationColumns, true)) {
@@ -116,6 +117,10 @@ class ResellerProfileController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
             ];
+
+            if (Schema::hasColumn('users', 'trivia_history') && array_key_exists('trivia_history', $validated)) {
+                $userPayload['trivia_history'] = filled($validated['trivia_history']) ? trim((string) $validated['trivia_history']) : null;
+            }
 
             foreach ($userLocationColumns as $column) {
                 if (array_key_exists($column, $validated)) {

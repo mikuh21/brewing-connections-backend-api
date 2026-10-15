@@ -470,13 +470,18 @@ class FarmOwnerController extends Controller
         $updatePayload = [
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'trivia_history' => isset($validated['trivia_history']) ? trim((string) $validated['trivia_history']) : null,
             'address' => $validated['address'] ?? null,
             'barangay' => $validated['barangay'] ?? null,
             'contact_number' => $validated['contact_number'] ?? null,
             'email' => $validated['email'] ?? null,
             'website' => $validated['website'] ?? null,
         ];
+
+        if ($this->hasEstablishmentColumn('trivia_history')) {
+            $updatePayload['trivia_history'] = filled($validated['trivia_history'] ?? null)
+                ? trim((string) $validated['trivia_history'])
+                : null;
+        }
 
         // Keep existing coordinates unless the request explicitly sends non-null values.
         if (array_key_exists('latitude', $validated) && $validated['latitude'] !== null) {

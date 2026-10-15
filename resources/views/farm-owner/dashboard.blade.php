@@ -242,6 +242,7 @@
     $profileCompletenessChecks = [
         'Profile image' => $profileEstablishment?->image,
         'Description' => $profileEstablishment?->description,
+        'Trivia / History' => $profileEstablishment?->trivia_history,
         'Map location' => ($profileEstablishment?->latitude !== null && $profileEstablishment?->longitude !== null) ? 'set' : null,
     ];
     $missingProfileFields = collect($profileCompletenessChecks)

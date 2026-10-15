@@ -550,24 +550,11 @@ class FarmOwnerController extends Controller
                 ->where('establishment_id', $establishment->id)
                 ->latest();
 
-            if ($search = trim((string) request('search'))) {
-                $searchLower = mb_strtolower($search);
-                $productsQuery->where(function ($query) use ($searchLower) {
-                    $query->whereRaw('LOWER(name) LIKE ?', ['%' . $searchLower . '%'])
-                        ->orWhereRaw('LOWER(category) LIKE ?', ['%' . $searchLower . '%']);
-                });
-            }
-
-            if ($type = request('type')) {
-                if ($type === 'coffee_beans') {
-                    $productsQuery->where('category', 'Coffee Beans');
-                } elseif ($type === 'ground_coffee') {
-                    $productsQuery->where('category', 'Ground Coffee');
-                }
-            }
+            // Load the active farm's full listing set so Alpine can search and filter
+            // categories instantly without submitting the page or losing other categories.
         }
 
-        $products = $productsQuery->paginate(12)->withQueryString();
+        $products = $productsQuery->get();
 
         $marketplaceQuery = Product::query();
 

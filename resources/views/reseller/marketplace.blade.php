@@ -851,6 +851,8 @@
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
                 <option value="confirmed">Confirmed</option>
+                <option value="ready_for_pickup">Ready for Pickup</option>
+                <option value="shipped">Shipped</option>
                 <option value="completed">Completed</option>
                 <option value="canceled">Canceled</option>
             </select>
@@ -894,6 +896,8 @@
                                         $isCanceled = in_array($status, ['canceled', 'cancelled'], true);
                                         $receiptMeta = json_decode((string) ($order->notes ?? ''), true);
                                         $receiptMeta = is_array($receiptMeta) ? $receiptMeta : [];
+                                        $paymentMode = strtolower((string) ($order->payment_mode ?? $receiptMeta['payment_mode'] ?? 'pickup'));
+                                        $isPickupOrder = $paymentMode !== 'cod';
                                         $receiptProductName = $order->product->name ?? ($receiptMeta['product_name'] ?? 'N/A');
                                         $reservationCode = 'BRH-ORDER-' . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT);
                                         $receiptPayload = [
@@ -940,6 +944,11 @@
                                         <select name="status" @disabled($isCanceled) class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                             <option value="pending" @selected($status === 'pending')>Pending</option>
                                             <option value="confirmed" @selected($status === 'confirmed')>Confirmed</option>
+                                            @if($isPickupOrder)
+                                                <option value="ready_for_pickup" @selected($status === 'ready_for_pickup')>Ready for Pickup</option>
+                                            @else
+                                                <option value="shipped" @selected($status === 'shipped')>Shipped</option>
+                                            @endif
                                             <option value="completed" @selected($status === 'completed')>Completed</option>
                                             <option value="canceled" @selected(in_array($status, ['canceled', 'cancelled'], true))>Canceled</option>
                                         </select>

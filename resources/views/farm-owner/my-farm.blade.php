@@ -168,6 +168,7 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
+    x-init="editMode = window.location.hash === '#trivia-history-section'"
     class="space-y-8"
 >
     <form method="POST" action="{{ route('farm-owner.my-farm') }}" enctype="multipart/form-data" class="space-y-8">

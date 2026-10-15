@@ -218,6 +218,7 @@ Route::get('/', function () {
                 'website' => (string) ($establishment->website ?? ''),
                 'visit_hours' => (string) ($establishment->visit_hours ?? ''),
                 'activities' => (string) ($establishment->activities ?? ''),
+                'trivia_history' => (string) ($establishment->trivia_history ?? ''),
                 'image' => $establishment->image,
                 'coffee_varieties' => $establishment->varieties
                     ->pluck('name')

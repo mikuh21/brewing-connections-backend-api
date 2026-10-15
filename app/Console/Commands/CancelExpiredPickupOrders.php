@@ -21,7 +21,10 @@ class CancelExpiredPickupOrders extends Command
         $cancelledCount = 0;
 
         Order::query()
-            ->whereRaw('LOWER(COALESCE(payment_mode, \'pickup\')) = ?', ['pickup'])
+            ->where(function ($query) {
+                $query->whereRaw('LOWER(payment_mode) = ?', ['pickup'])
+                    ->orWhereNull('payment_mode');
+            })
             ->whereNotIn('status', ['completed', 'cancelled', 'canceled'])
             ->whereNotNull('pickup_date')
             ->whereNotNull('pickup_time')
@@ -42,7 +45,9 @@ class CancelExpiredPickupOrders extends Command
                         // Refresh before transition so a recently completed/cancelled order is not expired.
                         $order->refresh();
                         $currentStatus = strtolower((string) ($order->status ?? 'pending'));
-                        $currentMode = strtolower((string) ($order->payment_mode ?? 'pickup'));
+                        $metadata = json_decode((string) ($order->notes ?? ''), true);
+                        $metadata = is_array($metadata) ? $metadata : [];
+                        $currentMode = strtolower((string) ($order->payment_mode ?? $metadata['payment_mode'] ?? 'pickup'));
 
                         if ($currentMode !== 'pickup'
                             || in_array($currentStatus, ['completed', 'cancelled', 'canceled'], true)) {

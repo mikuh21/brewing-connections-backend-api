@@ -38,8 +38,8 @@ class OrderStockManager
 
             $stockConsumingStatuses = ['confirmed', 'ready_for_pickup', 'shipped', 'completed'];
             $shouldReserveStock = in_array($normalizedNext, $stockConsumingStatuses, true);
-            // Stock is consumed only while an order is confirmed/completed.
-            // If a confirmed order is moved back to pending, restore its quantity.
+            // Keep stock reserved throughout the fulfilment lifecycle. If an order is
+            // cancelled or moved back to pending, restore any previously reserved quantity.
             $wasStockConsuming = in_array($currentStatus, $stockConsumingStatuses, true);
             $shouldReleaseStock = $normalizedNext === 'cancelled'
                 || ($normalizedNext === 'pending' && $wasStockConsuming);

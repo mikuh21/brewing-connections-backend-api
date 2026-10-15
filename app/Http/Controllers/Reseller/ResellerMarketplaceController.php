@@ -400,8 +400,15 @@ class ResellerMarketplaceController extends Controller
             ]);
         }
 
+        $orderMeta = json_decode((string) ($order->notes ?? ''), true);
+        $orderMeta = is_array($orderMeta) ? $orderMeta : [];
+        $paymentMode = strtolower((string) ($order->payment_mode ?? $orderMeta['payment_mode'] ?? 'pickup'));
+        $allowedStatuses = $paymentMode === 'cod'
+            ? ['pending', 'confirmed', 'shipped', 'completed', 'canceled', 'cancelled']
+            : ['pending', 'confirmed', 'ready_for_pickup', 'completed', 'canceled', 'cancelled'];
+
         $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed,canceled,cancelled',
+            'status' => 'required|in:' . implode(',', $allowedStatuses),
         ]);
 
         $status = $validated['status'] === 'canceled' ? 'cancelled' : $validated['status'];

@@ -1545,7 +1545,7 @@
                                 <input id="reservationPickupTimeInput" type="time" step="300" class="reservation-datetime-input w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]">
                                 <p id="reservationPickupTimeError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
                                 <p class="mt-2 rounded-md border border-[#E2D5C1] bg-white/70 px-2.5 py-2 text-xs leading-relaxed text-[#8E7B67] font-body">
-                                    <span class="font-semibold text-[#3A2E22]">Note:</span> A grace period of up to 3 days applies after your scheduled pickup date and time. If the order is not marked as Completed within 3 days, it will be automatically canceled.
+                                    <span class="font-semibold text-[#3A2E22]">Note:</span> A grace period of up to 3 days applies after your scheduled pickup date and time. If you do not pick up your order within 3 days, it will be automatically canceled.
                                 </p>
                             </div>
                         </div>

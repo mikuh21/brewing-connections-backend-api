@@ -11,6 +11,7 @@
         'Contact number' => $reseller->contact_number ?? null,
         'Address' => $reseller->address ?? null,
         'Barangay' => $reseller->barangay ?? null,
+        'Trivia / History' => $reseller->trivia_history ?? null,
     ];
 
     $missingProfileFields = collect($profileCompletenessChecks)

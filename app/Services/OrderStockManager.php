@@ -27,6 +27,15 @@ class OrderStockManager
             }
 
             $currentStatus = $this->normalizeStatus((string) ($lockedOrder->status ?? 'pending'));
+
+            // A completed order must never be cancelled by the scheduled pickup expiry job
+            // or by a stale status form submission.
+            if ($currentStatus === 'completed' && $normalizedNext === 'cancelled') {
+                throw ValidationException::withMessages([
+                    'status' => 'Completed orders cannot be cancelled.',
+                ]);
+            }
+
             $stockConsumingStatuses = ['confirmed', 'ready_for_pickup', 'shipped', 'completed'];
             $shouldReserveStock = in_array($normalizedNext, $stockConsumingStatuses, true);
             // Stock is consumed only while an order is confirmed/completed.

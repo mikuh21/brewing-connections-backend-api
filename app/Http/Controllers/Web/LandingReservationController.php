@@ -133,6 +133,7 @@ class LandingReservationController extends Controller
             'quantity' => ['nullable', 'integer', 'min:1'],
             'pickup_date' => ['nullable', 'date_format:Y-m-d'],
             'pickup_time' => ['nullable', 'date_format:H:i'],
+            'payment_mode' => ['nullable', 'in:pickup,cod'],
         ]);
 
         /** @var User|null $authenticatedUser */
@@ -151,6 +152,7 @@ class LandingReservationController extends Controller
             'quantity' => isset($validated['quantity']) ? (int) $validated['quantity'] : null,
             'pickup_date' => isset($validated['pickup_date']) ? (string) $validated['pickup_date'] : null,
             'pickup_time' => isset($validated['pickup_time']) ? (string) $validated['pickup_time'] : null,
+            'payment_mode' => isset($validated['payment_mode']) ? (string) $validated['payment_mode'] : null,
         ];
 
         $prefillToken = $this->encodePrefillPayload($payload, now()->addMinutes(20)->timestamp);
@@ -161,6 +163,7 @@ class LandingReservationController extends Controller
             'quantity' => $payload['quantity'],
             'pickup_date' => $payload['pickup_date'],
             'pickup_time' => $payload['pickup_time'],
+            'payment_mode' => $payload['payment_mode'],
         ], static fn ($value) => $value !== null && $value !== '');
 
         return response()->json([
@@ -191,6 +194,7 @@ class LandingReservationController extends Controller
             'quantity' => isset($payload['quantity']) ? (int) $payload['quantity'] : null,
             'pickup_date' => isset($payload['pickup_date']) ? (string) $payload['pickup_date'] : null,
             'pickup_time' => isset($payload['pickup_time']) ? (string) $payload['pickup_time'] : null,
+            'payment_mode' => isset($payload['payment_mode']) ? (string) $payload['payment_mode'] : null,
         ]);
     }
 

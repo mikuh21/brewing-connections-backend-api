@@ -22,7 +22,7 @@ class ResellerMapController extends Controller
             ->whereNull('deactivated_at')
             ->orderBy('name')
             ->with(['resellerProducts.product'])
-            ->get(['id', 'name', 'barangay', 'latitude', 'longitude', 'updated_at'])
+            ->get(['id', 'name', 'barangay', 'latitude', 'longitude', 'trivia_history', 'updated_at'])
             ->map(function ($user) {
                 return [
                     'id' => $user->id,
@@ -30,6 +30,7 @@ class ResellerMapController extends Controller
                     'barangay' => $user->barangay,
                     'latitude' => $user->latitude,
                     'longitude' => $user->longitude,
+                    'trivia_history' => $user->trivia_history,
                     'verified_at' => optional($user->updated_at)?->toIso8601String(),
                     'associated_products' => MapDetailsService::resellerProducts($user->resellerProducts),
                 ];
@@ -126,6 +127,7 @@ class ResellerMapController extends Controller
                 'website' => null,
                 'visit_hours' => null,
                 'activities' => null,
+                'trivia_history' => $resellerUser->trivia_history,
                 'latitude' => $resellerUser->latitude,
                 'longitude' => $resellerUser->longitude,
                 'image' => $resellerUser->image_url,

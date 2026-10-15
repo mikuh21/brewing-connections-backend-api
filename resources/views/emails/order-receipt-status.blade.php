@@ -54,13 +54,28 @@
                     <tr>
                         <td style="padding:20px 24px;">
                             <p style="margin:0 0 12px 0;font-size:14px;line-height:1.6;">
-                                {{ $eventType === 'status_updated'
-                                    && in_array(strtolower((string) $order->status), ['cancelled', 'canceled'], true)
-                                    && $paymentModeRaw === 'pickup'
-                                    ? 'Your order was automatically canceled because it was not marked as Completed within three days of the scheduled pickup date and time.'
-                                    : ($eventType === 'status_updated'
-                                        ? 'Your order status has been updated.'
-                                        : 'Your reservation has been recorded successfully.') }}
+                                @if ($eventType === 'status_updated')
+                                    @switch(strtolower((string) $order->status))
+                                        @case('ready_for_pickup')
+                                            Your order is ready for pickup. Please collect it within 3 days after the scheduled pickup date and time.
+                                            @break
+                                        @case('shipped')
+                                            Your order has been marked as shipped. Please refer to your order details for delivery information.
+                                            @break
+                                        @case('cancelled')
+                                        @case('canceled')
+                                            @if ($paymentModeRaw === 'pickup')
+                                                Your pickup order has been canceled. If it was not collected within 3 days after the scheduled pickup date and time, it may have been canceled automatically.
+                                            @else
+                                                Your order has been canceled.
+                                            @endif
+                                            @break
+                                        @default
+                                            Your order status has been updated.
+                                    @endswitch
+                                @else
+                                    Your reservation has been recorded successfully.
+                                @endif
                             </p>
                             <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;border:1px solid #E2D5C1;border-radius:8px;overflow:hidden;">
                                 <tr>

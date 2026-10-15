@@ -3,6 +3,7 @@
 use App\Services\RecommendationAnalyticsService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -20,3 +21,8 @@ Artisan::command('recommendations:backfill-history {establishmentId?}', function
 
     $this->info('Rebuilt '.$rebuiltCount.' recommendation snapshots for '.$scope.'.');
 })->purpose('Replay ratings history into recommendation snapshot history.');
+
+
+Schedule::command('orders:cancel-expired-pickups')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();

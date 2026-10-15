@@ -63,6 +63,7 @@ class CafeOwnerMyCafeController extends Controller
             'establishment_id' => 'nullable|integer|exists:establishments,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'trivia_history' => 'nullable|string|max:5000',
             'address' => 'nullable|string|max:255',
             'barangay' => 'nullable|string|max:255',
             'operating_hours' => 'nullable|string|max:255',
@@ -99,9 +100,9 @@ class CafeOwnerMyCafeController extends Controller
 
         $payload = [];
 
-        foreach (['name', 'description', 'address', 'barangay', 'contact_number', 'website', 'latitude', 'longitude'] as $field) {
+        foreach (['name', 'description', 'trivia_history', 'address', 'barangay', 'contact_number', 'website', 'latitude', 'longitude'] as $field) {
             if (Schema::hasColumn('establishments', $field) && array_key_exists($field, $validated)) {
-                $payload[$field] = $validated[$field] ?? null;
+                $payload[$field] = isset($validated[$field]) ? trim((string) $validated[$field]) : null;
             }
         }
 

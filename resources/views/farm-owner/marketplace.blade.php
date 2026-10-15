@@ -77,6 +77,7 @@
         statusFilter: 'all',
         orderSearch: '',
         searchTerm: '',
+        activeProductType: @js(in_array(request('type', ''), ['coffee_beans', 'ground_coffee'], true) ? request('type') : ''),
         csrfToken: '{{ csrf_token() }}',
         activeFarmId: {{ $activeFarmId }},
         hiddenProductIds: [],
@@ -459,6 +460,14 @@
         isHidden(productId) {
             return this.hiddenProductIds.includes(Number(productId));
         },
+        hasVisibleListingCards() {
+            const search = String(this.searchTerm || '').trim().toLowerCase();
+            return Array.from(this.$root.querySelectorAll('[data-farm-listing-card]')).some((card) => {
+                const categoryMatches = !this.activeProductType || card.dataset.category === this.activeProductType;
+                const searchMatches = !search || String(card.dataset.search || '').includes(search);
+                return categoryMatches && searchMatches && !this.isHidden(card.dataset.productId);
+            });
+        },
         async updateProductVisibility(productId, isActive) {
             const normalizedId = Number(productId);
             const url = this.visibilityUrlTemplate.replace('__PRODUCT_ID__', String(normalizedId));
@@ -640,23 +649,20 @@
 <div x-show="activeTab === 'my-listings'">
 
 <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-    <form method="GET" action="{{ route('farm-owner.marketplace') }}" class="flex flex-col md:flex-row gap-3 md:items-center">
-        @if($activeFarmId > 0)
-            <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
-        @endif
+    <div class="flex flex-col md:flex-row gap-3 md:items-center">
         <div class="relative flex-1">
-            <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9E8C78]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <input type="text" x-model="searchTerm" autocomplete="off" placeholder="Search products..." class="w-full pl-8 pr-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A6741] focus:border-transparent" />
         </div>
 
-        <select name="type" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+        <select x-model="activeProductType" aria-label="Filter products by type" class="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white text-[#3A2E22] focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
             <option value="">All Types</option>
-            <option value="coffee_beans" @selected(request('type') === 'coffee_beans')>Coffee Beans</option>
-            <option value="ground_coffee" @selected(request('type') === 'ground_coffee')>Ground Coffee</option>
+            <option value="coffee_beans">Coffee Beans</option>
+            <option value="ground_coffee">Ground Coffee</option>
         </select>
-    </form>
+    </div>
 </div>
 
 @if($products->count() > 0)
@@ -679,8 +685,11 @@
             @endphp
 
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
+                data-farm-listing-card
+                data-product-id="{{ $product->id }}"
+                data-category="{{ strtolower(str_replace(' ', '_', trim((string) ($product->category ?? 'Coffee Beans')))) }}"
                 data-search="{{ strtolower(($product->name ?? '') . ' ' . ($product->category ?? '')) }}"
-                x-show="($el.dataset.search || '').includes(searchTerm.toLowerCase().trim()) && !isHidden({{ $product->id }})">
+                x-show="(!activeProductType || $el.dataset.category === activeProductType) && ($el.dataset.search || '').includes(searchTerm.toLowerCase().trim()) && !isHidden({{ $product->id }})">
                 <div class="relative">
                     @if($product->image_url)
                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-36 object-cover" />
@@ -737,8 +746,9 @@
         @endforeach
     </div>
 
-    <div class="mt-8">
-        {{ $products->links() }}
+    <div x-show="!hasVisibleListingCards()" x-cloak class="mt-6 bg-white rounded-xl shadow-sm p-10 text-center">
+        <p class="text-lg font-display font-semibold text-gray-500">No products found</p>
+        <p class="text-sm text-gray-400 mt-1">Try adjusting your search or filter.</p>
     </div>
 
     <div x-show="hiddenProducts().length > 0" x-cloak class="mt-8">

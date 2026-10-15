@@ -919,6 +919,10 @@
                                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">Pending</span>
                                     @elseif($status === 'confirmed')
                                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Confirmed</span>
+                                    @elseif($status === 'ready_for_pickup')
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Ready for Pickup</span>
+                                    @elseif($status === 'shipped')
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Shipped</span>
                                     @elseif($status === 'completed')
                                         <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Completed</span>
                                     @else

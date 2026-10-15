@@ -128,6 +128,24 @@ class LandingReservationController extends Controller
 
     public function createPrefillToken(Request $request): JsonResponse
     {
+        // Accept the common labels sent by mobile clients, then store/pass only the
+        // canonical values used by the web reservation form: pickup or cod.
+        $rawPaymentMode = $request->input('payment_mode');
+        if (is_string($rawPaymentMode)) {
+            $paymentModeKey = strtolower(trim($rawPaymentMode));
+            $paymentModeAliases = [
+                'pickup' => 'pickup',
+                'cod' => 'cod',
+                'cash on delivery' => 'cod',
+                'cash_on_delivery' => 'cod',
+                'cash-on-delivery' => 'cod',
+            ];
+
+            if (array_key_exists($paymentModeKey, $paymentModeAliases)) {
+                $request->merge(['payment_mode' => $paymentModeAliases[$paymentModeKey]]);
+            }
+        }
+
         $validated = $request->validate([
             'product_id' => ['nullable', 'integer', 'exists:products,id'],
             'quantity' => ['nullable', 'integer', 'min:1'],

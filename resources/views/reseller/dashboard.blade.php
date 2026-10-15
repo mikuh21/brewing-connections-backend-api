@@ -315,7 +315,7 @@
             href="{{ route('reseller.profile') }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}"
             class="inline-flex items-center justify-center h-10 px-5 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors whitespace-nowrap"
         >
-            {{ $missingProfileFields->contains('Trivia / History') ? 'Add Trivia / History' : 'My Profile' }}
+            Edit Profile
         </a>
     </div>
 </div>

@@ -24,7 +24,13 @@ class OrderReceiptStatusMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $status = ucfirst((string) ($this->order->status ?? 'pending'));
+        $rawStatus = strtolower((string) ($this->order->status ?? 'pending'));
+        $status = match ($rawStatus) {
+            'ready_for_pickup' => 'Ready for Pickup',
+            'shipped' => 'Shipped',
+            'cancelled', 'canceled' => 'Canceled',
+            default => ucfirst($rawStatus),
+        };
 
         $subject = $this->eventType === 'status_updated'
             ? "BrewHub Order Update: {$this->reservationCode} is now {$status}"

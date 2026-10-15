@@ -134,6 +134,7 @@
             }
         }
     }"
+    x-init="editMode = window.location.hash === '#trivia-history-section'"
     class="space-y-8"
 >
     <form method="POST" action="{{ route('reseller.profile') }}" enctype="multipart/form-data" class="space-y-8">

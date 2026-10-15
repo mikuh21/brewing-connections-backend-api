@@ -847,6 +847,8 @@ max-h-[90vh]">
                             <option value="all">All Status</option>
                             <option value="pending">Pending</option>
                             <option value="confirmed">Confirmed</option>
+                            <option value="ready_for_pickup">Ready for Pickup</option>
+                            <option value="shipped">Shipped</option>
                             <option value="completed">Completed</option>
                             <option value="cancelled">Cancelled</option>
                         </select>
@@ -893,11 +895,15 @@ max-h-[90vh]">
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $order->quantity }}</td>
                                     <td class="px-6 py-4 text-sm text-[#9E8C78]">₱{{ number_format((float) ($order->total_amount ?? $order->total_price), 2) }}</td>
                                     <td class="px-6 py-4 text-sm">
-                                        @if($order->status === 'pending')
+                                        @if($normalizedOrderStatus === 'pending')
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
-                                        @elseif($order->status === 'confirmed')
+                                        @elseif($normalizedOrderStatus === 'confirmed')
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Confirmed</span>
-                                        @elseif($order->status === 'completed')
+                                        @elseif($normalizedOrderStatus === 'ready_for_pickup')
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Ready for Pickup</span>
+                                        @elseif($normalizedOrderStatus === 'shipped')
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">Shipped</span>
+                                        @elseif($normalizedOrderStatus === 'completed')
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
                                         @else
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>

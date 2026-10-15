@@ -247,6 +247,16 @@
                     </div>
                 </div>
 
+                <div class="bg-white rounded-xl shadow-sm p-8" id="trivia-history-section">
+                    <h3 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">Trivia / History</h3>
+                    <p class="text-[#9E8C78] text-sm mb-4">Share interesting facts, your cafe's story, or local coffee heritage for Coffee Trail visitors.</p>
+                    <template x-if="!editMode">
+                        <p class="text-sm text-[#6B5B4A] leading-relaxed whitespace-pre-line">{{ $establishment?->trivia_history ?: 'No trivia or history added yet.' }}</p>
+                    </template>
+                    <textarea x-show="editMode" x-cloak name="trivia_history" rows="5" maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Share a verified historical detail, an interesting fact, or a story about your cafe and coffee offerings...">{{ old('trivia_history', $establishment?->trivia_history) }}</textarea>
+                    <p x-show="editMode" x-cloak class="mt-2 text-xs text-[#9E8C78]">Maximum 5,000 characters. Leave blank if you do not have trivia or history to share yet.</p>
+                </div>
+
                 <div class="bg-white rounded-xl shadow-sm p-8">
                     <h3 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">Location</h3>
                     <p class="text-[#9E8C78] text-sm mb-4">Address and map coordinates</p>

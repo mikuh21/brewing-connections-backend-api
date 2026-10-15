@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CafeOwnerMyCafeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $userId = Auth::id();
 
@@ -23,7 +23,12 @@ class CafeOwnerMyCafeController extends Controller
             $baseQuery->where('owner_id', $userId);
         }
 
-        $activeEstablishmentId = (int) session('cafe_owner_active_establishment_id', 0);
+        // Prefer the establishment explicitly selected by the dashboard CTA.
+        // This prevents multi-establishment owners from landing on a different profile.
+        $requestedEstablishmentId = (int) $request->query('establishment_id', 0);
+        $activeEstablishmentId = $requestedEstablishmentId > 0
+            ? $requestedEstablishmentId
+            : (int) session('cafe_owner_active_establishment_id', 0);
         $establishment = null;
 
         if ($activeEstablishmentId > 0) {

@@ -77,6 +77,7 @@ class ResellerMapController extends Controller
                 'name' => $e->name,
                 'type' => $e->type,
                 'description' => $e->description,
+                'trivia_history' => $e->trivia_history,
                 'address' => $e->address,
                 'barangay' => $e->barangay,
                 'contact_number' => $e->contact_number,

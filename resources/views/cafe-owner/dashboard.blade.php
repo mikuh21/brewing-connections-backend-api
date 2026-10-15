@@ -250,7 +250,7 @@
                 <p class="mt-2 text-sm text-[#5E5447]">Missing: {{ $missingProfileFields->join(', ') }}.</p>
             </div>
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('cafe-owner.my-cafe') }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">{{ $missingProfileFields->contains('Trivia / History') ? 'Add Trivia / History' : 'Complete Profile' }}</a>
+                <a href="{{ route('cafe-owner.my-cafe', ['establishment_id' => $profileEstablishment->id]) }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">Edit Profile</a>
                 @if($profileEstablishment->latitude === null || $profileEstablishment->longitude === null)
                     <a href="{{ route('cafe-owner.map') }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>
                 @endif

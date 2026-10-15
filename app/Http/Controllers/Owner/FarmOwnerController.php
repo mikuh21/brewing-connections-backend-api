@@ -446,6 +446,7 @@ class FarmOwnerController extends Controller
             'farm_id' => 'nullable|integer|exists:establishments,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'trivia_history' => 'nullable|string|max:5000',
             'image' => 'nullable|image|max:5120',
             'address' => 'nullable|string|max:255',
             'barangay' => 'nullable|string|max:255',
@@ -469,6 +470,7 @@ class FarmOwnerController extends Controller
         $updatePayload = [
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
+            'trivia_history' => isset($validated['trivia_history']) ? trim((string) $validated['trivia_history']) : null,
             'address' => $validated['address'] ?? null,
             'barangay' => $validated['barangay'] ?? null,
             'contact_number' => $validated['contact_number'] ?? null,

@@ -295,6 +295,7 @@ class CoffeeTrailController extends Controller
                 'id' => $establishment->id,
                 'name' => $establishment->name,
                 'type' => $establishment->type,
+                'trivia_history' => $establishment->trivia_history,
                 'address' => $establishment->address,
                 'latitude' => $establishment->latitude,
                 'longitude' => $establishment->longitude,

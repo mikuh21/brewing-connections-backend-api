@@ -559,7 +559,7 @@
                 My <span class="italic text-[#4A6741]">Products</span>
             </h1>
             <p class="text-[#9E8C78] text-sm font-medium">
-                {{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }} in your catalog
+                {{ $products->count() }} {{ \Illuminate\Support\Str::plural('product', $products->count()) }} in your catalog
             </p>
         </div>
 

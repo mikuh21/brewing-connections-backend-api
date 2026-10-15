@@ -25,7 +25,8 @@ class CafeOwnerDashboardController extends Controller
         $previousWindowEnd = $windowDays ? now()->subDays($windowDays) : null;
 
         $userId = Auth::id();
-        $establishment = $this->resolveCafeEstablishment($userId);
+        $requestedEstablishmentId = (int) request()->query('establishment_id', 0);
+        $establishment = $this->resolveCafeEstablishment($userId, $requestedEstablishmentId > 0 ? $requestedEstablishmentId : null);
         $establishmentId = $establishment?->id;
 
         $totalVisits = $establishmentId ? $this->resolveTrailVisitsCount((int) $establishmentId, $windowSince) : 0;
@@ -301,7 +302,7 @@ class CafeOwnerDashboardController extends Controller
         ];
     }
 
-    protected function resolveCafeEstablishment(?int $userId): ?Establishment
+    protected function resolveCafeEstablishment(?int $userId, ?int $requestedEstablishmentId = null): ?Establishment
     {
         if (!$userId) {
             return null;
@@ -309,15 +310,22 @@ class CafeOwnerDashboardController extends Controller
 
         $query = Establishment::query();
 
-        if (Schema::hasColumn('establishments', 'owner_id')) {
-            return $query->where('owner_id', $userId)->first();
-        }
-
         if (Schema::hasColumn('establishments', 'user_id')) {
-            return $query->where('user_id', $userId)->first();
+            $query->where('user_id', $userId);
+        } elseif (Schema::hasColumn('establishments', 'owner_id')) {
+            $query->where('owner_id', $userId);
+        } else {
+            return null;
         }
 
-        return null;
+        if ($requestedEstablishmentId && $requestedEstablishmentId > 0) {
+            $requested = (clone $query)->whereKey($requestedEstablishmentId)->first();
+            if ($requested) {
+                return $requested;
+            }
+        }
+
+        return $query->orderByDesc('updated_at')->orderByDesc('id')->first();
     }
 
     protected function resolveTotalVisits(int $establishmentId): int

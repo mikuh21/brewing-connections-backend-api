@@ -78,6 +78,7 @@ class PublicEstablishmentGeoJsonController extends Controller
                     'user_id' => $est->user_id ? (int) $est->user_id : null,
                     'owner_user_id' => $est->user_id ? (int) $est->user_id : ($est->owner_id ? (int) $est->owner_id : null),
                     'description' => $est->description,
+                    'trivia_history' => $est->trivia_history,
                     'address' => $est->address,
                     'barangay' => $est->barangay,
                     'contact_number' => $est->contact_number,

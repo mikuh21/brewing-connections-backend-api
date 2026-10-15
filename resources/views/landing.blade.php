@@ -2493,6 +2493,11 @@
                 }
 
                 const data = await response.json();
+                // An explicit payment mode in the landing URL comes from the user's latest
+                // mobile-app selection, so it takes precedence over older token data.
+                if (queryPaymentMode) {
+                    data.payment_mode = queryPaymentMode;
+                }
                 applyReservationPrefillData(data);
             } catch (_error) {
                 // Ignore prefill hydration errors and keep the manual form flow intact.

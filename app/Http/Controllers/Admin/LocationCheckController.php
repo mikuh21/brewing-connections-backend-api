@@ -55,13 +55,6 @@ class LocationCheckController extends Controller
             ->where('response', 'no')
             ->count();
 
-        if ($incorrectCount < 5) {
-            return response()->json([
-                'message' => 'A notice can only be sent after this establishment receives at least 5 incorrect-location reports.',
-                'incorrect_count' => $incorrectCount,
-            ], 422);
-        }
-
         if ($establishment->location_notice_email_sent_at) {
             return response()->json([
                 'message' => 'A notice email has already been sent to this establishment owner.',

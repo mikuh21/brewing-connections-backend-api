@@ -11,6 +11,7 @@ use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EstablishmentController;
+use App\Http\Controllers\Admin\LocationCheckController;
 use App\Http\Controllers\Admin\EstablishmentGeoJsonController;
 use App\Http\Controllers\Admin\CouponPromoController;
 use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
@@ -372,6 +373,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/coupon-promos', [CouponPromoController::class, 'index'])->name('admin.coupon-promos.index');
     Route::get('/admin/coupon-promos/{id}', [CouponPromoController::class, 'show'])->name('admin.coupon-promos.show');
     Route::delete('/admin/coupon-promos/{id}', [CouponPromoController::class, 'destroy'])->name('admin.coupon-promos.destroy');
+
+    // Coffee Trail location validation review
+    Route::get('/admin/location-checks', [LocationCheckController::class, 'index'])->name('admin.location-checks.index');
+    Route::patch('/admin/location-checks/{locationCheck}/status', [LocationCheckController::class, 'updateStatus'])->name('admin.location-checks.status');
 
     // Rating Moderation routes
     Route::get('/admin/rating-moderation', [App\Http\Controllers\Admin\RatingModerationController::class, 'index'])->name('admin.rating-moderation.index');

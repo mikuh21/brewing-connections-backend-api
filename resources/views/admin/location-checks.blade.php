@@ -141,9 +141,9 @@
     <main class="ml-0 md:ml-64 flex-1 p-4 md:p-8 overflow-y-auto">
         <div id="location-checks-feedback" class="hidden mb-5 rounded-lg border px-4 py-3 text-sm" role="status" aria-live="polite"></div>
 
-        <div class="mb-8 flex flex-col gap-2">
-            <h1 class="text-3xl font-display font-bold text-[#3A2E22]">Location Checks</h1>
-            <p class="mt-1 text-sm text-[#9E8C78]">Review Coffee Trail feedback about establishment map pins</p>
+        <div class="mb-8">
+            <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">Location Checks</h1>
+            <p class="text-[#9E8C78] text-sm font-medium">Review Coffee Trail feedback about establishment map pins</p>
         </div>
 
         <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

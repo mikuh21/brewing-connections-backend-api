@@ -15,6 +15,48 @@ class CoffeeTrailLocationCheckController extends Controller
     /**
      * Return the authenticated user's saved location checks for the Location Checks feed.
      */
+    /**
+     * Return community-wide location validation totals grouped by establishment.
+     * This endpoint intentionally differs from index(), which returns the
+     * authenticated user's own validation history.
+     */
+    public function communityIndex()
+    {
+        if (!Schema::hasTable('coffee_trail_location_checks')) {
+            return response()->json([]);
+        }
+
+        $establishments = Establishment::query()
+            ->whereHas('locationChecks')
+            ->withCount([
+                'locationChecks as correct_count' => function ($query) {
+                    $query->where('response', 'yes');
+                },
+                'locationChecks as incorrect_count' => function ($query) {
+                    $query->where('response', 'no');
+                },
+            ])
+            ->orderBy('name')
+            ->get()
+            ->filter(fn ($establishment) => ((int) $establishment->correct_count + (int) $establishment->incorrect_count) > 0)
+            ->map(function (Establishment $establishment) {
+                return [
+                    'establishment_id' => $establishment->id,
+                    'establishment_name' => $establishment->name,
+                    'establishment_type' => $establishment->type,
+                    'establishment_address' => $establishment->address,
+                    'latitude' => $establishment->latitude,
+                    'longitude' => $establishment->longitude,
+                    'correct_count' => (int) $establishment->correct_count,
+                    'incorrect_count' => (int) $establishment->incorrect_count,
+                    'total_count' => (int) $establishment->correct_count + (int) $establishment->incorrect_count,
+                ];
+            })
+            ->values();
+
+        return response()->json($establishments);
+    }
+
     public function index(Request $request)
     {
         if (!Schema::hasTable('coffee_trail_location_checks')) {

@@ -377,7 +377,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     // Coffee Trail location validation review
     Route::get('/admin/location-checks', [LocationCheckController::class, 'index'])->name('admin.location-checks.index');
     Route::post('/admin/location-checks/{establishment}/send-notice', [LocationCheckController::class, 'sendNoticeEmail'])->name('admin.location-checks.send-notice');
-    Route::patch('/admin/location-checks/{locationCheck}/status', [LocationCheckController::class, 'updateStatus'])->name('admin.location-checks.status');
 
     // Rating Moderation routes
     Route::get('/admin/rating-moderation', [App\Http\Controllers\Admin\RatingModerationController::class, 'index'])->name('admin.rating-moderation.index');

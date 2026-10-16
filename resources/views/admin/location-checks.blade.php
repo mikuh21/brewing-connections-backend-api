@@ -3,6 +3,25 @@
 @section('title', 'Location Checks - BrewHub')
 
 @section('content')
+<style>
+    #location-checks-page .location-filter-btn[aria-selected="true"],
+    #location-checks-page .location-filter-btn[aria-selected="true"]:hover,
+    #location-checks-page .location-filter-btn[aria-selected="true"]:focus-visible,
+    #location-checks-page .location-filter-btn[aria-selected="true"]:active {
+        background-color: #4A6741 !important;
+        border-color: #4A6741 !important;
+        color: #fff !important;
+    }
+    #location-checks-page .location-filter-btn[aria-selected="false"]:hover {
+        background-color: #F8F2E8;
+        border-color: #4A6741;
+        color: #3A2E22;
+    }
+    #location-checks-page .location-filter-btn:focus-visible {
+        outline: 2px solid #4A6741;
+        outline-offset: 2px;
+    }
+</style>
 <div class="min-h-screen bg-[#F5F0E8] flex" id="location-checks-page" data-csrf="{{ csrf_token() }}">
     <aside class="admin-sidebar fixed left-0 top-0 h-screen w-64 bg-[#3A2E22] text-[#F5F0E8] flex flex-col justify-between py-6 px-4 rounded-r-xl shadow-lg overflow-hidden z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-out">
         <div>
@@ -58,9 +77,10 @@
                     </svg>
                     Rating Moderation
                 </a>
-                <a href="{{ route('admin.location-checks.index') }}" class="flex items-center rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1 {{ request()->routeIs('admin.location-checks.*') ? 'bg-[#4E3D2B]' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5-1a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                <a href="{{ route('admin.location-checks.index') }}" class="flex items-center rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-colors duration-200 hover:bg-[#4E3D2B] {{ request()->routeIs('admin.location-checks.*') ? 'bg-[#4E3D2B]' : '' }}">
+                    <svg class="w-5 h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="8.5" stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.5 12.2 2.3 2.3 4.7-4.8"/>
                     </svg>
                     Location Checks
                 </a>
@@ -152,8 +172,19 @@
                 'sent' => 'Notice Sent',
                 'no-incorrect' => 'No Incorrect Reports',
             ] as $key => $label)
-                <button type="button" role="tab" aria-selected="{{ $key === 'all' ? 'true' : 'false' }}" data-location-filter="{{ $key }}" class="location-filter-btn rounded-lg border px-4 py-2 text-sm font-semibold transition {{ $key === 'all' ? 'border-[#4A6741] bg-[#4A6741] text-white' : 'border-[#D8CCBC] bg-white text-[#5E5447] hover:bg-[#F8F2E8]' }}">{{ $label }}</button>
+                <button type="button" role="tab" aria-selected="{{ $key === 'all' ? 'true' : 'false' }}" data-location-filter="{{ $key }}" class="location-filter-btn rounded-lg border px-4 py-2 text-sm font-semibold transition-colors duration-150 {{ $key === 'all' ? 'border-[#4A6741] bg-[#4A6741] text-white' : 'border-[#D8CCBC] bg-white text-[#5E5447]' }}">{{ $label }}</button>
             @endforeach
+        </div>
+
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <label for="establishment-type-filter" class="text-sm font-semibold text-[#5E5447]">Filter by establishment type</label>
+            <select id="establishment-type-filter" class="w-full sm:w-64 rounded-lg border border-[#D8CCBC] bg-white px-3 py-2.5 text-sm text-[#3A2E22] shadow-sm outline-none transition focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20">
+                <option value="all">All Types</option>
+                <option value="farm">Farms</option>
+                <option value="coffee-shop">Coffee Shops</option>
+                <option value="reseller">Resellers</option>
+                <option value="roaster">Roasters</option>
+            </select>
         </div>
 
         <div class="overflow-hidden rounded-2xl border border-[#E5DDD0] bg-white shadow-sm">
@@ -181,7 +212,8 @@
                                 data-correct="{{ $correctCount }}"
                                 data-incorrect="{{ $incorrectCount }}"
                                 data-notice-sent="{{ $noticeSent ? '1' : '0' }}"
-                                data-needs-notice="{{ $incorrectCount >= 5 && !$noticeSent ? '1' : '0' }}">
+                                data-needs-notice="{{ $incorrectCount >= 5 && !$noticeSent ? '1' : '0' }}"
+                                data-establishment-type="{{ strtolower(str_replace([' ', '_'], '-', trim((string) ($establishment->type ?? '')))) }}">
                                 <td class="px-5 py-4">
                                     <div class="font-semibold text-[#3A2E22]">{{ $establishment->name }}</div>
                                     <div class="mt-1 max-w-xs text-xs text-[#9E8C78]">{{ $establishment->address ?: 'No address recorded' }}</div>
@@ -244,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const feedback = document.getElementById('location-checks-feedback');
     const sentCount = document.getElementById('location-count-sent');
     const filterEmpty = document.getElementById('location-checks-filter-empty');
+    const typeFilter = document.getElementById('establishment-type-filter');
     let activeFilter = 'all';
 
     const showFeedback = (message, success = false) => {
@@ -262,10 +295,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const incorrect = Number(row.dataset.incorrect || 0);
             const sent = row.dataset.noticeSent === '1';
             const needsNotice = row.dataset.needsNotice === '1';
-            const matches = filter === 'all'
+            const selectedType = typeFilter?.value || 'all';
+            const rawType = (row.dataset.establishmentType || '').toLowerCase().replace(/[_\\s]+/g, '-');
+            const typeAliases = {
+                farm: ['farm', 'farms', 'coffee-farm', 'coffee-farms'],
+                'coffee-shop': ['coffee-shop', 'coffee-shops', 'coffeeshop', 'cafe', 'cafes'],
+                reseller: ['reseller', 'resellers'],
+                roaster: ['roaster', 'roasters', 'coffee-roaster', 'coffee-roasters']
+            };
+            const typeMatches = selectedType === 'all' || (typeAliases[selectedType] || [selectedType]).includes(rawType);
+            const reportMatches = filter === 'all'
                 || (filter === 'needs-notice' && needsNotice)
                 || (filter === 'sent' && sent)
                 || (filter === 'no-incorrect' && incorrect === 0);
+            const matches = typeMatches && reportMatches;
             row.classList.toggle('hidden', !matches);
             if (matches) visible++;
         });
@@ -282,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filterEmpty?.classList.toggle('hidden', visible > 0 || rows.length === 0);
     };
 
+    typeFilter?.addEventListener('change', () => applyFilter(activeFilter));
     filterButtons.forEach((button) => button.addEventListener('click', () => applyFilter(button.dataset.locationFilter)));
 
     page.querySelectorAll('.location-send-notice-btn').forEach((button) => {

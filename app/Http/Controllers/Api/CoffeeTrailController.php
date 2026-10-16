@@ -49,6 +49,23 @@ class CoffeeTrailController extends Controller
 
     protected function toTrailResponse(CoffeeTrail $trail): array
     {
+        $locationChecks = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('coffee_trail_location_checks')) {
+            $locationChecks = \App\Models\CoffeeTrailLocationCheck::query()
+                ->where('coffee_trail_id', $trail->id)
+                ->where('user_id', $trail->user_id)
+                ->get(['stop_sequence', 'establishment_id', 'response', 'review_status', 'created_at'])
+                ->mapWithKeys(function ($check) {
+                    return [(string) $check->stop_sequence => [
+                        'establishment_id' => $check->establishment_id,
+                        'response' => $check->response,
+                        'review_status' => $check->review_status,
+                        'created_at' => optional($check->created_at)->toIso8601String(),
+                    ]];
+                })
+                ->all();
+        }
+
         return [
             'trail_id' => $trail->id,
             'created_at' => optional($trail->created_at)->toIso8601String(),
@@ -62,6 +79,7 @@ class CoffeeTrailController extends Controller
                 'max_stops' => (int) ($trail->preferences['max_stops'] ?? 0),
             ],
             'stops' => array_values($trail->trail_data ?? []),
+            'location_checks' => $locationChecks,
             'route_geometry' => $trail->route_geometry,
             'total_distance_km' => $trail->total_distance_km,
             'total_duration_min' => $trail->total_duration_min,

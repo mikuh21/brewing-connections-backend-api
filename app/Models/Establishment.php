@@ -32,6 +32,11 @@ class Establishment extends Model
         return $this->hasMany(\App\Models\Rating::class, 'establishment_id');
     }
 
+    public function locationChecks()
+    {
+        return $this->hasMany(\App\Models\CoffeeTrailLocationCheck::class, 'establishment_id');
+    }
+
     /**
      * Owner relationship (belongs-to).
      */
@@ -79,6 +84,8 @@ class Establishment extends Model
         'type',
         'description',
         'trivia_history',
+        'location_notice_email_sent_at',
+        'location_notice_email_sent_to',
         'address',
         'barangay',
         'latitude',

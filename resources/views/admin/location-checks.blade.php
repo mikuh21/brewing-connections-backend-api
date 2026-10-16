@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sent = row.dataset.noticeSent === '1';
             const needsNotice = row.dataset.needsNotice === '1';
             const selectedType = typeFilter?.value || 'all';
-            const rawType = (row.dataset.establishmentType || '').toLowerCase().replace(/[_\\s]+/g, '-');
+            const rawType = (row.dataset.establishmentType || '').toLowerCase().replace(/[_\s]+/g, '-');
             const typeAliases = {
                 farm: ['farm', 'farms', 'coffee-farm', 'coffee-farms'],
                 'coffee-shop': ['coffee-shop', 'coffee-shops', 'coffeeshop', 'cafe', 'cafes'],

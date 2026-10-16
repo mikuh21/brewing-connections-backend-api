@@ -358,14 +358,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const date = row.querySelector('.location-notice-sent-date') || document.createElement('div');
                 date.className = 'location-notice-sent-date mt-1 text-xs text-[#9E8C78]';
                 date.textContent = payload.sent_at
-                    ? new Date(payload.sent_at).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true,
-                    }).replace(',', ' |')
+                    ? (() => {
+                        const formatted = new Date(payload.sent_at).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                        });
+                        const separator = formatted.lastIndexOf(',');
+                        return separator >= 0
+                            ? formatted.slice(0, separator) + ' |' + formatted.slice(separator + 1)
+                            : formatted;
+                    })()
                     : 'Just sent';
                 if (!date.parentElement) status.parentElement.appendChild(date);
                 button.dataset.canSend = '0';

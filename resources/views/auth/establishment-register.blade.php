@@ -515,7 +515,7 @@
 
                             <p class="text-sm leading-5 text-[#5D4B3A]">
                                 Please review BrewHub's
-                                <button type="button" id="openRegistrationPrivacyModal" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Privacy Policy (Data Privacy Act of 2012)</button>
+                                <button type="button" id="openRegistrationPrivacyModal" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Privacy Policy</button>
                                 before creating your account.
                             </p>
                             <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">

@@ -344,6 +344,7 @@ Route::middleware(['auth', 'role:admin,farm_owner,cafe_owner,reseller'])->group(
 // Admin dashboard (admin only)
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/dashboard/popularity', [DashboardController::class, 'popularity'])->name('admin.dashboard.popularity');
     Route::get('/admin/notifications', [DashboardController::class, 'notifications'])->name('admin.notifications');
 
     // GeoJSON endpoints

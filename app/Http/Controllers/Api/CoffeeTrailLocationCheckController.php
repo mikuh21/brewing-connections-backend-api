@@ -25,6 +25,9 @@ class CoffeeTrailLocationCheckController extends Controller
 
         $checks = CoffeeTrailLocationCheck::query()
             ->where('user_id', $request->user()->id)
+            ->when($request->filled('trail_id'), function ($query) use ($request) {
+                $query->where('coffee_trail_id', (int) $request->query('trail_id'));
+            })
             ->with(['establishment' => function ($query) {
                 $query->withTrashed();
             }])
@@ -52,6 +55,16 @@ class CoffeeTrailLocationCheckController extends Controller
             ->values();
 
         return response()->json($checks);
+    }
+
+    /**
+     * Compatibility endpoint used by the mobile app's trail-scoped API path.
+     */
+    public function storeForTrail(Request $request, int $trailId)
+    {
+        $request->merge(['trail_id' => $trailId]);
+
+        return $this->store($request);
     }
 
     /**

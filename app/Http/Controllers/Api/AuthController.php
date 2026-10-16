@@ -13,6 +13,19 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    public function checkEmail(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $exists = User::where('email', $validated['email'])->exists();
+
+        return response()->json([
+            'available' => ! $exists,
+        ]);
+    }
+
     public function register(Request $request)
     {
         try {
@@ -36,6 +49,11 @@ class AuthController extends Controller
                 'token' => $token,
                 'user' => $user,
             ], 201);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $exception->errors(),
+            ], 422);
         } catch (QueryException $exception) {
             Log::error('API register database failure', [
                 'message' => $exception->getMessage(),

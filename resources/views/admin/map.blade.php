@@ -66,8 +66,9 @@
                     Rating Moderation
                 </a>
                 <a href="{{ route('admin.location-checks.index') }}" class="flex items-center {{ request()->routeIs('admin.location-checks.*') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5-1a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                    <svg class="w-5 h-5 shrink-0 block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="8.5" stroke-width="2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m8.5 12.2 2.3 2.3 4.7-4.8"/>
                     </svg>
                     Location Checks
                 </a>

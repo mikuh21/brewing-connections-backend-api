@@ -60,9 +60,14 @@ Route::middleware(['auth:api'])->post('/coffee-trail/generate', [\App\Http\Contr
 Route::middleware(['auth:api'])->get('/coffee-trail/history', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'history']);
 Route::middleware(['auth:api'])->post('/coffee-trail/marker-view', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'trackMarkerView']);
 
-// Coffee Trail destination location validation and user's Location Checks feed
+// Coffee Trail destination location validation and user's Location Checks feed.
+// Keep both route styles so existing clients can migrate without breaking.
 Route::middleware(['auth:api'])->get('/coffee-trail/location-checks', [CoffeeTrailLocationCheckController::class, 'index']);
 Route::middleware(['auth:api'])->post('/coffee-trail/location-checks', [CoffeeTrailLocationCheckController::class, 'store']);
+
+// Mobile app compatibility paths used by app/services/api.js.
+Route::middleware(['auth:api'])->get('/location-checks', [CoffeeTrailLocationCheckController::class, 'index']);
+Route::middleware(['auth:api'])->post('/coffee-trails/{trailId}/location-checks', [CoffeeTrailLocationCheckController::class, 'storeForTrail']);
 
 // Consumer ratings feed and submission
 Route::middleware(['auth:api'])->get('/ratings', [RatingController::class, 'index']);

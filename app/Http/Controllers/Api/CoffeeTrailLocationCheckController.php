@@ -13,9 +13,6 @@ use Illuminate\Validation\Rule;
 class CoffeeTrailLocationCheckController extends Controller
 {
     /**
-     * Return the authenticated user's saved location checks for the Location Checks feed.
-     */
-    /**
      * Return community-wide location validation totals grouped by establishment.
      * This endpoint intentionally differs from index(), which returns the
      * authenticated user's own validation history.
@@ -57,6 +54,9 @@ class CoffeeTrailLocationCheckController extends Controller
         return response()->json($establishments);
     }
 
+    /**
+     * Return the authenticated user's saved location checks for the Location Checks feed.
+     */
     public function index(Request $request)
     {
         if (!Schema::hasTable('coffee_trail_location_checks')) {

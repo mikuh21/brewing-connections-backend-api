@@ -168,7 +168,7 @@
         <div class="mb-5 flex flex-wrap gap-2" role="tablist" aria-label="Filter establishments by location reports">
             @foreach([
                 'all' => 'All Establishments',
-                'needs-notice' => 'Needs Notice (5+)',
+                'needs-notice' => 'Needs Notice',
                 'sent' => 'Notice Sent',
                 'no-incorrect' => 'No Incorrect Reports',
             ] as $key => $label)
@@ -206,13 +206,13 @@
                                 $incorrectCount = (int) ($establishment->incorrect_count ?? 0);
                                 $noticeSent = !empty($establishment->location_notice_email_sent_at);
                                 $ownerEmail = $establishment->owner?->email ?: $establishment->email;
-                                $canSendNotice = $incorrectCount >= 5 && !$noticeSent && is_string($ownerEmail) && filter_var($ownerEmail, FILTER_VALIDATE_EMAIL);
+                                $canSendNotice = !$noticeSent && is_string($ownerEmail) && filter_var($ownerEmail, FILTER_VALIDATE_EMAIL);
                             @endphp
                             <tr class="location-check-row align-middle hover:bg-[#FCFAF7]"
                                 data-correct="{{ $correctCount }}"
                                 data-incorrect="{{ $incorrectCount }}"
                                 data-notice-sent="{{ $noticeSent ? '1' : '0' }}"
-                                data-needs-notice="{{ $incorrectCount >= 5 && !$noticeSent ? '1' : '0' }}"
+                                data-needs-notice="{{ !$noticeSent ? '1' : '0' }}"
                                 data-establishment-type="{{ strtolower(str_replace([' ', '_'], '-', trim((string) ($establishment->type ?? '')))) }}">
                                 <td class="px-5 py-4">
                                     <div class="font-semibold text-[#3A2E22]">{{ $establishment->name }}</div>
@@ -224,9 +224,6 @@
                                 </td>
                                 <td class="px-5 py-4">
                                     <span class="inline-flex min-w-12 justify-center rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-800 location-incorrect-count">{{ $incorrectCount }}</span>
-                                    @if($incorrectCount >= 5)
-                                        <div class="mt-1 text-xs font-semibold text-red-700">Notice threshold reached</div>
-                                    @endif
                                 </td>
                                 <td class="px-5 py-4">
                                     <span class="location-notice-status inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $noticeSent ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">{{ $noticeSent ? 'Sent' : 'Not sent' }}</span>
@@ -240,7 +237,7 @@
                                         data-url="{{ route('admin.location-checks.send-notice', $establishment) }}"
                                         data-establishment="{{ $establishment->name }}"
                                         data-can-send="{{ $canSendNotice ? '1' : '0' }}"
-                                        title="{{ $noticeSent ? 'A notice email has already been sent' : ($incorrectCount < 5 ? 'Requires at least 5 incorrect-location reports' : (!filter_var((string) $ownerEmail, FILTER_VALIDATE_EMAIL) ? 'No valid owner email is available' : 'Send notice email')) }}"
+                                        title="{{ $noticeSent ? 'A notice email has already been sent' : (!filter_var((string) $ownerEmail, FILTER_VALIDATE_EMAIL) ? 'No valid owner email is available' : 'Send notice email') }}"
                                         {{ $canSendNotice ? '' : 'disabled' }}>
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5.5A2.5 2.5 0 015.5 3h13A2.5 2.5 0 0121 5.5v13a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 18.5v-13z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m4 5 8 7 8-7"/></svg>
                                         <span>Send Notice Email</span>

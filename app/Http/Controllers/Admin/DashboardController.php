@@ -48,6 +48,16 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function popularity(Request $request): JsonResponse
+    {
+        $window = $this->resolvePopularityWindow($request->query('window', '30d'));
+
+        return response()->json([
+            'window' => $window,
+            'establishments' => $this->getFrequentlyVisitedEstablishments($window),
+        ]);
+    }
+
     protected function getFrequentlyVisitedEstablishments(string $popularityWindow = '30d')
     {
         $since = match ($popularityWindow) {

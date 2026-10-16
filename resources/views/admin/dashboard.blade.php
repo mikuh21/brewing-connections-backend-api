@@ -523,68 +523,58 @@
                     Frequently Visited <span class="italic text-[#4A6741]">Establishments</span>
                 </h2>
 
-                <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
-                    <a
-                        href="{{ route('admin.dashboard', ['popularity_window' => '7d']) }}"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
-                    >
+                <div id="popularity-window-tabs" class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1" role="group" aria-label="Popularity date range">
+                    <button type="button" data-popularity-window="7d" aria-pressed="{{ ($popularityWindow ?? '30d') === '7d' ? 'true' : 'false' }}"
+                        class="popularity-window-tab px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}">
                         Last 7 days
-                    </a>
-                    <a
-                        href="{{ route('admin.dashboard', ['popularity_window' => '30d']) }}"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
-                    >
+                    </button>
+                    <button type="button" data-popularity-window="30d" aria-pressed="{{ ($popularityWindow ?? '30d') === '30d' ? 'true' : 'false' }}"
+                        class="popularity-window-tab px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}">
                         Last 30 days
-                    </a>
-                    <a
-                        href="{{ route('admin.dashboard', ['popularity_window' => 'all']) }}"
-                        class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
-                    >
+                    </button>
+                    <button type="button" data-popularity-window="all" aria-pressed="{{ ($popularityWindow ?? '30d') === 'all' ? 'true' : 'false' }}"
+                        class="popularity-window-tab px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}">
                         All time
-                    </a>
+                    </button>
                 </div>
             </div>
             <p class="text-[#9E8C78] text-sm mb-6">Popularity Score = trail destinations x3 + marker views x1</p>
 
-            @if(empty($frequentlyVisitedEstablishments))
-                <div class="py-12 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
-                    </svg>
-                    <h3 class="text-gray-400 font-medium mb-2">No data available yet</h3>
-                    <p class="text-gray-400 text-sm text-center">Frequently visited establishments will appear here based on consumer activity on the map.</p>
-                </div>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead>
-                            <tr style="background-color: #3B2F2F;">
-                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Rank</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Name</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Location</th>
-                                <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Popularity Score</th>
+            <div id="popularity-empty-state" class="py-12 text-center {{ empty($frequentlyVisitedEstablishments) ? '' : 'hidden' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 text-gray-300 mx-auto mb-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+                </svg>
+                <h3 class="text-gray-400 font-medium mb-2">No data available yet</h3>
+                <p class="text-gray-400 text-sm text-center">Frequently visited establishments will appear here based on consumer activity on the map.</p>
+            </div>
+            <div id="popularity-table-wrap" class="overflow-x-auto {{ empty($frequentlyVisitedEstablishments) ? 'hidden' : '' }}">
+                <table class="w-full">
+                    <thead>
+                        <tr style="background-color: #3B2F2F;">
+                            <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Rank</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Name</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Location</th>
+                            <th class="px-6 py-3 text-left text-sm font-medium uppercase text-white">Popularity Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="popularity-table-body">
+                        @foreach($frequentlyVisitedEstablishments as $index => $establishment)
+                            <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors" style="background-color: {{ ($index % 2 === 0) ? '#FFFFFF' : '#FAF7F2' }};">
+                                <td class="px-6 py-4 text-sm font-semibold text-[#3A2E22]">{{ $index + 1 }}</td>
+                                <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $establishment['name'] }}</td>
+                                <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $establishment['city'] }}</td>
+                                <td class="px-6 py-4 text-sm">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background-color: rgba(74, 103, 65, 0.15); color: #4A6741;">
+                                        {{ $establishment['popularity_score'] ?? $establishment['visits'] }}
+                                    </span>
+                                    <p class="text-[11px] text-[#9E8C78] mt-1">{{ $establishment['trail_destinations'] ?? 0 }} trails x3 + {{ $establishment['marker_views'] ?? 0 }} views x1</p>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($frequentlyVisitedEstablishments as $index => $establishment)
-                                <tr class="border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors" style="background-color: {{ ($index % 2 === 0) ? '#FFFFFF' : '#FAF7F2' }};">
-                                    <td class="px-6 py-4 text-sm font-semibold text-[#3A2E22]">{{ $index + 1 }}</td>
-                                    <td class="px-6 py-4 text-sm font-medium text-[#3A2E22]">{{ $establishment['name'] }}</td>
-                                    <td class="px-6 py-4 text-sm text-[#9E8C78]">{{ $establishment['city'] }}</td>
-                                    <td class="px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold" style="background-color: rgba(74, 103, 65, 0.15); color: #4A6741;">
-                                            {{ $establishment['popularity_score'] ?? $establishment['visits'] }}
-                                        </span>
-                                        <p class="text-[11px] text-[#9E8C78] mt-1">
-                                            {{ $establishment['trail_destinations'] ?? 0 }} trails x3 + {{ $establishment['marker_views'] ?? 0 }} views x1
-                                        </p>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p id="popularity-load-error" class="hidden mt-4 text-sm text-red-700" role="alert">Unable to load popularity data. Please try again.</p>
         </div>
     </main>
 
@@ -613,4 +603,97 @@
         background: rgba(107, 114, 128, 0.75);
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.getElementById('popularity-window-tabs');
+    const tbody = document.getElementById('popularity-table-body');
+    const tableWrap = document.getElementById('popularity-table-wrap');
+    const emptyState = document.getElementById('popularity-empty-state');
+    const errorMessage = document.getElementById('popularity-load-error');
+    if (!tabs || !tbody || !tableWrap || !emptyState || !errorMessage) return;
+
+    const endpoint = @json(route('admin.dashboard.popularity'));
+    let activeRequest = 0;
+    const activeClasses = ['bg-white', 'text-[#3A2E22]', 'shadow-sm'];
+    const inactiveClasses = ['text-[#8A775F]', 'hover:text-[#3A2E22]'];
+
+    function setActiveTab(windowName) {
+        tabs.querySelectorAll('[data-popularity-window]').forEach((tab) => {
+            const active = tab.dataset.popularityWindow === windowName;
+            tab.setAttribute('aria-pressed', active ? 'true' : 'false');
+            activeClasses.forEach((name) => tab.classList.toggle(name, active));
+            inactiveClasses.forEach((name) => tab.classList.toggle(name, !active));
+        });
+    }
+
+    function makeCell(text, classes) {
+        const cell = document.createElement('td');
+        cell.className = classes;
+        cell.textContent = text == null ? '' : String(text);
+        return cell;
+    }
+
+    function renderRows(rows) {
+        tbody.replaceChildren();
+        rows.forEach((establishment, index) => {
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-100 hover:bg-[#FAF7F2] transition-colors';
+            row.style.backgroundColor = index % 2 === 0 ? '#FFFFFF' : '#FAF7F2';
+
+            row.appendChild(makeCell(index + 1, 'px-6 py-4 text-sm font-semibold text-[#3A2E22]'));
+            row.appendChild(makeCell(establishment.name, 'px-6 py-4 text-sm font-medium text-[#3A2E22]'));
+            row.appendChild(makeCell(establishment.city, 'px-6 py-4 text-sm text-[#9E8C78]'));
+
+            const scoreCell = document.createElement('td');
+            scoreCell.className = 'px-6 py-4 text-sm';
+            const score = document.createElement('span');
+            score.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold';
+            score.style.backgroundColor = 'rgba(74, 103, 65, 0.15)';
+            score.style.color = '#4A6741';
+            score.textContent = establishment.popularity_score ?? establishment.visits ?? 0;
+            const details = document.createElement('p');
+            details.className = 'text-[11px] text-[#9E8C78] mt-1';
+            details.textContent = (establishment.trail_destinations ?? 0) + ' trails x3 + ' + (establishment.marker_views ?? 0) + ' views x1';
+            scoreCell.append(score, details);
+            row.appendChild(scoreCell);
+            tbody.appendChild(row);
+        });
+        const hasRows = rows.length > 0;
+        tableWrap.classList.toggle('hidden', !hasRows);
+        emptyState.classList.toggle('hidden', hasRows);
+    }
+
+    tabs.addEventListener('click', async (event) => {
+        const tab = event.target.closest('[data-popularity-window]');
+        if (!tab) return;
+        event.preventDefault();
+        const windowName = tab.dataset.popularityWindow;
+        setActiveTab(windowName);
+        errorMessage.classList.add('hidden');
+
+        const requestId = ++activeRequest;
+        tabs.querySelectorAll('button').forEach((button) => { button.disabled = true; });
+        tabs.classList.add('opacity-80');
+
+        try {
+            const response = await fetch(endpoint + '?window=' + encodeURIComponent(windowName), {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) throw new Error('Popularity request failed');
+            const payload = await response.json();
+            if (requestId !== activeRequest) return;
+            renderRows(Array.isArray(payload.establishments) ? payload.establishments : []);
+        } catch (error) {
+            if (requestId === activeRequest) errorMessage.classList.remove('hidden');
+        } finally {
+            if (requestId === activeRequest) {
+                tabs.querySelectorAll('button').forEach((button) => { button.disabled = false; });
+                tabs.classList.remove('opacity-80');
+            }
+        }
+    });
+});
+</script>
 @endsection

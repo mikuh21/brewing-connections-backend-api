@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\CoffeeTrailLocationCheckController;
 use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
 use App\Http\Controllers\Web\LandingReservationController;
 
+Route::get('/register/check-email', [AuthController::class, 'checkEmail'])->middleware('throttle:30,1');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [GoogleAuthController::class, 'handleToken']);

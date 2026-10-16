@@ -67,6 +67,7 @@ Route::middleware(['auth:api'])->post('/coffee-trail/location-checks', [CoffeeTr
 
 // Mobile app compatibility paths used by app/services/api.js.
 Route::middleware(['auth:api'])->get('/location-checks', [CoffeeTrailLocationCheckController::class, 'index']);
+Route::middleware(['auth:api'])->get('/location-checks/community', [CoffeeTrailLocationCheckController::class, 'communityIndex']);
 Route::middleware(['auth:api'])->post('/coffee-trails/{trailId}/location-checks', [CoffeeTrailLocationCheckController::class, 'storeForTrail']);
 
 // Consumer ratings feed and submission

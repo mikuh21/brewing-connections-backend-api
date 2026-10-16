@@ -78,6 +78,10 @@ class Establishment extends Model
         return $this->hasMany(\App\Models\CoffeeTrailMarkerView::class, 'establishment_id');
     }
 
+    protected $casts = [
+        'location_notice_email_sent_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'owner_id',
         'name',

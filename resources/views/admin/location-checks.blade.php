@@ -228,7 +228,7 @@
                                 <td class="px-5 py-4">
                                     <span class="location-notice-status inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $noticeSent ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">{{ $noticeSent ? 'Sent' : 'Not sent' }}</span>
                                     @if($noticeSent)
-                                        <div class="location-notice-sent-date mt-1 text-xs text-[#9E8C78]">{{ optional($establishment->location_notice_email_sent_at)->format('M j, Y') }}</div>
+                                        <div class="location-notice-sent-date mt-1 text-xs text-[#9E8C78]">{{ optional($establishment->location_notice_email_sent_at)->format('M j, Y') }} | {{ optional($establishment->location_notice_email_sent_at)->format('g:i A') }}</div>
                                     @endif
                                 </td>
                                 <td class="px-5 py-4">
@@ -357,7 +357,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 status.className = 'location-notice-status inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-green-100 text-green-800';
                 const date = row.querySelector('.location-notice-sent-date') || document.createElement('div');
                 date.className = 'location-notice-sent-date mt-1 text-xs text-[#9E8C78]';
-                date.textContent = payload.sent_at ? new Date(payload.sent_at).toLocaleDateString() : 'Just sent';
+                date.textContent = payload.sent_at
+                    ? new Date(payload.sent_at).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true,
+                    }).replace(',', ' |')
+                    : 'Just sent';
                 if (!date.parentElement) status.parentElement.appendChild(date);
                 button.dataset.canSend = '0';
                 button.title = 'A notice email has already been sent';

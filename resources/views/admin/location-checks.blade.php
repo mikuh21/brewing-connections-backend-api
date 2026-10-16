@@ -178,7 +178,7 @@
 
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <label for="establishment-type-filter" class="text-sm font-semibold text-[#5E5447]">Filter by establishment type</label>
-            <select id="establishment-type-filter" class="w-full sm:w-48 rounded-lg border border-[#D8CCBC] bg-white px-3 py-2 text-sm text-[#3A2E22] shadow-sm outline-none transition focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20">
+            <select id="establishment-type-filter" class="w-full sm:w-64 max-w-[192px] rounded-lg border border-[#D8CCBC] bg-white px-3 py-1.5 text-xs text-[#3A2E22] shadow-sm outline-none transition focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20">
                 <option value="all">All Types</option>
                 <option value="farm">Farms</option>
                 <option value="coffee-shop">Coffee Shops</option>

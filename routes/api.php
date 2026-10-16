@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\RatingController;
+use App\Http\Controllers\Api\CoffeeTrailLocationCheckController;
 use App\Http\Controllers\Consumer\PublicEstablishmentGeoJsonController;
 use App\Http\Controllers\Web\LandingReservationController;
 
@@ -58,6 +59,10 @@ Route::middleware(['auth:api'])->post('/coffee-trail/preview', [\App\Http\Contro
 Route::middleware(['auth:api'])->post('/coffee-trail/generate', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'generate']);
 Route::middleware(['auth:api'])->get('/coffee-trail/history', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'history']);
 Route::middleware(['auth:api'])->post('/coffee-trail/marker-view', [\App\Http\Controllers\Api\CoffeeTrailController::class, 'trackMarkerView']);
+
+// Coffee Trail destination location validation and user's Location Checks feed
+Route::middleware(['auth:api'])->get('/coffee-trail/location-checks', [CoffeeTrailLocationCheckController::class, 'index']);
+Route::middleware(['auth:api'])->post('/coffee-trail/location-checks', [CoffeeTrailLocationCheckController::class, 'store']);
 
 // Consumer ratings feed and submission
 Route::middleware(['auth:api'])->get('/ratings', [RatingController::class, 'index']);

@@ -450,7 +450,7 @@
 </div>
 
 <div class="bg-white rounded-xl shadow-sm p-8">
-    <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-2" data-performance-overview>
         <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
             Performance <span class="italic text-[#4A6741]">Overview</span>
         </h2>
@@ -629,4 +629,57 @@
         }
     }
 </style>
+
+<script>
+(function () {
+    if (window.__ownerPerformanceTabsBound) return;
+    window.__ownerPerformanceTabsBound = true;
+
+    async function refreshPerformanceOverview(url, shouldPushState) {
+        const currentSection = document.querySelector('[data-performance-overview]');
+        if (!currentSection) {
+            window.location.assign(url);
+            return;
+        }
+
+        currentSection.setAttribute('aria-busy', 'true');
+        currentSection.classList.add('opacity-60', 'pointer-events-none');
+
+        try {
+            const response = await fetch(url, {
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) throw new Error('Performance overview request failed');
+
+            const html = await response.text();
+            const parsed = new DOMParser().parseFromString(html, 'text/html');
+            const nextSection = parsed.querySelector('[data-performance-overview]');
+
+            if (!nextSection) throw new Error('Updated performance overview was not found');
+
+            currentSection.replaceWith(nextSection);
+            if (shouldPushState) window.history.pushState({ performanceOverview: true }, '', url);
+        } catch (error) {
+            window.location.assign(url);
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        const link = event.target.closest('[data-performance-overview] a[href*="popularity_window"], [data-performance-overview] a[href*="order_window"]');
+        if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        refreshPerformanceOverview(link.href, true);
+    });
+
+    window.addEventListener('popstate', function () {
+        refreshPerformanceOverview(window.location.href, false);
+    });
+})();
+</script>
+
 @endsection

@@ -224,7 +224,7 @@
                 <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
             </button>
 
-            <div x-show="open" x-cloak class="reseller-dashboard-notif-menu absolute right-0 mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+            <div x-show="open" x-cloak style="display: none;" class="reseller-dashboard-notif-menu absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>
@@ -412,7 +412,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6" data-performance-overview>
         <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
             Recent <span class="italic text-[#4A6741]">Activity</span>
         </h2>
@@ -675,6 +675,57 @@
             const loaded = await loadOwnerOverview(window.location.href, false);
             if (!loaded) window.location.reload();
         }
+    });
+})();
+</script>
+
+
+<script>
+(function () {
+    if (window.__ownerPerformanceTabsBound) return;
+    window.__ownerPerformanceTabsBound = true;
+
+    async function refreshPerformanceOverview(url, shouldPushState) {
+        const currentSection = document.querySelector('[data-performance-overview]');
+        if (!currentSection) {
+            window.location.assign(url);
+            return;
+        }
+
+        currentSection.setAttribute('aria-busy', 'true');
+        currentSection.classList.add('opacity-60', 'pointer-events-none');
+
+        try {
+            const response = await fetch(url, {
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (!response.ok) throw new Error('Performance overview request failed');
+
+            const html = await response.text();
+            const parsed = new DOMParser().parseFromString(html, 'text/html');
+            const nextSection = parsed.querySelector('[data-performance-overview]');
+            if (!nextSection) throw new Error('Updated performance overview was not found');
+
+            currentSection.replaceWith(nextSection);
+            if (shouldPushState) window.history.pushState({ performanceOverview: true }, '', url);
+        } catch (_error) {
+            window.location.assign(url);
+        }
+    }
+
+    document.addEventListener('click', function (event) {
+        const link = event.target.closest('[data-performance-overview] a[href*="popularity_window"], [data-performance-overview] a[href*="order_window"]');
+        if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        event.preventDefault();
+        refreshPerformanceOverview(link.href, true);
+    });
+
+    window.addEventListener('popstate', function () {
+        refreshPerformanceOverview(window.location.href, false);
     });
 })();
 </script>

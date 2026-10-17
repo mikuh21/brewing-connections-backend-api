@@ -383,7 +383,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6" data-performance-overview>
+    <div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22] mb-2">
             Recent <span class="italic text-[#4A6741]">Activity</span>
         </h2>
@@ -410,7 +410,7 @@
     </div>
 </div>
 
-<div id="owner-performance-overview" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
+<div id="owner-performance-overview" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6" data-performance-overview>
     <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
             Performance <span class="italic text-[#4A6741]">Overview</span>

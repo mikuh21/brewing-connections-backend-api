@@ -14,6 +14,34 @@ class FarmWorkspaceMiddleware
     {
         $user = $request->user();
 
+        // Repair legacy roaster sessions on their next workspace request. Older
+        // accounts may still have cafe_owner in users.role even though their
+        // linked establishment is a roaster; genuine cafe owners are untouched.
+        if ($user && $user->role === 'cafe_owner') {
+            $legacyRoasterQuery = Establishment::query()
+                ->where('type', 'roaster')
+                ->whereNull('deleted_at');
+            $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
+            $hasUserId = Schema::hasColumn('establishments', 'user_id');
+
+            if ($hasOwnerId && $hasUserId) {
+                $legacyRoasterQuery->where(function ($ownerQuery) use ($user) {
+                    $ownerQuery->where('owner_id', $user->id)
+                        ->orWhere('user_id', $user->id);
+                });
+            } elseif ($hasOwnerId) {
+                $legacyRoasterQuery->where('owner_id', $user->id);
+            } elseif ($hasUserId) {
+                $legacyRoasterQuery->where('user_id', $user->id);
+            } else {
+                $legacyRoasterQuery->whereRaw('1 = 0');
+            }
+
+            if ($legacyRoasterQuery->exists()) {
+                $user->forceFill(['role' => 'roaster'])->save();
+            }
+        }
+
         if (!$user || !in_array($user->role, ['farm_owner', 'roaster'], true)) {
             return redirect()
                 ->route('login')

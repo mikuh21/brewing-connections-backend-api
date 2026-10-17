@@ -124,7 +124,7 @@ class EstablishmentRegistrationController extends Controller
 
         $workspaceRoute = match ($validated['establishment_type']) {
             'farm' => 'farm-owner.map',
-            'roaster' => 'farm-owner.map',
+            'roaster' => 'roaster-owner.map',
             default => 'cafe-owner.map',
         };
 

@@ -114,7 +114,7 @@
             },
             async fetchNotifications() {
                 try {
-                    const response = await fetch('{{ route('farm-owner.notifications', [(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id'))]) }}', {
+                    const response = await fetch('{{ route($isRoasterWorkspace ? 'roaster-owner.notifications' : 'farm-owner.notifications', [(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id'))]) }}', {
                         headers: {
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
@@ -262,9 +262,9 @@
                 <p class="mt-2 text-sm text-[#5E5447]">Missing: {{ $missingProfileFields->join(', ') }}.</p>
             </div>
             <div class="flex flex-col items-stretch gap-3 md:w-32 md:justify-self-end">
-                <a href="{{ route('farm-owner.my-farm', ['farm_id' => $profileEstablishment->id]) }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">Edit Profile</a>
+                <a href="{{ route($isRoasterWorkspace ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm', [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $profileEstablishment->id]) }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">Edit Profile</a>
                 @if($profileEstablishment->latitude === null || $profileEstablishment->longitude === null)
-                    <a href="{{ route('farm-owner.map', [(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => $profileEstablishment->id]) }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>
+                    <a href="{{ route($isRoasterWorkspace ? 'roaster-owner.map' : 'farm-owner.map', [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $profileEstablishment->id]) }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>
                 @endif
             </div>
         </div>
@@ -389,7 +389,7 @@
         <p class="text-[#9E8C78] text-sm mb-6">Common tasks and shortcuts</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <a href="{{ route('farm-owner.my-farm', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+            <a href="{{ route($isRoasterWorkspace ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                 <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                     <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -399,7 +399,7 @@
                 <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">{{ $isRoasterWorkspace ? 'Update roaster profile' : 'Update farm profile' }}</p>
             </a>
 
-            <a href="{{ route('farm-owner.marketplace', $dashboardQuickActionRouteParams) }}#orders" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+            <a href="{{ route($isRoasterWorkspace ? 'roaster-owner.marketplace' : 'farm-owner.marketplace', $dashboardQuickActionRouteParams) }}#orders" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                 <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                     <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14l-1 12H6L5 8z"/>
@@ -410,7 +410,7 @@
                 <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Store orders</p>
             </a>
 
-            <a href="{{ route('farm-owner.messages', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
+            <a href="{{ route($isRoasterWorkspace ? 'roaster-owner.messages' : 'farm-owner.messages', $dashboardQuickActionRouteParams) }}" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">
                 <div class="w-12 h-12 bg-[#4A6741] rounded-lg flex items-center justify-center mb-3 group-hover:bg-white transition-colors">
                     <svg class="w-6 h-6 text-white group-hover:text-[#4A6741] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -464,19 +464,19 @@
 
         <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
             <a
-                href="{{ route('farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => '7d'])) }}"
+                href="{{ route($isRoasterWorkspace ? 'roaster-owner.dashboard' : 'farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => '7d'])) }}"
                 class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
             >
                 Last 7 days
             </a>
             <a
-                href="{{ route('farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => '30d'])) }}"
+                href="{{ route($isRoasterWorkspace ? 'roaster-owner.dashboard' : 'farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => '30d'])) }}"
                 class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === '30d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
             >
                 Last 30 days
             </a>
             <a
-                href="{{ route('farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => 'all'])) }}"
+                href="{{ route($isRoasterWorkspace ? 'roaster-owner.dashboard' : 'farm-owner.dashboard', array_merge($farmDashboardRouteParams, ['popularity_window' => 'all'])) }}"
                 class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($popularityWindow ?? '30d') === 'all' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"
             >
                 All time

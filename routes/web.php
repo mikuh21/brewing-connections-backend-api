@@ -329,13 +329,13 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Shared map endpoint for admin and owner/reseller roles
-Route::middleware(['auth', 'role:farm_owner,cafe_owner'])->group(function () {
+Route::middleware(['auth', 'role:farm_owner,cafe_owner,roaster'])->group(function () {
     Route::post('/api/my-establishment/location', [EstablishmentLocationController::class, 'update'])
         ->name('my-establishment.location.update');
 });
 
 // Shared map endpoint for admin and owner/reseller roles
-Route::middleware(['auth', 'role:admin,farm_owner,cafe_owner,reseller'])->group(function () {
+Route::middleware(['auth', 'role:admin,farm_owner,cafe_owner,roaster,reseller'])->group(function () {
     Route::get('/api/establishments/geojson', [EstablishmentGeoJsonController::class, 'index']);
     Route::put('/api/user-location', [UserLocationController::class, 'update']);
     Route::post('/api/navigation/directions', [\App\Http\Controllers\NavigationController::class, 'getDirections']);
@@ -494,7 +494,7 @@ Route::prefix('roaster-owner')
     });
 
 // Shared placeholder home for cafe_owner, reseller, and consumer
-Route::middleware(['auth', 'role:cafe_owner,reseller,consumer'])->group(function () {
+Route::middleware(['auth', 'role:cafe_owner,roaster,reseller,consumer'])->group(function () {
     Route::get('/home', function () {
         // ...placeholder home logic...
     })->name('home');

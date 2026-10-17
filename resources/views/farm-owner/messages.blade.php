@@ -7,7 +7,8 @@
     $isRoasterWorkspace = auth()->user()?->role === 'cafe_owner';
     $messagesRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
     $messagesIdParam = $isRoasterWorkspace ? 'roaster_id' : 'farm_id';
-    $messagesRouteParams = request()->only(['farm_id', 'roaster_id']);
+    $messagesActiveId = request($messagesIdParam, request('farm_id', request('roaster_id')));
+    $messagesRouteParams = $messagesActiveId ? [$messagesIdParam => $messagesActiveId] : [];
 @endphp
 <div class="farm-messages-page min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
     <main class="farm-messages-main flex-1 overflow-y-auto">
@@ -47,7 +48,7 @@
                         @endphp
 
                         <a
-                            href="{{ route($messagesRoutePrefix . '.messages.show', array_merge(['conversation' => $conv->id], [$messagesIdParam => request($messagesIdParam, request('farm_id', request('roaster_id')))])) }}"
+                            href="{{ route($messagesRoutePrefix . '.messages.show', array_merge(['conversation' => $conv->id], $messagesRouteParams)) }}"
                             @click="selectedConversation = {{ $conv->id }}"
                             x-show="!searchQuery || '{{ strtolower($otherUser->name) }}'.includes(searchQuery.toLowerCase())"
                             class="flex items-start gap-3 p-4 border-b transition-colors cursor-pointer {{ $isActive ? 'bg-[#F5F0E8] border-[#D8CCBA]' : ($unreadCount > 0 ? 'bg-[#ECF4ED] border-[#C8DEC9] hover:bg-[#E4F0E6]' : 'border-gray-50 hover:bg-gray-50') }}"
@@ -226,7 +227,7 @@
                             <button
                                 type="button"
                                 @click="
-                                    fetch('{{ route($messagesRoutePrefix . '.messages.store', [$messagesIdParam => request($messagesIdParam, request('farm_id', request('roaster_id')))]) }}', {
+                                    fetch('{{ route($messagesRoutePrefix . '.messages.store', $messagesRouteParams) }}', {
                                         method: 'POST',
                                         credentials: 'same-origin',
                                         headers: {
@@ -424,7 +425,7 @@
         if (!body) return;
 
         try {
-            const response = await fetch('{{ isset($conversation) && $conversation ? route($messagesRoutePrefix . '.messages.send', ['conversation' => $conversation->id, $messagesIdParam => request($messagesIdParam, request('farm_id', request('roaster_id')))]) : '#' }}', {
+            const response = await fetch('{{ isset($conversation) && $conversation ? route($messagesRoutePrefix . '.messages.send', array_merge(['conversation' => $conversation->id], $messagesRouteParams)) : '#' }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

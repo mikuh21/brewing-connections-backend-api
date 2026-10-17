@@ -380,6 +380,8 @@ x-transition:enter-end="opacity-100 translate-y-0">
         <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full">Farm Owner</span>
       @elseif($product->seller_type === 'cafe_owner')
         <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">Café Owner</span>
+      @elseif($product->seller_type === 'roaster')
+        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs rounded-full">Roaster</span>
       @elseif($product->seller_type === 'reseller')
         <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">Reseller</span>
       @endif

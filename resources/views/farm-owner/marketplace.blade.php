@@ -586,7 +586,7 @@
             return this.updateUrlTemplate.replace('__PRODUCT_ID__', this.form.id);
         }
     }"
-    x-init="init(); showCreateModal = false; showEditModal = false; showViewModal = false; showReceiptModal = false; showRatingImageModal = false"
+    x-init="showCreateModal = false; showEditModal = false; showViewModal = false; showReceiptModal = false; showRatingImageModal = false"
 >
     <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -1458,6 +1458,8 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    style="display: none !important;"
+    x-bind:style="showCreateModal ? '' : 'display: none !important;'"
 >
     <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
@@ -1569,7 +1571,7 @@
             <div>
                 <label class="block text-xs font-semibold">Price *</label>
                 <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="$refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p x-show="createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <p x-show="createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-bind:style="createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0 ? '' : 'display: none !important;'" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>

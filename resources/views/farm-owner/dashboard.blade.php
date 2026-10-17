@@ -154,7 +154,7 @@
         x-init="init()"
         @keydown.escape.window="open = false"
     >
-        <div class="relative" @click.away="open = false">
+        <div class="relative flex flex-col items-end" @click.away="open = false">
             <button type="button" @click="open = !open; if (open) fetchNotifications()" class="relative p-2 bg-white rounded-xl hover:bg-gray-50 transition-colors">
                 <svg class="w-6 h-6 text-[#3A2E22]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
@@ -162,7 +162,7 @@
                 <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
             </button>
 
-            <div x-show="open" x-cloak class="farm-dashboard-notif-menu absolute right-0 mt-2 w-80 bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+            <div x-show="open" x-cloak class="farm-dashboard-notif-menu mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>

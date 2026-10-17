@@ -69,7 +69,7 @@ class AuthController extends Controller
             return redirect()->route('reseller.dashboard');
         }
 
-        if ($user->role === 'cafe_owner') {
+        if ($user->role === 'roaster') {
             $roasterQuery = Establishment::query()
                 ->where('type', 'roaster')
                 ->whereNull('deleted_at');
@@ -101,6 +101,8 @@ class AuthController extends Controller
                 return redirect()->route('admin.dashboard');
             case 'farm_owner':
                 return redirect()->route('farm-owner.dashboard');
+            case 'roaster':
+                return redirect()->route('roaster-owner.dashboard');
             case 'cafe_owner':
                 return redirect()->route('cafe-owner.dashboard');
             case 'reseller':

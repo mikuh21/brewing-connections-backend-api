@@ -264,7 +264,7 @@
             <div class="flex flex-col items-stretch gap-3 md:w-32 md:justify-self-end">
                 <a href="{{ route('farm-owner.my-farm', ['farm_id' => $profileEstablishment->id]) }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">Edit Profile</a>
                 @if($profileEstablishment->latitude === null || $profileEstablishment->longitude === null)
-                    <a href="{{ route('farm-owner.map') }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>
+                    <a href="{{ route('farm-owner.map', [(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => $profileEstablishment->id]) }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>
                 @endif
             </div>
         </div>

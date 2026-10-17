@@ -68,7 +68,11 @@ class EstablishmentRegistrationController extends Controller
             'terms_agreed.accepted' => 'You must agree to the Terms & Conditions to continue.',
         ]);
 
-        $role = $validated['establishment_type'] === 'farm' ? 'farm_owner' : 'cafe_owner';
+        $role = match ($validated['establishment_type']) {
+            'farm' => 'farm_owner',
+            'roaster' => 'roaster',
+            default => 'cafe_owner',
+        };
 
         $user = DB::transaction(function () use ($validated, $role) {
             $user = User::query()->create([

@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $isRoasterWorkspace = auth()->user()?->role === 'cafe_owner';
+    $isRoasterWorkspace = auth()->user()?->role === 'roaster';
     $messagesRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
     $messagesIdParam = $isRoasterWorkspace ? 'roaster_id' : 'farm_id';
     $messagesActiveId = request($messagesIdParam, request('farm_id', request('roaster_id')));

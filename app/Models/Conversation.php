@@ -19,7 +19,7 @@ class Conversation extends Model
                 $query->where('status', '!=', 'active')
                     ->orWhereNull('status')
                     ->orWhere(function ($query) {
-                        $query->whereIn('role', ['farm_owner', 'cafe_owner'])
+                        $query->whereIn('role', ['farm_owner', 'roaster', 'cafe_owner'])
                             ->whereDoesntHave('establishment', function ($establishmentQuery) {
                                 $establishmentQuery->whereNull('establishments.deleted_at');
                             });

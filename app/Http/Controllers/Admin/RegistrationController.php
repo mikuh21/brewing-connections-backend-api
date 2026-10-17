@@ -18,7 +18,7 @@ class RegistrationController extends Controller
         // Include consumers and establishment owners. Resellers and admins stay on their own pages.
         $baseQuery = User::query()->where(function ($query) {
             $query->where('role', 'consumer')
-                ->orWhereIn('role', ['farm_owner', 'cafe_owner']);
+                ->orWhereIn('role', ['farm_owner', 'cafe_owner', 'roaster']);
         });
 
         $totalConsumers = (clone $baseQuery)->count();
@@ -50,7 +50,7 @@ class RegistrationController extends Controller
 
     public function deactivate(User $user): RedirectResponse
     {
-        abort_unless(in_array($user->role, ['consumer', 'farm_owner', 'cafe_owner'], true), 404);
+        abort_unless(in_array($user->role, ['consumer', 'farm_owner', 'cafe_owner', 'roaster'], true), 404);
 
         $user->status = 'deactivated';
         $user->deactivated_at = now();

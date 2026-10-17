@@ -17,6 +17,8 @@
             'name' => $product->name,
             'description' => $product->description,
             'category' => $product->category,
+            'roast_level' => $product->roast_level,
+            'grind_type' => $product->grind_type,
             'price_per_unit' => $product->price_per_unit,
             'stock_quantity' => $product->stock_quantity,
             'unit' => $product->unit,
@@ -106,6 +108,8 @@
             name: '',
             description: '',
             category: 'Coffee Beans',
+            roast_level: '',
+            grind_type: '',
             price_per_unit: '',
             stock_quantity: '',
             unit: 'kg',
@@ -117,6 +121,8 @@
             name: '',
             description: '',
             category: '',
+            roast_level: '',
+            grind_type: '',
             price_per_unit: '',
             stock_quantity: 0,
             unit: '',
@@ -132,6 +138,8 @@
                 name: product.name || '',
                 description: product.description || '',
                 category: product.category || '',
+                roast_level: product.roast_level || '',
+                grind_type: product.grind_type || '',
                 price_per_unit: product.price_per_unit || 0,
                 stock_quantity: Number(product.stock_quantity || 0),
                 unit: product.unit || 'unit',
@@ -400,6 +408,8 @@
             this.form.name = product.name || '';
             this.form.description = product.description || '';
             this.form.category = product.category || 'Coffee Beans';
+            this.form.roast_level = product.roast_level || '';
+            this.form.grind_type = product.grind_type || '';
             this.form.price_per_unit = product.price_per_unit || '';
             this.form.stock_quantity = product.stock_quantity ?? 0;
             this.form.unit = product.unit || 'kg';
@@ -755,7 +765,7 @@
                     <div class="flex justify-end gap-2 mt-2">
                         <button
                             type="button"
-                            @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'price_per_unit' => $product->price_per_unit, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'moq' => $product->moq, 'image_url' => $product->image_url]) }})"
+                            @click="openEditor({{ json_encode(['id' => $product->id, 'name' => $product->name, 'description' => $product->description, 'category' => $product->category, 'roast_level' => $product->roast_level, 'grind_type' => $product->grind_type, 'price_per_unit' => $product->price_per_unit, 'stock_quantity' => $product->stock_quantity, 'unit' => $product->unit, 'moq' => $product->moq, 'image_url' => $product->image_url]) }})"
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
                             title="Edit product"
                             aria-label="Edit product"
@@ -933,6 +943,8 @@
                                 "name" => $product->name,
                                 "description" => $product->description,
                                 "category" => $product->category,
+                                "roast_level" => $product->roast_level,
+                                "grind_type" => $product->grind_type,
                                 "price_per_unit" => $product->price_per_unit,
                                 "stock_quantity" => $product->stock_quantity,
                                 "unit" => $product->unit,
@@ -1433,6 +1445,8 @@
 
                     <div class="pt-2 space-y-1">
                         <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Price:</span> PHP <span x-text="Number(viewProduct.price_per_unit || 0).toFixed(2)"></span></p>
+                        <p x-show="viewProduct.roast_level" x-cloak class="text-sm text-[#3A2E22]"><span class="font-semibold">Roast Level:</span> <span x-text="viewProduct.roast_level"></span></p>
+                        <p x-show="viewProduct.grind_type" x-cloak class="text-sm text-[#3A2E22]"><span class="font-semibold">Grind Type:</span> <span x-text="viewProduct.grind_type"></span></p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Stock:</span> <span x-text="Number(viewProduct.stock_quantity || 0)"></span> units</p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Unit:</span> <span x-text="viewProduct.unit || 'unit'"></span></p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Minimum Order Quantity:</span> <span x-text="viewProduct.moq || 'N/A'"></span></p>
@@ -1453,20 +1467,21 @@
 
 <div
     x-show="showEditModal"
-    x-bind:hidden="!showEditModal"
-    hidden
     x-cloak
+    style="display: none;"
+    @click.self="showEditModal = false"
+    @keydown.escape.window="if (showEditModal) showEditModal = false"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
+    <div @click.away="showEditModal = false" role="dialog" aria-modal="true" aria-labelledby="edit-product-modal-title" class="relative z-[10000] bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-display font-bold text-[#3A2E22]">Edit Product</h2>
+            <h2 id="edit-product-modal-title" class="text-base font-display font-bold text-[#3A2E22]">Edit Product</h2>
             <button type="button" @click="showEditModal = false" class="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
         </div>
 
@@ -1491,8 +1506,18 @@
             </div>
 
             <div>
+                <label class="block text-[11px] font-semibold">Roast Level</label>
+                <input x-model="form.roast_level" name="roast_level" maxlength="100" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Light, Medium, Dark" />
+            </div>
+
+            <div>
+                <label class="block text-[11px] font-semibold">Grind Type</label>
+                <input x-model="form.grind_type" name="grind_type" maxlength="100" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Whole Bean / Fine / Coarse" />
+            </div>
+
+            <div>
                 <label class="block text-[11px] font-semibold">Price *</label>
-                <input x-model="form.price_per_unit" type="number" min="0" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <input x-model="form.price_per_unit" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div>
@@ -1535,8 +1560,6 @@
 
 <div
     x-show="showCreateModal"
-    x-bind:hidden="!showCreateModal"
-    hidden
     x-cloak
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
@@ -1544,11 +1567,15 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    style="display: none;"
+    @click.self="closeCreateModal()"
+    @keydown.escape.window="if (showCreateModal) closeCreateModal()"
+    role="presentation"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="closeCreateModal()" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
+    <div @click.away="closeCreateModal()" role="dialog" aria-modal="true" aria-labelledby="add-product-modal-title" class="relative z-[10000] bg-white rounded-xl shadow-2xl w-full max-w-4xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
+            <h2 id="add-product-modal-title" class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
             <button type="button" @click="closeCreateModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none" aria-label="Close Add Product modal">&times;</button>
         </div>
 

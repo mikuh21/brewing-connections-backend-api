@@ -255,13 +255,13 @@
 
 @if($profileEstablishment && $missingProfileFields->isNotEmpty())
     <div class="mb-8 rounded-2xl border border-[#E5DDD0] border-l-4 border-l-red-500 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
             <div>
                 <h2 class="text-xl font-display font-bold text-[#3A2E22]">Complete your profile</h2>
-                <p class="mt-1 text-sm text-[#9E8C78]">Add more details to help customers discover your coffee farm and make your listing more informative.</p>
+                <p class="mt-1 text-sm text-[#9E8C78]">Add more details to help customers discover your {{ $isRoasterWorkspace ? 'coffee roaster' : 'coffee farm' }} and make your listing more informative.</p>
                 <p class="mt-2 text-sm text-[#5E5447]">Missing: {{ $missingProfileFields->join(', ') }}.</p>
             </div>
-            <div class="flex flex-wrap gap-3">
+            <div class="flex flex-col items-stretch gap-3 md:w-32 md:justify-self-end">
                 <a href="{{ route('farm-owner.my-farm', ['farm_id' => $profileEstablishment->id]) }}{{ $missingProfileFields->contains('Trivia / History') ? '#trivia-history-section' : '' }}" class="inline-flex h-10 items-center justify-center rounded-lg bg-[#4A6741] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3A2E22]">Edit Profile</a>
                 @if($profileEstablishment->latitude === null || $profileEstablishment->longitude === null)
                     <a href="{{ route('farm-owner.map') }}" class="inline-flex h-10 items-center justify-center rounded-lg border border-[#CDBCA7] bg-white px-5 text-sm font-semibold text-[#3A2E22] transition-colors hover:bg-[#F8F2E8]">Pin Location</a>

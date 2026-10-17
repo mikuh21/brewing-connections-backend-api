@@ -4,13 +4,13 @@
 
 @section('content')
 @php
-    $isRoasterWorkspace = auth()->user()?->role === 'roaster';
+    $isRoasterWorkspace = auth()->user()?->role === 'roaster' || request()->routeIs('roaster-owner.*');
     $messagesRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
     $messagesIdParam = $isRoasterWorkspace ? 'roaster_id' : 'farm_id';
     $messagesActiveId = request($messagesIdParam, request('farm_id', request('roaster_id')));
     $messagesRouteParams = $messagesActiveId ? [$messagesIdParam => $messagesActiveId] : [];
 @endphp
-<div class="farm-messages-page min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '' }">
+<div class="farm-messages-page min-h-screen bg-[#F5F0E8] flex" x-data="{ newChatOpen: false, selectedConversation: {{ $conversations->first()->id ?? 'null' }}, searchQuery: '', userSearch: '' }">
     <main class="farm-messages-main flex-1 overflow-y-auto">
         <div class="farm-messages-layout flex gap-6 h-[calc(100vh-160px)]">
             <div class="farm-conversations-panel w-80 bg-white rounded-xl shadow-sm flex flex-col overflow-hidden">
@@ -50,7 +50,7 @@
                         <a
                             href="{{ route($messagesRoutePrefix . '.messages.show', array_merge(['conversation' => $conv->id], $messagesRouteParams)) }}"
                             @click="selectedConversation = {{ $conv->id }}"
-                            x-show="!searchQuery || '{{ strtolower($otherUser->name) }}'.includes(searchQuery.toLowerCase())"
+                            x-show="!searchQuery || @js(mb_strtolower($otherUser->name)).includes(searchQuery.toLowerCase())"
                             class="flex items-start gap-3 p-4 border-b transition-colors cursor-pointer {{ $isActive ? 'bg-[#F5F0E8] border-[#D8CCBA]' : ($unreadCount > 0 ? 'bg-[#ECF4ED] border-[#C8DEC9] hover:bg-[#E4F0E6]' : 'border-gray-50 hover:bg-gray-50') }}"
                         >
                             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#2C4A2E] text-white flex items-center justify-center text-sm font-bold">
@@ -184,7 +184,7 @@
     </main>
 
     <div
-        class="fixed inset-0 z-50 flex items-center justify-center px-4"
+        class="fixed inset-0 z-[9999] flex items-center justify-center px-4"
         x-show="newChatOpen"
         x-cloak
         style="display: none;"
@@ -202,11 +202,13 @@
         <div
             class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto chat-modal-scrollbar"
             @click.stop
-            x-data="{ userSearch: '' }"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-chat-title"
         >
             <div class="p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-display font-bold text-[#3A2E22]">Start New Chat</h2>
+                    <h2 id="new-chat-title" class="text-2xl font-display font-bold text-[#3A2E22]">Start New Chat</h2>
                     <button type="button" @click="newChatOpen = false" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Close new chat">&times;</button>
                 </div>
 
@@ -224,7 +226,7 @@
 
                 <div class="space-y-2">
                     @forelse($users as $user)
-                        <div class="user-item" x-show="!userSearch || '{{ strtolower($user->name) }}'.includes(userSearch.toLowerCase())">
+                        <div class="user-item" x-show="!userSearch || @js(mb_strtolower($user->name)).includes(userSearch.toLowerCase())">
                             <button
                                 type="button"
                                 @click="

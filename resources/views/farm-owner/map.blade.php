@@ -9,6 +9,10 @@
 @endpush
 
 @section('content')
+@php
+    $workspaceLabel = auth()->user()->role === 'cafe_owner' ? 'Roaster' : 'Farm';
+@endphp
+
 <div class="farm-owner-map-page h-screen -m-8 p-6 overflow-hidden bg-[#F5F0E8] text-[#3A2E22]">
     <div class="max-w-full h-full flex flex-col gap-6">
         <header class="bg-white rounded-[20px] shadow-sm p-6 flex flex-wrap items-center justify-between gap-4">
@@ -71,7 +75,7 @@
             <div id="owner-pin-controls" class="absolute bottom-7 left-7 z-[950] flex flex-col items-start gap-2">
                 <button id="add-farm-location-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full border border-[#D9CDBA] bg-white px-3 py-2 text-xs font-semibold text-[#3A2E22] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#F5F0E8] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40">
                     <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/></svg>
-                    Add Farm Location
+                    Add {{ $workspaceLabel }} Location
                 </button>
                 <button id="pin-my-establishment-btn" type="button" class="inline-flex items-center gap-1.5 rounded-full bg-[#2E5A3D] px-3 py-2.5 text-xs font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#1E3A2A] focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]/40">
                     <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5" stroke-width="2"/></svg>
@@ -91,16 +95,16 @@
                 <div class="w-full max-w-lg overflow-hidden rounded-2xl border border-[#D9CDBA] bg-[#F8F2E8] shadow-2xl">
                     <div class="flex items-start justify-between border-b border-[#E4D8C6] px-5 py-4 sm:px-6">
                         <div>
-                            <h2 id="add-farm-location-title" class="font-display text-xl font-bold text-[#3A2E22]">Add Farm Location</h2>
-                            <p class="mt-1 text-sm text-[#8C7A68]">Create another farm under your account, then pin its location on the map.</p>
+                            <h2 id="add-farm-location-title" class="font-display text-xl font-bold text-[#3A2E22]">Add {{ $workspaceLabel }} Location</h2>
+                            <p class="mt-1 text-sm text-[#8C7A68]">Create another {{ strtolower($workspaceLabel) }} establishment under your account, then pin its location on the map.</p>
                         </div>
                         <button type="button" id="close-add-farm-location-modal" class="rounded-lg p-1 text-xl leading-none text-[#6B5B4A] hover:bg-[#ECE1CF]" aria-label="Close">&times;</button>
                     </div>
                     <form method="POST" action="{{ route('farm-owner.farms.store') }}" class="space-y-4 px-5 py-5 sm:px-6">
                         @csrf
                         <div>
-                            <label for="new-farm-name" class="mb-1 block text-sm font-semibold text-[#3A2E22]">Farm name *</label>
-                            <input id="new-farm-name" name="name" required maxlength="255" class="w-full rounded-lg border border-[#D9CDBA] bg-white px-3 py-2.5 text-sm text-[#3A2E22] outline-none focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20" placeholder="e.g. Lipa Coffee Farm">
+                            <label for="new-farm-name" class="mb-1 block text-sm font-semibold text-[#3A2E22]">{{ $workspaceLabel }} name *</label>
+                            <input id="new-farm-name" name="name" required maxlength="255" class="w-full rounded-lg border border-[#D9CDBA] bg-white px-3 py-2.5 text-sm text-[#3A2E22] outline-none focus:border-[#4A6741] focus:ring-2 focus:ring-[#4A6741]/20" placeholder="{{ $workspaceLabel === 'Roaster' ? 'e.g. Lipa Coffee Roastery' : 'e.g. Lipa Coffee Farm' }}">
                         </div>
                         <div>
                             <label for="new-farm-address" class="mb-1 block text-sm font-semibold text-[#3A2E22]">Street / full address *</label>

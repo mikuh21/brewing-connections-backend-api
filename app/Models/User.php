@@ -90,7 +90,7 @@ class User extends Authenticatable implements JWTSubject
                 // Farm/Cafe owners must still have a live establishment.
                 // This also handles permanent establishment deletion, where
                 // no deleted establishment row remains to inspect.
-                $query->whereNotIn('role', ['farm_owner', 'cafe_owner'])
+                $query->whereNotIn('role', ['farm_owner', 'roaster', 'cafe_owner'])
                     ->orWhereHas('establishment', function ($establishmentQuery) {
                         $establishmentQuery->whereNull('establishments.deleted_at');
                     });
@@ -184,7 +184,7 @@ class User extends Authenticatable implements JWTSubject
                     ->whereColumn('message_senders.id', 'messages.sender_id')
                     ->where('message_senders.status', 'active')
                     ->where(function ($query) {
-                        $query->whereNotIn('message_senders.role', ['farm_owner', 'cafe_owner'])
+                        $query->whereNotIn('message_senders.role', ['farm_owner', 'roaster', 'cafe_owner'])
                             ->orWhereExists(function ($establishmentQuery) {
                                 $establishmentQuery->selectRaw('1')
                                     ->from('establishments')

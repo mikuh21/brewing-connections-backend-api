@@ -586,7 +586,7 @@
             return this.updateUrlTemplate.replace('__PRODUCT_ID__', this.form.id);
         }
     }"
-    x-init="init(); showCreateModal = false; showEditModal = false; showViewModal = false; showReceiptModal = false; showRatingImageModal = false"
+    x-init="init()"
 >
     <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -1393,9 +1393,8 @@
 
     <div
         x-show="showViewModal"
-        x-bind:hidden="!showViewModal"
-        hidden
         x-cloak
+        style="display: none;"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
@@ -1452,9 +1451,8 @@
 
 <div
     x-show="showEditModal"
-    x-bind:hidden="!showEditModal"
-    hidden
     x-cloak
+    style="display: none;"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
@@ -1462,7 +1460,6 @@
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-    x-bind:style="showEditModal ? '' : 'display: none !important;'"
 >
     <div @click.away="showEditModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
@@ -1535,10 +1532,8 @@
 
 <div
     x-show="showCreateModal"
-    x-bind:hidden="!showCreateModal"
-    hidden
     x-cloak
-    x-bind:style="showCreateModal ? '' : 'display: none !important;'"
+    style="display: none;"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"

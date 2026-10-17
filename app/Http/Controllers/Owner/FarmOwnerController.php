@@ -649,6 +649,8 @@ class FarmOwnerController extends Controller
                 'products.name',
                 'products.description',
                 'products.category',
+                'products.roast_level',
+                'products.grind_type',
                 'products.price_per_unit',
                 'products.stock_quantity',
                 'products.unit',
@@ -673,7 +675,7 @@ class FarmOwnerController extends Controller
 
         $orders = collect();
         $productRatings = collect();
-        if ($establishment && (int) $establishment->owner_id === (int) $user->id) {
+        if ($establishment && $this->isFarmManagedByUser($establishment, $user)) {
             $orders = Order::with(['user:id,name', 'product:id,name,establishment_id', 'product.establishment:id,name'])
                 ->whereHas('product', function ($query) use ($establishment) {
                     $query->where('establishment_id', $establishment->id);
@@ -922,7 +924,9 @@ class FarmOwnerController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'required|in:Coffee Beans,Ground Coffee',
-            'price_per_unit' => 'required|numeric|min:0',
+            'roast_level' => 'nullable|string|max:100',
+            'grind_type' => 'nullable|string|max:100',
+            'price_per_unit' => 'required|numeric|gt:0',
             'stock_quantity' => 'required|integer|min:0',
             'unit' => 'nullable|string|max:50',
             'moq' => 'nullable|integer|min:1',
@@ -939,6 +943,8 @@ class FarmOwnerController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'category' => $validated['category'],
+            'roast_level' => $validated['roast_level'] ?? null,
+            'grind_type' => $validated['grind_type'] ?? null,
             'price_per_unit' => $validated['price_per_unit'],
             'stock_quantity' => $validated['stock_quantity'],
             'unit' => $validated['unit'] ?? ($product->unit ?: 'kg'),

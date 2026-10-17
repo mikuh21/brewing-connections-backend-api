@@ -268,7 +268,7 @@
         $sidebarProfileX = 50;
         $sidebarProfileY = 50;
         $sidebarUserId = auth()->id();
-        $isRoasterWorkspace = auth()->user()?->role === 'roaster';
+        $isRoasterWorkspace = auth()->user()?->role === 'roaster' || request()->routeIs('roaster-owner.*');
         $sidebarRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
         $sidebarProfileRoute = $isRoasterWorkspace ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm';
         $sidebarManagedFarms = collect();

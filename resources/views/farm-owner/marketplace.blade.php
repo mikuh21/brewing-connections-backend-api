@@ -8,6 +8,8 @@
 
 @section('content')
 @php
+    $isRoasterWorkspace = auth()->user()?->role === 'cafe_owner';
+    $marketplaceRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
     $activeFarmId = (int) request('roaster_id', request('farm_id', 0));
     $productsMeta = $products->map(function ($product) {
         return [
@@ -84,8 +86,8 @@
         activeFarmId: {{ $activeFarmId }},
         hiddenProductIds: [],
         productsMeta: {{ Js::from($productsMeta) }},
-        updateUrlTemplate: '{{ route('farm-owner.marketplace.products.update', ['product' => '__PRODUCT_ID__']) }}',
-        visibilityUrlTemplate: '{{ route('farm-owner.marketplace.products.visibility', ['product' => '__PRODUCT_ID__']) }}',
+        updateUrlTemplate: '{{ route($marketplaceRoutePrefix . '.marketplace.products.update', ['product' => '__PRODUCT_ID__', ($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $activeFarmId]) }}',
+        visibilityUrlTemplate: '{{ route($marketplaceRoutePrefix . '.marketplace.products.visibility', ['product' => '__PRODUCT_ID__', ($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $activeFarmId]) }}',
         createForm: {
             name: '',
             description: '',
@@ -1114,7 +1116,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                             </svg>
                                         </button>
-                                        <form method="POST" action="{{ route('farm-owner.marketplace.orders.update', $order) }}" class="flex items-center gap-2">
+                                        <form method="POST" action="{{ route($marketplaceRoutePrefix . '.marketplace.orders.update', ['order' => $order->id, ($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $activeFarmId]) }}" class="flex items-center gap-2">
                                         @csrf
                                         @method('PATCH')
                                         @if($activeFarmId > 0)
@@ -1542,7 +1544,7 @@
             <button type="button" @click="closeCreateModal()" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50" aria-label="Close Add Product modal">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('farm-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="const priceValue = Number($refs.createPriceInput?.value || 0); if (!Number.isFinite(priceValue) || priceValue <= 0) { $event.preventDefault(); isCreatingProduct = false; $refs.createPriceInput?.setCustomValidity('Price must be greater than 0.'); $refs.createPriceInput?.reportValidity(); return; } $refs.createPriceInput?.setCustomValidity(''); isCreatingProduct = true;" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <form method="POST" action="{{ route($marketplaceRoutePrefix . '.marketplace.products.store', [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $activeFarmId]) }}" enctype="multipart/form-data" @submit="const priceValue = Number($refs.createPriceInput?.value || 0); if (!Number.isFinite(priceValue) || priceValue <= 0) { $event.preventDefault(); isCreatingProduct = false; $refs.createPriceInput?.setCustomValidity('Price must be greater than 0.'); $refs.createPriceInput?.reportValidity(); return; } $refs.createPriceInput?.setCustomValidity(''); isCreatingProduct = true;" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
             @csrf
             @if($activeFarmId > 0)
                 <input type="hidden" name="{{ auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">

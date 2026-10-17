@@ -270,7 +270,8 @@
         $sidebarUserId = auth()->id();
         $isRoasterWorkspace = auth()->user()?->role === 'cafe_owner';
         $sidebarManagedFarms = collect();
-        $sidebarActiveFarmId = (int) request('farm_id', 0);
+        $sidebarIdParam = $isRoasterWorkspace ? 'roaster_id' : 'farm_id';
+        $sidebarActiveFarmId = (int) request($sidebarIdParam, request('farm_id', request('roaster_id', 0)));
         $sidebarRouteParams = [];
         if ($sidebarUserId) {
             $sidebarColumns = \Illuminate\Support\Facades\Schema::getColumnListing('establishments');
@@ -312,7 +313,7 @@
                 : null;
 
             if ($sidebarActiveFarmId > 0) {
-                $sidebarRouteParams = ['farm_id' => $sidebarActiveFarmId];
+                $sidebarRouteParams = [$sidebarIdParam => $sidebarActiveFarmId];
             }
 
             $sidebarImage = optional($sidebarEstablishment)->image;
@@ -329,9 +330,9 @@
                 </div>
 
                 @if($sidebarManagedFarms->count() > 1)
-                    <form method="GET" action="{{ request()->routeIs('farm-owner.map') ? route('farm-owner.map') : route('farm-owner.dashboard') }}" class="mb-4">
+                    <form method="GET" action="{{ request()->routeIs('farm-owner.map', 'roaster-owner.map') ? route('farm-owner.map') : route('farm-owner.dashboard') }}" class="mb-4">
                         <label for="sidebar-farm-switch" class="block text-[11px] font-semibold text-[#D9C9B2] mb-1">{{ $isRoasterWorkspace ? 'Switch Roaster' : 'Switch Farm' }}</label>
-                        <select id="sidebar-farm-switch" name="farm_id" onchange="this.form.submit()" class="w-full rounded-lg border border-[#6B5B4A] bg-[#4E3D2B] text-[#F5F0E8] px-2 py-1.5 text-xs focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                        <select id="sidebar-farm-switch" name="{{ $sidebarIdParam }}" onchange="this.form.submit()" class="w-full rounded-lg border border-[#6B5B4A] bg-[#4E3D2B] text-[#F5F0E8] px-2 py-1.5 text-xs focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                             @foreach($sidebarManagedFarms as $farmOption)
                                 <option value="{{ $farmOption->id }}" @selected((int) $farmOption->id === (int) $sidebarActiveFarmId)>
                                     {{ $farmOption->name }}
@@ -342,19 +343,19 @@
                 @endif
 
                 <nav class="space-y-1">
-                    <a href="{{ route('farm-owner.dashboard', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.dashboard') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.dashboard', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.dashboard', 'roaster-owner.dashboard') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                         Dashboard
                     </a>
-                    <a href="{{ route('farm-owner.my-farm', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.my-farm') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.my-farm', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.my-farm', 'roaster-owner.my-roaster') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
                         {{ $isRoasterWorkspace ? 'Roaster' : 'Farm' }}
                     </a>
-                    <a href="{{ route('farm-owner.marketplace', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.marketplace') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.marketplace', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.marketplace', 'roaster-owner.marketplace') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                         </svg>
@@ -366,7 +367,7 @@
                         </svg>
                         Map
                     </a>
-                    <a href="{{ route('farm-owner.messages', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.messages*') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
+                    <a href="{{ route('farm-owner.messages', $sidebarRouteParams) }}" class="flex items-center {{ (request()->routeIs('farm-owner.messages*') || request()->routeIs('roaster-owner.messages*')) ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                         </svg>

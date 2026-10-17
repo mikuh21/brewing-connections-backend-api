@@ -17,7 +17,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-display font-bold text-[#3A2E22]">Messages</h1>
-                        <button type="button" @click="newChatOpen = true" class="inline-flex items-center gap-2 px-4 py-2 bg-[#2C4A2E] text-white text-xs font-semibold rounded-lg hover:bg-[#1F3620] transition-colors">
+                        <button type="button" data-open-new-chat-modal @click="newChatOpen = true" class="inline-flex items-center gap-2 px-4 py-2 bg-[#2C4A2E] text-white text-xs font-semibold rounded-lg hover:bg-[#1F3620] transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -82,7 +82,7 @@
                         <div class="flex items-center justify-center h-full text-center px-4">
                             <div>
                                 <p class="text-gray-500 text-sm">No conversations yet</p>
-                                <button type="button" @click="newChatOpen = true" class="mt-2 text-[#2C4A2E] text-sm font-semibold hover:text-[#1F3620] transition-colors">
+                                <button type="button" data-open-new-chat-modal @click="newChatOpen = true" class="mt-2 text-[#2C4A2E] text-sm font-semibold hover:text-[#1F3620] transition-colors">
                                     Start a new chat
                                 </button>
                             </div>
@@ -184,20 +184,11 @@
     </main>
 
     <div
-        class="fixed inset-0 z-50 flex items-center justify-center px-4"
-        x-show="newChatOpen"
-        x-cloak
-        style="display: none;"
-        @keydown.escape.window="newChatOpen = false"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-        @click="newChatOpen = false"
+        id="farm-new-chat-modal"
+        hidden
+        class="fixed inset-0 z-[9999] hidden flex items-center justify-center px-4"
     >
-        <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" @click.stop="newChatOpen = false"></div>
+        <button type="button" data-close-new-chat-modal class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm cursor-default" aria-label="Close new chat dialog"></button>
 
         <div
             class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto chat-modal-scrollbar"
@@ -207,7 +198,7 @@
             <div class="p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-display font-bold text-[#3A2E22]">Start New Chat</h2>
-                    <button type="button" @click="newChatOpen = false" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Close new chat">&times;</button>
+                    <button type="button" data-close-new-chat-modal @click="newChatOpen = false" class="text-gray-500 hover:text-gray-800 text-2xl" aria-label="Close new chat">&times;</button>
                 </div>
 
                 <div class="relative mb-4">
@@ -483,4 +474,43 @@
             });
     @endif
 </script>
+
+<script>
+(function () {
+    const modal = document.getElementById('farm-new-chat-modal');
+    if (!modal || modal.dataset.handlersReady === 'true') return;
+    modal.dataset.handlersReady = 'true';
+
+    function openModal() {
+        modal.hidden = false;
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+        const search = modal.querySelector('input[x-model="userSearch"]');
+        if (search) window.setTimeout(() => search.focus(), 0);
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('[data-open-new-chat-modal]')) {
+            event.preventDefault();
+            openModal();
+            return;
+        }
+        if (event.target.closest('[data-close-new-chat-modal]')) {
+            event.preventDefault();
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hidden) closeModal();
+    });
+})();
+</script>
+
 @endsection

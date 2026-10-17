@@ -449,10 +449,10 @@ Route::prefix('reseller')
         Route::post('/messages/{conversation}/send', 'App\\Http\\Controllers\\Reseller\\ResellerMessagesController@sendConversationMessage')->name('messages.send');
     });
 
-// Farm owner routes (farm_owner only)
+// Farm owner and roaster routes share the same workspace modules.
 Route::prefix('farm-owner')
     ->name('farm-owner.')
-    ->middleware(['auth', 'role:farm_owner'])
+    ->middleware(['auth', 'farm.workspace'])
     ->group(function () {
         Route::get('/', [FarmOwnerController::class, 'dashboard'])->name('dashboard');
         Route::get('/my-farm', [FarmOwnerController::class, 'myFarm'])->name('my-farm');

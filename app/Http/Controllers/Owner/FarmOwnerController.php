@@ -694,7 +694,7 @@ class FarmOwnerController extends Controller
                 ->get();
         }
 
-        return view('farm-owner.marketplace', compact('products', 'marketplaceProducts', 'orders', 'productRatings'));
+        return view('farm-owner.marketplace', compact('establishment', 'products', 'marketplaceProducts', 'orders', 'productRatings'));
     }
 
     public function updateMarketplaceOrder(Request $request, Order $order)

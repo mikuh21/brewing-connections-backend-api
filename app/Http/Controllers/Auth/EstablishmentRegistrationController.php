@@ -122,8 +122,14 @@ class EstablishmentRegistrationController extends Controller
             $welcomeEmailSent = false;
         }
 
+        $workspaceRoute = match ($validated['establishment_type']) {
+            'farm' => 'farm-owner.map',
+            'roaster' => 'farm-owner.map',
+            default => 'cafe-owner.map',
+        };
+
         $redirect = redirect()
-            ->route($role === 'farm_owner' ? 'farm-owner.map' : 'cafe-owner.map')
+            ->route($workspaceRoute)
             ->with('success', 'Your account is ready. Pin your establishment on the map to publish its location.');
 
         if (!$welcomeEmailSent) {

@@ -494,7 +494,7 @@ Route::prefix('roaster-owner')
     });
 
 // Shared placeholder home for cafe_owner, reseller, and consumer
-Route::middleware(['auth', 'role:cafe_owner,roaster,reseller,consumer'])->group(function () {
+Route::middleware(['auth', 'role:cafe_owner,reseller,consumer'])->group(function () {
     Route::get('/home', function () {
         // ...placeholder home logic...
     })->name('home');

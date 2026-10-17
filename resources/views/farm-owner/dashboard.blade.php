@@ -378,7 +378,7 @@
     @php
         $dashboardQuickActionFarmId = (int) request('roaster_id', request('farm_id', 0));
         $dashboardQuickActionRouteParams = $dashboardQuickActionFarmId > 0
-            ? [(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => $dashboardQuickActionFarmId]
+            ? [(auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id') => $dashboardQuickActionFarmId]
             : [];
     @endphp
 
@@ -457,7 +457,7 @@
 
         @php
             $farmDashboardRouteParams = array_filter([
-                (auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id')),
+                (auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id')),
                 'popularity_window' => null,
             ], fn ($value) => !is_null($value) && $value !== '');
         @endphp

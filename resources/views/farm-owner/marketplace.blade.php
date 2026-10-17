@@ -586,7 +586,7 @@
             return this.updateUrlTemplate.replace('__PRODUCT_ID__', this.form.id);
         }
     }"
-    x-init="showCreateModal = false; showEditModal = false; showViewModal = false; showReceiptModal = false; showRatingImageModal = false"
+    x-init="init(); showCreateModal = false; showEditModal = false; showViewModal = false; showReceiptModal = false; showRatingImageModal = false"
 >
     <div class="mb-8 flex items-start justify-between gap-4 flex-wrap">
         <div>

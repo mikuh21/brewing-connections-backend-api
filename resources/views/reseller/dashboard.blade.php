@@ -439,7 +439,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
+<div id="owner-performance-overview" class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
     <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
             Order <span class="italic text-[#4A6741]">Overview</span>
@@ -616,4 +616,67 @@
         }
     }
 </style>
+
+<script>
+(function () {
+    if (window.__brewHubOwnerWindowTabsInitialized) return;
+    window.__brewHubOwnerWindowTabsInitialized = true;
+
+    async function loadOwnerOverview(url, updateHistory) {
+        const currentCard = document.getElementById('owner-performance-overview');
+        if (!currentCard) return false;
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            if (!response.ok) return false;
+
+            const html = await response.text();
+            const parsed = new DOMParser().parseFromString(html, 'text/html');
+            const nextCard = parsed.getElementById('owner-performance-overview');
+            if (!nextCard) return false;
+
+            currentCard.replaceWith(nextCard);
+            if (updateHistory) {
+                window.history.pushState({ ownerOverviewWindow: true }, '', url);
+            }
+            return true;
+        } catch (error) {
+            console.error('Unable to update owner performance overview:', error);
+            return false;
+        }
+    }
+
+    document.addEventListener('click', async function (event) {
+        const link = event.target.closest('a[href]');
+        if (!link) return;
+
+        let target;
+        try { target = new URL(link.href, window.location.href); } catch (_) { return; }
+        if (!target.searchParams.has('popularity_window') && !target.searchParams.has('order_window')) return;
+        if (target.origin !== window.location.origin) return;
+
+        event.preventDefault();
+        link.setAttribute('aria-busy', 'true');
+        const loaded = await loadOwnerOverview(target.href, true);
+        link.removeAttribute('aria-busy');
+        if (!loaded) window.location.assign(target.href);
+    });
+
+    window.addEventListener('popstate', async function () {
+        const hasWindow = new URL(window.location.href).searchParams.has('popularity_window')
+            || new URL(window.location.href).searchParams.has('order_window');
+        if (hasWindow) {
+            const loaded = await loadOwnerOverview(window.location.href, false);
+            if (!loaded) window.location.reload();
+        }
+    });
+})();
+</script>
+
 @endsection

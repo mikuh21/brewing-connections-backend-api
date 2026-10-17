@@ -471,6 +471,28 @@ Route::prefix('farm-owner')
         Route::post('/messages/{conversation}/send', [FarmOwnerController::class, 'sendConversationMessage'])->name('messages.send');
     });
 
+// Roasters use the same workspace controller and modules, but with roaster-specific URLs.
+Route::prefix('roaster-owner')
+    ->name('roaster-owner.')
+    ->middleware(['auth', 'farm.workspace'])
+    ->group(function () {
+        Route::get('/', [FarmOwnerController::class, 'dashboard'])->name('dashboard');
+        Route::get('/my-roaster', [FarmOwnerController::class, 'myFarm'])->name('my-roaster');
+        Route::match(['POST', 'PATCH'], '/my-roaster', [FarmOwnerController::class, 'updateMyFarm'])->name('my-roaster.update');
+        Route::get('/marketplace', [FarmOwnerController::class, 'marketplace'])->name('marketplace');
+        Route::get('/notifications', [FarmOwnerController::class, 'notifications'])->name('notifications');
+        Route::post('/marketplace/products', [FarmOwnerController::class, 'storeMarketplaceProduct'])->name('marketplace.products.store');
+        Route::patch('/marketplace/products/{product}', [FarmOwnerController::class, 'updateMarketplaceProduct'])->name('marketplace.products.update');
+        Route::patch('/marketplace/products/{product}/visibility', [FarmOwnerController::class, 'updateMarketplaceProductVisibility'])->name('marketplace.products.visibility');
+        Route::patch('/marketplace/orders/{order}', [FarmOwnerController::class, 'updateMarketplaceOrder'])->name('marketplace.orders.update');
+        Route::get('/map', [FarmOwnerController::class, 'map'])->name('map');
+        Route::post('/roasters', [FarmOwnerController::class, 'addFarmLocation'])->name('roasters.store');
+        Route::get('/messages', [FarmOwnerController::class, 'messages'])->name('messages');
+        Route::get('/messages/{conversation}', [FarmOwnerController::class, 'messages'])->name('messages.show');
+        Route::post('/messages', [FarmOwnerController::class, 'messagesStore'])->name('messages.store');
+        Route::post('/messages/{conversation}/send', [FarmOwnerController::class, 'sendConversationMessage'])->name('messages.send');
+    });
+
 // Shared placeholder home for cafe_owner, reseller, and consumer
 Route::middleware(['auth', 'role:cafe_owner,reseller,consumer'])->group(function () {
     Route::get('/home', function () {

@@ -43,7 +43,7 @@ class MapController extends Controller
             if ($owner) {
                 if ($owner->role !== $expectedOwnerRole) {
                     throw ValidationException::withMessages([
-                        'email' => 'This email is already assigned to a different account type. Use a dedicated establishment owner email instead.',
+                        'email' => 'This email is already assigned to a different account type. Use a dedicated ' . ($expectedOwnerRole === 'roaster' ? 'roaster' : 'cafe owner') . ' email instead.',
                     ]);
                 }
 
@@ -54,7 +54,7 @@ class MapController extends Controller
 
             if ($ownerPassword === '') {
                 throw ValidationException::withMessages([
-                    'owner_password' => 'Owner account password is required when creating a new cafe owner account.',
+                    'owner_password' => 'Owner account password is required when creating a new ' . ($request->input('type') === 'roaster' ? 'roaster' : 'cafe owner') . ' account.',
                 ]);
             }
 

@@ -8,7 +8,7 @@
 
 @section('content')
 @php
-    $isRoasterWorkspace = auth()->user()?->role === 'roaster';
+    $isRoasterWorkspace = auth()->user()?->role === 'roaster' || ($establishment->type ?? '') === 'roaster' || request()->routeIs('roaster-owner.*');
     $marketplaceRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
     $activeFarmId = (int) request('roaster_id', request('farm_id', 0));
     $productsMeta = $products->map(function ($product) {
@@ -76,7 +76,7 @@
         editImagePreview: '',
         createImagePreview: '',
         createImageObjectUrl: null,
-        activeEstablishmentParam: @js(auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id'),
+        activeEstablishmentParam: @js($isRoasterWorkspace ? 'roaster_id' : 'farm_id'),
         activeTab: 'my-listings',
         activeBrowseSellerType: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
         statusFilter: 'all',

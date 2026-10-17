@@ -1122,7 +1122,7 @@
                                         @csrf
                                         @method('PATCH')
                                         @if($activeFarmId > 0)
-                                            <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
+                                            <input type="hidden" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
                                         @endif
                                         <select name="status" @disabled($isCanceled) class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                             <option value="pending" @selected($status === 'pending')>Pending</option>
@@ -1474,7 +1474,7 @@
             @csrf
             @method('PATCH')
             @if($activeFarmId > 0)
-                <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
+                <input type="hidden" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
             @endif
 
             <div class="md:col-span-3">
@@ -1555,7 +1555,7 @@
         <form method="POST" action="{{ route($marketplaceRoutePrefix . '.marketplace.products.store', [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $activeFarmId]) }}" enctype="multipart/form-data" @submit="const priceValue = Number($refs.createPriceInput?.value || 0); if (!Number.isFinite(priceValue) || priceValue <= 0) { $event.preventDefault(); isCreatingProduct = false; $refs.createPriceInput?.setCustomValidity('Price must be greater than 0.'); $refs.createPriceInput?.reportValidity(); return; } $refs.createPriceInput?.setCustomValidity(''); isCreatingProduct = true;" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
             @csrf
             @if($activeFarmId > 0)
-                <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
+                <input type="hidden" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
             @endif
 
             <div class="md:col-span-3">

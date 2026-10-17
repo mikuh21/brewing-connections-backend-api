@@ -1147,6 +1147,9 @@ class FarmOwnerController extends Controller
 
     public function messagesStore(Request $request)
     {
+        $user = Auth::user();
+        abort_unless($user, 401);
+
         $request->validate(['recipient_id' => 'required|exists:users,id']);
 
         abort_unless(
@@ -1170,7 +1173,14 @@ class FarmOwnerController extends Controller
                 return response()->json(['conversation_id' => $existingConversation->id]);
             }
 
-            return redirect()->route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', $existingConversation);
+            $routeName = $user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show';
+            $routeParams = ['conversation' => $existingConversation->id];
+            $activeEstablishmentId = $this->activeFarmIdFromRequest($request);
+            if ($activeEstablishmentId) {
+                $routeParams[$user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id'] = $activeEstablishmentId;
+            }
+
+            return redirect()->route($routeName, $routeParams);
         }
 
         $conversation = Conversation::create();
@@ -1180,7 +1190,14 @@ class FarmOwnerController extends Controller
             return response()->json(['conversation_id' => $conversation->id]);
         }
 
-        return redirect()->route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', $conversation);
+        $routeName = $user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show';
+        $routeParams = ['conversation' => $conversation->id];
+        $activeEstablishmentId = $this->activeFarmIdFromRequest($request);
+        if ($activeEstablishmentId) {
+            $routeParams[$user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id'] = $activeEstablishmentId;
+        }
+
+        return redirect()->route($routeName, $routeParams);
     }
 
     public function storeMessageConversation(Request $request)

@@ -50,6 +50,49 @@ class FarmWorkspaceMiddleware
                 ->with('error', 'You are not authorized to access that workspace.');
         }
 
+        $routeName = (string) optional($request->route())->getName();
+        $isRoasterUser = $user->role === 'cafe_owner';
+        $isFarmWorkspaceRoute = str_starts_with($routeName, 'farm-owner.');
+        $isRoasterWorkspaceRoute = str_starts_with($routeName, 'roaster-owner.');
+
+        // Keep old farm-owner links working, but send roaster GET navigation to the canonical roaster URLs.
+        if ($request->isMethod('GET') && $isRoasterUser && $isFarmWorkspaceRoute) {
+            $suffix = substr($routeName, strlen('farm-owner.'));
+            if ($suffix === 'my-farm') {
+                $suffix = 'my-roaster';
+            }
+            $queryParams = $request->query();
+            $activeEstablishmentId = $queryParams['roaster_id'] ?? $queryParams['farm_id'] ?? null;
+            unset($queryParams['farm_id']);
+            if ($activeEstablishmentId !== null && $activeEstablishmentId !== '') {
+                $queryParams['roaster_id'] = $activeEstablishmentId;
+            }
+
+            return redirect()->route(
+                'roaster-owner.' . $suffix,
+                array_merge($request->route()->parameters(), $queryParams)
+            );
+        }
+
+        // Prevent farm owners from landing on the roaster-specific URL namespace.
+        if ($request->isMethod('GET') && !$isRoasterUser && $isRoasterWorkspaceRoute) {
+            $suffix = substr($routeName, strlen('roaster-owner.'));
+            if ($suffix === 'my-roaster') {
+                $suffix = 'my-farm';
+            }
+            $queryParams = $request->query();
+            $activeEstablishmentId = $queryParams['farm_id'] ?? $queryParams['roaster_id'] ?? null;
+            unset($queryParams['roaster_id']);
+            if ($activeEstablishmentId !== null && $activeEstablishmentId !== '') {
+                $queryParams['farm_id'] = $activeEstablishmentId;
+            }
+
+            return redirect()->route(
+                'farm-owner.' . $suffix,
+                array_merge($request->route()->parameters(), $queryParams)
+            );
+        }
+
         return $next($request);
     }
 }

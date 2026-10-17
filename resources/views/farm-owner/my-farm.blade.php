@@ -172,7 +172,7 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
-    x-init="editMode = false; if (window.location.hash === '#trivia-history-section') { editMode = true; }"
+    x-init="editMode = false"
     class="space-y-8"
 >
     <form method="POST" action="{{ route($profileUpdateRouteName) }}" enctype="multipart/form-data" class="space-y-8">
@@ -273,7 +273,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->type ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="type" value="{{ old('type', $establishment->type) }}" disabled class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-[#6B5B4A] shadow-sm cursor-not-allowed" placeholder="farm/cafe/roaster" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="type" value="{{ old('type', $establishment->type) }}" disabled class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-[#6B5B4A] shadow-sm cursor-not-allowed" placeholder="farm/cafe/roaster" />
                         </div>
 
                         <div>
@@ -281,9 +281,9 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->image ? 'Image uploaded' : 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak x-ref="profileImageInput" type="file" name="image" accept="image/*" @change="handleImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                            <input x-show="editMode" x-cloak style="display: none;" x-ref="profileImageInput" type="file" name="image" accept="image/*" @change="handleImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
 
-                            <div x-show="editMode && imagePreviewUrl" x-cloak class="mt-3 rounded-lg border border-gray-200 bg-[#F5F0E8] p-3 space-y-3">
+                            <div x-show="editMode && imagePreviewUrl" x-cloak style="display: none;" class="mt-3 rounded-lg border border-gray-200 bg-[#F5F0E8] p-3 space-y-3">
                                 <div class="flex items-center justify-between">
                                     <p class="text-[11px] text-[#6B5B4A] font-semibold">Drag the banner and profile photo above to adjust fit</p>
                                     <button type="button" @click="clearImageSelection()" class="text-[11px] text-[#4A6741] hover:text-[#3A2E22] font-semibold">Reset Selection</button>
@@ -297,7 +297,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A] leading-relaxed">{{ $establishment->description ?: 'No description provided yet.' }}</p>
                             </template>
-                            <textarea x-show="editMode" x-cloak name="description" rows="4" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Tell customers about your {{ strtolower($workspaceLabel) }}...">{{ old('description', $establishment->description) }}</textarea>
+                            <textarea x-show="editMode" x-cloak style="display: none;" name="description" rows="4" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Tell customers about your {{ strtolower($workspaceLabel) }}...">{{ old('description', $establishment->description) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -308,8 +308,8 @@
                     <template x-if="!editMode">
                         <p class="text-sm text-[#6B5B4A] leading-relaxed whitespace-pre-line">{{ $establishment->trivia_history ?: 'No trivia or history added yet.' }}</p>
                     </template>
-                    <textarea x-show="editMode" x-cloak name="trivia_history" rows="5" maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Share verified facts about your {{ strtolower($workspaceLabel) }}, coffee-roasting practices, history, or local agro-tourism...">{{ old('trivia_history', $establishment->trivia_history) }}</textarea>
-                    <p x-show="editMode" x-cloak class="mt-2 text-xs text-[#9E8C78]">Maximum 5,000 characters. Leave blank if you do not have trivia or history to share yet.</p>
+                    <textarea x-show="editMode" x-cloak style="display: none;" name="trivia_history" rows="5" maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Share verified facts about your {{ strtolower($workspaceLabel) }}, coffee-roasting practices, history, or local agro-tourism...">{{ old('trivia_history', $establishment->trivia_history) }}</textarea>
+                    <p x-show="editMode" x-cloak style="display: none;" class="mt-2 text-xs text-[#9E8C78]">Maximum 5,000 characters. Leave blank if you do not have trivia or history to share yet.</p>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm p-8">
@@ -322,7 +322,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->address ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="address" value="{{ old('address', $establishment->address) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="address" value="{{ old('address', $establishment->address) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                         </div>
 
                         <div>
@@ -330,7 +330,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->barangay ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="barangay" value="{{ old('barangay', $establishment->barangay) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="barangay" value="{{ old('barangay', $establishment->barangay) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                         </div>
 
                         <div>
@@ -338,7 +338,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->latitude ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="latitude" value="{{ old('latitude', $establishment->latitude) }}" disabled class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-[#6B5B4A] shadow-sm cursor-not-allowed" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="latitude" value="{{ old('latitude', $establishment->latitude) }}" disabled class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-[#6B5B4A] shadow-sm cursor-not-allowed" />
                         </div>
 
                         <div>
@@ -346,7 +346,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->longitude ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="longitude" value="{{ old('longitude', $establishment->longitude) }}" disabled class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-[#6B5B4A] shadow-sm cursor-not-allowed" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="longitude" value="{{ old('longitude', $establishment->longitude) }}" disabled class="mt-1 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-[#6B5B4A] shadow-sm cursor-not-allowed" />
                         </div>
                     </div>
                 </div>
@@ -361,7 +361,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->contact_number ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="contact_number" value="{{ old('contact_number', $establishment->contact_number) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="contact_number" value="{{ old('contact_number', $establishment->contact_number) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                         </div>
 
                         <div>
@@ -369,7 +369,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->email ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak type="email" name="email" value="{{ old('email', $establishment->email) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                            <input x-show="editMode" x-cloak style="display: none;" type="email" name="email" value="{{ old('email', $establishment->email) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                         </div>
 
                         <div>
@@ -377,7 +377,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A] break-all">{{ $establishment->website ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak type="url" name="website" value="{{ old('website', $establishment->website) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                            <input x-show="editMode" x-cloak style="display: none;" type="url" name="website" value="{{ old('website', $establishment->website) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                         </div>
                     </div>
                 </div>
@@ -392,7 +392,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->visit_hours ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="visit_hours" value="{{ old('visit_hours', $establishment->visit_hours) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Mon-Sat, 8:00 AM - 5:00 PM" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="visit_hours" value="{{ old('visit_hours', $establishment->visit_hours) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Mon-Sat, 8:00 AM - 5:00 PM" />
                         </div>
 
                         <div>
@@ -400,7 +400,7 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A]">{{ $establishment->activities ?: 'N/A' }}</p>
                             </template>
-                            <input x-show="editMode" x-cloak name="activities" value="{{ old('activities', $establishment->activities) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Farm tour, Cupping" />
+                            <input x-show="editMode" x-cloak style="display: none;" name="activities" value="{{ old('activities', $establishment->activities) }}" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Farm tour, Cupping" />
                         </div>
                     </div>
                 </div>

@@ -1393,6 +1393,8 @@
 
     <div
         x-show="showViewModal"
+        x-bind:hidden="!showViewModal"
+        hidden
         x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
@@ -1450,6 +1452,8 @@
 
 <div
     x-show="showEditModal"
+    x-bind:hidden="!showEditModal"
+    hidden
     x-cloak
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
@@ -1534,6 +1538,7 @@
     x-bind:hidden="!showCreateModal"
     hidden
     x-cloak
+    x-bind:style="showCreateModal ? '' : 'display: none !important;'"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"

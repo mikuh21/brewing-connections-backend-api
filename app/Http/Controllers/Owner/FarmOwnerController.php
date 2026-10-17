@@ -551,8 +551,11 @@ class FarmOwnerController extends Controller
         // Always bump profile timestamp after a successful profile update flow.
         $establishment->touch();
 
+        $profileRoute = $user->role === 'cafe_owner' ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm';
+        $idParameter = $user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id';
+
         return redirect()
-            ->route('farm-owner.my-farm', ['farm_id' => $establishment->id])
+            ->route($profileRoute, [$idParameter => $establishment->id])
             ->with('status', ucfirst($this->workspaceEstablishmentLabel($user)) . ' profile updated successfully.');
     }
 
@@ -770,7 +773,7 @@ class FarmOwnerController extends Controller
                         'status' => strtolower((string) $order->status),
                         'time' => optional($order->created_at)->diffForHumans(),
                         'timestamp' => optional($order->created_at)?->timestamp ?? 0,
-                        'url' => route('farm-owner.marketplace', ['farm_id' => $establishment->id]) . '#orders',
+                        'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.marketplace' : 'farm-owner.marketplace', [$user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' => $establishment->id]) . '#orders',
                     ];
                 });
         }
@@ -829,7 +832,7 @@ class FarmOwnerController extends Controller
                 'time' => optional($latestIncoming->created_at)->diffForHumans(),
                 'timestamp' => optional($latestIncoming->created_at)?->timestamp ?? 0,
                 'unread_count' => $unread,
-                'url' => route('farm-owner.messages.show', ['conversation' => $conversation->id, 'farm_id' => $establishment?->id]),
+                'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', ['conversation' => $conversation->id, $user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' => $establishment?->id]),
             ]);
         }
 
@@ -1014,8 +1017,11 @@ class FarmOwnerController extends Controller
         $farm->longitude = null;
         $farm->save();
 
+        $mapRoute = $user->role === 'cafe_owner' ? 'roaster-owner.map' : 'farm-owner.map';
+        $idParameter = $user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id';
+
         return redirect()
-            ->route('farm-owner.map', ['farm_id' => $farm->id])
+            ->route($mapRoute, [$idParameter => $farm->id])
             ->with('success', ucfirst($this->workspaceEstablishmentLabel($user)) . ' location added. Pin it on the map to make it discoverable.');
     }
 
@@ -1164,7 +1170,7 @@ class FarmOwnerController extends Controller
                 return response()->json(['conversation_id' => $existingConversation->id]);
             }
 
-            return redirect()->route('farm-owner.messages.show', $existingConversation);
+            return redirect()->route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', $existingConversation);
         }
 
         $conversation = Conversation::create();
@@ -1174,7 +1180,7 @@ class FarmOwnerController extends Controller
             return response()->json(['conversation_id' => $conversation->id]);
         }
 
-        return redirect()->route('farm-owner.messages.show', $conversation);
+        return redirect()->route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', $conversation);
     }
 
     public function storeMessageConversation(Request $request)

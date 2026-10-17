@@ -186,9 +186,10 @@
     <div
         class="fixed inset-0 z-50 flex items-center justify-center px-4"
         x-show="newChatOpen"
+        x-bind:hidden="!newChatOpen"
+        hidden
         x-cloak
-        style="display: none;"
-        @keydown.escape="newChatOpen = false"
+        @keydown.escape.window="newChatOpen = false"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-95"
         x-transition:enter-end="opacity-100 scale-100"
@@ -196,7 +197,6 @@
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
         @click="newChatOpen = false"
-        style="display: none;"
     >
         <div class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm" @click.stop="newChatOpen = false"></div>
 
@@ -247,10 +247,11 @@
                                         return r.json();
                                     })
                                     .then(data => {
-                                        if (!data || !data.conversation_id) {
-                                            throw new Error('Invalid chat response.');
-                                        }
-                                        window.location.href = '{{ route($messagesRoutePrefix . '.messages.show', array_merge(['conversation' => '__CONVERSATION_ID__'], $messagesRouteParams)) }}'.replace('__CONVERSATION_ID__', data.conversation_id);
+                                        const conversationId = data?.data?.id ?? data?.conversation?.id ?? data?.conversation_id;
+                                         if (!conversationId) {
+                                             throw new Error('Invalid chat response.');
+                                         }
+                                         window.location.href = '{{ route($messagesRoutePrefix . '.messages.show', array_merge(['conversation' => '__CONVERSATION_ID__'], $messagesRouteParams)) }}'.replace('__CONVERSATION_ID__', conversationId);
                                     })
                                     .catch(() => {
                                         alert('Unable to start chat right now. Please try again.');

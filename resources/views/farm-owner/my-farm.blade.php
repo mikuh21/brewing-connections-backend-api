@@ -250,7 +250,7 @@
                             @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
                         >
-                            <span x-show="!editMode" x-cloak style="display: none;">Edit {{ ucfirst($workspaceLabel) }}</span>
+                            <span x-show="!editMode" x-cloak>Edit {{ ucfirst($workspaceLabel) }}</span>
                             <span x-show="editMode" x-cloak style="display: none;">Cancel</span>
                         </button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-cloak style="display: none;">

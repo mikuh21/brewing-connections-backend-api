@@ -8,7 +8,7 @@
 
 @section('content')
 @php
-    $activeFarmId = (int) request('farm_id', 0);
+    $activeFarmId = (int) request('roaster_id', request('farm_id', 0));
     $productsMeta = $products->map(function ($product) {
         return [
             'id' => $product->id,

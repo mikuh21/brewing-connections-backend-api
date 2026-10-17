@@ -251,7 +251,7 @@
                                         if (!data || !data.conversation_id) {
                                             throw new Error('Invalid chat response.');
                                         }
-                                        window.location.href = '{{ url('farm-owner/messages') }}/' + data.conversation_id;
+                                        window.location.href = '{{ route($messagesRoutePrefix . '.messages.show', array_merge(['conversation' => '__CONVERSATION_ID__'], $messagesRouteParams)) }}'.replace('__CONVERSATION_ID__', data.conversation_id);
                                     })
                                     .catch(() => {
                                         alert('Unable to start chat right now. Please try again.');

@@ -1551,51 +1551,51 @@
             @endif
 
             <div class="md:col-span-3">
-                <label class="block text-[11px] font-semibold">Name *</label>
-                <input x-model="createForm.name" name="name" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <label class="block text-xs font-semibold">Name *</label>
+                <input x-model="createForm.name" name="name" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Type *</label>
-                <select x-model="createForm.category" name="category" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+                <label class="block text-xs font-semibold">Type *</label>
+                <select x-model="createForm.category" name="category" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                     <option value="Coffee Beans">Coffee Beans</option>
                     <option value="Ground Coffee">Ground Coffee</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Price *</label>
+                <label class="block text-xs font-semibold">Price *</label>
                 <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="$refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p x-show="$refs.createPriceInput && $refs.createPriceInput.value !== '' && Number($refs.createPriceInput.value) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <p x-show="createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Roast Level</label>
-                <input x-model="createForm.roast_level" name="roast_level" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Light, Medium, Dark" />
+                <label class="block text-xs font-semibold">Roast Level</label>
+                <input x-model="createForm.roast_level" name="roast_level" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Light, Medium, Dark" />
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Grind Type</label>
-                <input x-model="createForm.grind_type" name="grind_type" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Whole Bean / Fine / Coarse" />
+                <label class="block text-xs font-semibold">Grind Type</label>
+                <input x-model="createForm.grind_type" name="grind_type" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Whole Bean / Fine / Coarse" />
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Stock Quantity *</label>
-                <input x-model="createForm.stock_quantity" type="number" min="1" step="1" inputmode="numeric" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <label class="block text-xs font-semibold">Stock Quantity *</label>
+                <input x-model="createForm.stock_quantity" type="number" min="1" step="1" inputmode="numeric" name="stock_quantity" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Unit</label>
-                <input x-model="createForm.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <label class="block text-xs font-semibold">Unit</label>
+                <input x-model="createForm.unit" name="unit" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div>
-                <label class="block text-[11px] font-semibold">Minimum Order Quantity</label>
-                <input x-model="createForm.moq" type="number" min="1" step="1" inputmode="numeric" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <label class="block text-xs font-semibold">Minimum Order Quantity</label>
+                <input x-model="createForm.moq" type="number" min="1" step="1" inputmode="numeric" name="moq" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
             </div>
 
             <div class="md:col-span-3">
-                <label class="block text-[11px] font-semibold">Product Image</label>
+                <label class="block text-xs font-semibold">Product Image</label>
                 <input x-ref="createImageInput" type="file" name="image" accept="image/*" @change="handleCreateImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
                 <div x-show="createImagePreview && $refs.createImageInput && $refs.createImageInput.files && $refs.createImageInput.files.length > 0" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
                     <button type="button" @click="clearCreateImage()" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/95 border border-gray-300 text-gray-600 text-xs leading-none hover:bg-red-50 hover:text-red-600" aria-label="Remove selected image">&times;</button>
@@ -1605,8 +1605,8 @@
             </div>
 
             <div class="md:col-span-3">
-                <label class="block text-[11px] font-semibold">Description</label>
-                <textarea x-model="createForm.description" name="description" rows="2" class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
+                <label class="block text-xs font-semibold">Description</label>
+                <textarea x-model="createForm.description" name="description" rows="3" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]"></textarea>
             </div>
 
             <div class="md:col-span-3 flex justify-end gap-2 pt-2">

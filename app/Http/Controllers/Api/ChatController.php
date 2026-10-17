@@ -50,7 +50,7 @@ class ChatController extends Controller
         $users = User::query()
             ->messageable()
             ->where('id', '!=', Auth::id())
-            ->whereIn('role', ['admin', 'farm_owner', 'cafe_owner', 'reseller'])
+            ->whereIn('role', ['admin', 'farm_owner', 'roaster', 'cafe_owner', 'reseller'])
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'role', 'image_url']);
 

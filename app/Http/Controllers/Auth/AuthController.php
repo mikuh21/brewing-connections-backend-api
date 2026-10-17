@@ -92,7 +92,7 @@ class AuthController extends Controller
             $ownsRoaster = $roasterQuery->exists();
 
             if ($ownsRoaster) {
-                return redirect()->route('farm-owner.dashboard');
+                return redirect()->route('roaster-owner.dashboard');
             }
         }
 

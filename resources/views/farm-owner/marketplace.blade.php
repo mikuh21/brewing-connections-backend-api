@@ -1571,7 +1571,7 @@
             <div>
                 <label class="block text-xs font-semibold">Price *</label>
                 <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="createPriceTouched = true; $refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p x-show="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-bind:style="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0 ? '' : 'display: none !important;'" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <p x-show="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>
@@ -1602,7 +1602,7 @@
             <div class="md:col-span-3">
                 <label class="block text-xs font-semibold">Product Image</label>
                 <input x-ref="createImageInput" type="file" name="image" accept="image/*" @change="handleCreateImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <div x-show="createImagePreview && $refs.createImageInput && $refs.createImageInput.files && $refs.createImageInput.files.length > 0" x-bind:hidden="!(createImagePreview && $refs.createImageInput && $refs.createImageInput.files && $refs.createImageInput.files.length > 0)" hidden x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
+                <div x-show="createImagePreview && $refs.createImageInput && $refs.createImageInput.files && $refs.createImageInput.files.length > 0" x-cloak style="display: none;" class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
                     <button type="button" @click="clearCreateImage()" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/95 border border-gray-300 text-gray-600 text-xs leading-none hover:bg-red-50 hover:text-red-600" aria-label="Remove selected image">&times;</button>
                     <p class="text-[11px] text-[#9E8C78] mb-1">Live image preview</p>
                     <img :src="createImagePreview" alt="Selected product image preview" class="max-h-32 w-full object-contain rounded-md border border-gray-200 bg-white" x-on:error="clearCreateImage()" />

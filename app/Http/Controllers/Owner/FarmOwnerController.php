@@ -35,6 +35,16 @@ class FarmOwnerController extends Controller
     ) {
     }
 
+    protected function workspaceEstablishmentType(User $user): string
+    {
+        return $user->role === 'cafe_owner' ? 'roaster' : 'farm';
+    }
+
+    protected function workspaceEstablishmentLabel(User $user): string
+    {
+        return $this->workspaceEstablishmentType($user) === 'roaster' ? 'roaster' : 'farm';
+    }
+
     protected function farmOwnerEstablishmentsQuery(User $user)
     {
         $query = Establishment::query();
@@ -56,7 +66,7 @@ class FarmOwnerController extends Controller
         }
 
         if ($this->hasEstablishmentColumn('type')) {
-            $query->where('type', 'farm');
+            $query->where('type', $this->workspaceEstablishmentType($user));
         }
 
         return $query;
@@ -85,9 +95,11 @@ class FarmOwnerController extends Controller
             return $fallbackFarm;
         }
 
+        $workspaceType = $this->workspaceEstablishmentType($user);
+        $workspaceLabel = ucfirst($this->workspaceEstablishmentLabel($user));
         $createPayload = [
-            'name' => $user->name . "'s Farm",
-            'type' => 'farm',
+            'name' => $user->name . "'s " . $workspaceLabel,
+            'type' => $workspaceType,
         ];
 
         if ($this->hasEstablishmentColumn('owner_id')) {
@@ -435,7 +447,7 @@ class FarmOwnerController extends Controller
         $establishment = $this->resolveActiveFarm($user, $requestedFarmId);
 
         if (!$establishment) {
-            abort(404, 'Farm profile not found.');
+            abort(404, ucfirst($this->workspaceEstablishmentLabel($user)) . ' profile not found.');
         }
 
         if (!$this->isFarmManagedByUser($establishment, $user)) {
@@ -540,7 +552,7 @@ class FarmOwnerController extends Controller
 
         return redirect()
             ->route('farm-owner.my-farm', ['farm_id' => $establishment->id])
-            ->with('status', 'Farm profile updated successfully.');
+            ->with('status', ucfirst($this->workspaceEstablishmentLabel($user)) . ' profile updated successfully.');
     }
 
     public function marketplace()
@@ -878,7 +890,7 @@ class FarmOwnerController extends Controller
             'moq' => $validated['moq'] ?? 1,
             'stock_quantity' => $validated['stock_quantity'],
             'image_url' => $imageUrl,
-            'seller_type' => 'farm_owner',
+            'seller_type' => $this->workspaceEstablishmentType($user) === 'roaster' ? 'roaster' : 'farm_owner',
             'seller_id' => $user->id,
             'establishment_id' => $establishment->id,
             'is_active' => true,
@@ -992,7 +1004,7 @@ class FarmOwnerController extends Controller
             $farm->user_id = $user->id;
         }
         $farm->name = trim($validated['name']);
-        $farm->type = 'farm';
+        $farm->type = $this->workspaceEstablishmentType($user);
         $farm->address = trim($validated['address']);
         $farm->barangay = trim($validated['barangay']);
         $farm->contact_number = $user->contact_number;
@@ -1003,7 +1015,7 @@ class FarmOwnerController extends Controller
 
         return redirect()
             ->route('farm-owner.map', ['farm_id' => $farm->id])
-            ->with('success', 'Farm location added. Pin it on the map to make it discoverable.');
+            ->with('success', ucfirst($this->workspaceEstablishmentLabel($user)) . ' location added. Pin it on the map to make it discoverable.');
     }
 
     public function map(Request $request)

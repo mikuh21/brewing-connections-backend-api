@@ -27,7 +27,7 @@ class RoleMiddleware
         }
 
         // Owner roles
-        if ($role === 'owner' && in_array($user->role, ['farm_owner', 'cafe_owner', 'reseller'])) {
+        if ($role === 'owner' && in_array($user->role, ['farm_owner', 'roaster', 'cafe_owner', 'reseller'])) {
             return $next($request);
         }
 

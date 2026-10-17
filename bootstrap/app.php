@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'cafe.owner' => \App\Http\Middleware\CafeOwnerMiddleware::class,
+            'farm.workspace' => \App\Http\Middleware\FarmWorkspaceMiddleware::class,
             'reseller.verified' => \App\Http\Middleware\EnsureResellerVerified::class,
         ]);
     })

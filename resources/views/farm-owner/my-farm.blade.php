@@ -197,7 +197,7 @@
                 <img
                     x-show="imagePreviewUrl"
                     x-cloak
-                    :src="imagePreviewUrl"
+                     :src="imagePreviewUrl || null"
                     alt="{{ $workspaceLabel }} cover"
                     class="h-full w-full object-cover"
                     :style="fitStyle(bannerFitX, bannerFitY)"
@@ -216,7 +216,7 @@
                             <img
                                 x-show="imagePreviewUrl"
                                 x-cloak
-                                :src="imagePreviewUrl"
+                                :src="imagePreviewUrl || null"
                                 alt="{{ $workspaceLabel }}"
                                 class="absolute inset-0 w-full h-full max-w-none object-cover"
                                 :style="fitStyle(profileFitX, profileFitY)"

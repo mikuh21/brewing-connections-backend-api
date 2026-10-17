@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Establishment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -65,6 +66,21 @@ class AuthController extends Controller
                 ->update(['deactivation_notice_seen_at' => now()]);
 
             return redirect()->route('reseller.dashboard');
+        }
+
+        if ($user->role === 'cafe_owner') {
+            $ownsRoaster = Establishment::query()
+                ->where('type', 'roaster')
+                ->whereNull('deleted_at')
+                ->where(function ($query) use ($user) {
+                    $query->where('owner_id', $user->id)
+                        ->orWhere('user_id', $user->id);
+                })
+                ->exists();
+
+            if ($ownsRoaster) {
+                return redirect()->route('farm-owner.dashboard');
+            }
         }
 
         switch ($user->role) {

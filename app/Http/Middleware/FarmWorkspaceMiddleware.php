@@ -14,13 +14,13 @@ class FarmWorkspaceMiddleware
     {
         $user = $request->user();
 
-        if (!$user || !in_array($user->role, ['farm_owner', 'cafe_owner'], true)) {
+        if (!$user || !in_array($user->role, ['farm_owner', 'roaster'], true)) {
             return redirect()
                 ->route('login')
                 ->with('error', 'You are not authorized to access that page.');
         }
 
-        $expectedType = $user->role === 'cafe_owner' ? 'roaster' : 'farm';
+        $expectedType = $user->role === 'roaster' ? 'roaster' : 'farm';
         $columns = Schema::getColumnListing('establishments');
         $hasOwnerId = in_array('owner_id', $columns, true);
         $hasUserId = in_array('user_id', $columns, true);

@@ -13,7 +13,7 @@
     $farmName = $establishment->name ?? auth()->user()->name ?? ($isRoasterWorkspace ? 'Roaster Owner' : 'Farm Owner');
 @endphp
 
-<div class="farm-dashboard-header flex items-center justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
+<div class="farm-dashboard-header flex items-start justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
     <div>
         <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
             Welcome back, <span class="italic text-[#4A6741]">{{ $farmName }}</span>

@@ -192,9 +192,15 @@
                 :class="editMode && imagePreviewUrl ? 'cursor-grab active:cursor-grabbing' : ''"
                 @pointerdown="beginFitDrag('banner', $event)"
             >
-                <template x-if="imagePreviewUrl">
-                    <img :src="imagePreviewUrl" alt="{{ $workspaceLabel }} cover" class="h-full w-full object-cover" :style="fitStyle(bannerFitX, bannerFitY)" />
-                </template>
+                <img
+                    x-show="imagePreviewUrl"
+                    x-cloak
+                    :src="imagePreviewUrl"
+                    alt="{{ $workspaceLabel }} cover"
+                    class="h-full w-full object-cover"
+                    :style="fitStyle(bannerFitX, bannerFitY)"
+                    x-on:error="imagePreviewUrl = ''; initialImagePreviewUrl = '';"
+                />
             </div>
 
             <div class="px-8 pb-8 pt-4">
@@ -205,26 +211,30 @@
                             :class="editMode && imagePreviewUrl ? 'cursor-grab active:cursor-grabbing' : ''"
                             @pointerdown="beginFitDrag('profile', $event)"
                         >
-                            <template x-if="imagePreviewUrl">
-                                <img :src="imagePreviewUrl" alt="{{ $workspaceLabel }}" class="absolute inset-0 w-full h-full max-w-none object-cover" :style="fitStyle(profileFitX, profileFitY)" />
-                            </template>
-                            <template x-if="!imagePreviewUrl">
-                                {{ $workspaceLabel }} Image
-                            </template>
+                            <img
+                                x-show="imagePreviewUrl"
+                                x-cloak
+                                :src="imagePreviewUrl"
+                                alt="{{ $workspaceLabel }}"
+                                class="absolute inset-0 w-full h-full max-w-none object-cover"
+                                :style="fitStyle(profileFitX, profileFitY)"
+                                x-on:error="imagePreviewUrl = ''; initialImagePreviewUrl = '';"
+                            />
+                            <div
+                                x-show="!imagePreviewUrl"
+                                x-cloak
+                                class="absolute inset-0 flex items-center justify-center px-2 text-center text-[10px] font-semibold leading-tight text-[#6B5B4A]"
+                            >{{ ucfirst($workspaceLabel) }} image not uploaded</div>
                         </div>
                         <div class="pt-4">
-                            <template x-if="!editMode">
-                                <div>
-                                    <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
-                                    <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
-                                </div>
-                            </template>
-                            <template x-if="editMode">
-                                <div class="space-y-3">
-                                    <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="{{ $workspaceLabel }} name" required />
-                                    <input name="address" value="{{ old('address', $establishment->address) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Address" />
-                                </div>
-                            </template>
+                            <div x-show="!editMode" x-cloak>
+                                <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
+                                <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
+                            </div>
+                            <div x-show="editMode" x-cloak class="space-y-3 w-full min-w-0">
+                                <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="{{ ucfirst($workspaceLabel) }} name" required />
+                                <input name="address" value="{{ old('address', $establishment->address) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Address" />
+                            </div>
                         </div>
                     </div>
 
@@ -233,8 +243,10 @@
                             type="button"
                             @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
-                            x-text="editMode ? 'Cancel' : 'Edit {{ $workspaceLabel }}'"
-                        ></button>
+                        >
+                            <span x-show="!editMode" x-cloak>Edit {{ ucfirst($workspaceLabel) }}</span>
+                            <span x-show="editMode" x-cloak>Cancel</span>
+                        </button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-cloak>
                             Save {{ $workspaceLabel }}
                         </button>

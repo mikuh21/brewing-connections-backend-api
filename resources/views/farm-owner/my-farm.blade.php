@@ -1,21 +1,23 @@
 @extends('farm-owner.layouts.app')
 
 @php
-    $title = 'Farm';
+    $isRoasterWorkspace = ($establishment->type ?? '') === 'roaster';
+    $workspaceLabel = $isRoasterWorkspace ? 'Roaster' : 'Farm';
+    $title = $workspaceLabel;
 @endphp
 
-@section('title', 'Farm - BrewHub')
+@section('title', $workspaceLabel . ' - BrewHub')
 
 @section('content')
 <div class="farm-profile-header mb-8">
     <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
-        Farm <span class="italic text-[#4A6741]">Profile</span>
+        {{ $workspaceLabel }} <span class="italic text-[#4A6741]">Profile</span>
     </h1>
-    <p class="text-[#9E8C78] text-sm font-medium">Manage your farm details</p>
+    <p class="text-[#9E8C78] text-sm font-medium">Manage your {{ strtolower($workspaceLabel) }} details</p>
 
     @if(($managedFarms ?? collect())->count() > 1)
         <form method="GET" action="{{ route('farm-owner.my-farm') }}" class="mt-4 inline-flex items-center gap-2">
-            <label for="farm-switch" class="text-xs font-semibold text-[#6B5B4A]">Switch Farm</label>
+            <label for="farm-switch" class="text-xs font-semibold text-[#6B5B4A]">{{ $isRoasterWorkspace ? 'Switch Roaster' : 'Switch Farm' }}</label>
             <select id="farm-switch" name="farm_id" onchange="this.form.submit()" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                 @foreach(($managedFarms ?? collect()) as $farmOption)
                     <option value="{{ $farmOption->id }}" @selected((int) $farmOption->id === (int) ($establishment->id ?? 0))>
@@ -191,7 +193,7 @@
                 @pointerdown="beginFitDrag('banner', $event)"
             >
                 <template x-if="imagePreviewUrl">
-                    <img :src="imagePreviewUrl" alt="Farm cover" class="h-full w-full object-cover" :style="fitStyle(bannerFitX, bannerFitY)" />
+                    <img :src="imagePreviewUrl" alt="{{ $workspaceLabel }} cover" class="h-full w-full object-cover" :style="fitStyle(bannerFitX, bannerFitY)" />
                 </template>
             </div>
 
@@ -204,22 +206,22 @@
                             @pointerdown="beginFitDrag('profile', $event)"
                         >
                             <template x-if="imagePreviewUrl">
-                                <img :src="imagePreviewUrl" alt="Farm" class="absolute inset-0 w-full h-full max-w-none object-cover" :style="fitStyle(profileFitX, profileFitY)" />
+                                <img :src="imagePreviewUrl" alt="{{ $workspaceLabel }}" class="absolute inset-0 w-full h-full max-w-none object-cover" :style="fitStyle(profileFitX, profileFitY)" />
                             </template>
                             <template x-if="!imagePreviewUrl">
-                                Farm Image
+                                {{ $workspaceLabel }} Image
                             </template>
                         </div>
                         <div class="pt-4">
                             <template x-if="!editMode">
                                 <div>
-                                    <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed Farm' }}</h2>
+                                    <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
                                     <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
                                 </div>
                             </template>
                             <template x-if="editMode">
                                 <div class="space-y-3">
-                                    <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Farm name" required />
+                                    <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="{{ $workspaceLabel }} name" required />
                                     <input name="address" value="{{ old('address', $establishment->address) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Address" />
                                 </div>
                             </template>
@@ -231,10 +233,10 @@
                             type="button"
                             @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
-                            x-text="editMode ? 'Cancel' : 'Edit Farm'"
+                            x-text="editMode ? 'Cancel' : 'Edit {{ $workspaceLabel }}'"
                         ></button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-cloak>
-                            Save Farm
+                            Save {{ $workspaceLabel }}
                         </button>
                     </div>
                 </div>
@@ -245,7 +247,7 @@
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white rounded-xl shadow-sm p-8">
                     <h3 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">About</h3>
-                    <p class="text-[#9E8C78] text-sm mb-4">Farm identity and story</p>
+                    <p class="text-[#9E8C78] text-sm mb-4">{{ $workspaceLabel }} identity and story</p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -277,18 +279,18 @@
                             <template x-if="!editMode">
                                 <p class="mt-1 text-sm text-[#6B5B4A] leading-relaxed">{{ $establishment->description ?: 'No description provided yet.' }}</p>
                             </template>
-                            <textarea x-show="editMode" x-cloak name="description" rows="4" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Tell customers about your farm...">{{ old('description', $establishment->description) }}</textarea>
+                            <textarea x-show="editMode" x-cloak name="description" rows="4" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Tell customers about your {{ strtolower($workspaceLabel) }}...">{{ old('description', $establishment->description) }}</textarea>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm p-8" id="trivia-history-section">
                     <h3 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">Trivia / History</h3>
-                    <p class="text-[#9E8C78] text-sm mb-4">Share interesting facts, your farm's history, or local coffee-growing heritage for Coffee Trail visitors.</p>
+                    <p class="text-[#9E8C78] text-sm mb-4">Share interesting facts, your {{ strtolower($workspaceLabel) }}'s history, or local coffee-growing heritage for Coffee Trail visitors.</p>
                     <template x-if="!editMode">
                         <p class="text-sm text-[#6B5B4A] leading-relaxed whitespace-pre-line">{{ $establishment->trivia_history ?: 'No trivia or history added yet.' }}</p>
                     </template>
-                    <textarea x-show="editMode" x-cloak name="trivia_history" rows="5" maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Share verified facts about your farm, coffee-growing practices, history, or local agro-tourism...">{{ old('trivia_history', $establishment->trivia_history) }}</textarea>
+                    <textarea x-show="editMode" x-cloak name="trivia_history" rows="5" maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Share verified facts about your {{ strtolower($workspaceLabel) }}, coffee-roasting practices, history, or local agro-tourism...">{{ old('trivia_history', $establishment->trivia_history) }}</textarea>
                     <p x-show="editMode" x-cloak class="mt-2 text-xs text-[#9E8C78]">Maximum 5,000 characters. Leave blank if you do not have trivia or history to share yet.</p>
                 </div>
 
@@ -364,7 +366,7 @@
 
                 <div class="bg-white rounded-xl shadow-sm p-8">
                     <h3 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">Operating Hours</h3>
-                    <p class="text-[#9E8C78] text-sm mb-4">When your farm is open and available activities</p>
+                    <p class="text-[#9E8C78] text-sm mb-4">When your {{ strtolower($workspaceLabel) }} is open and available activities</p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -389,7 +391,7 @@
             <div class="space-y-6">
                 <div class="bg-white rounded-xl shadow-sm p-8">
                     <h3 class="text-2xl font-display font-bold text-[#3A2E22] mb-1">Coffee Varieties</h3>
-                    <p class="text-[#9E8C78] text-sm mb-4">Varieties offered by your farm</p>
+                    <p class="text-[#9E8C78] text-sm mb-4">Varieties offered by your {{ strtolower($workspaceLabel) }}</p>
 
                     <div class="space-y-3">
                         @foreach($allVarieties as $variety)

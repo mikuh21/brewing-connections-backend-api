@@ -2,6 +2,8 @@
 
 @php
     $isRoasterWorkspace = ($establishment->type ?? '') === 'roaster';
+    $profileRouteName = $isRoasterWorkspace ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm';
+    $profileUpdateRouteName = $isRoasterWorkspace ? 'roaster-owner.my-roaster.update' : 'farm-owner.my-farm.update';
     $workspaceLabel = $isRoasterWorkspace ? 'Roaster' : 'Farm';
     $title = $workspaceLabel;
 @endphp
@@ -16,7 +18,7 @@
     <p class="text-[#9E8C78] text-sm font-medium">Manage your {{ strtolower($workspaceLabel) }} details</p>
 
     @if(($managedFarms ?? collect())->count() > 1)
-        <form method="GET" action="{{ route('farm-owner.my-farm') }}" class="mt-4 inline-flex items-center gap-2">
+        <form method="GET" action="{{ route($profileRouteName) }}" class="mt-4 inline-flex items-center gap-2">
             <label for="farm-switch" class="text-xs font-semibold text-[#6B5B4A]">{{ $isRoasterWorkspace ? 'Switch Roaster' : 'Switch Farm' }}</label>
             <select id="farm-switch" name="{{ auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' }}" onchange="this.form.submit()" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                 @foreach(($managedFarms ?? collect()) as $farmOption)
@@ -173,7 +175,7 @@
     x-init="editMode = window.location.hash === '#trivia-history-section'"
     class="space-y-8"
 >
-    <form method="POST" action="{{ route('farm-owner.my-farm') }}" enctype="multipart/form-data" class="space-y-8">
+    <form method="POST" action="{{ route($profileUpdateRouteName) }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
         @method('PATCH')
 

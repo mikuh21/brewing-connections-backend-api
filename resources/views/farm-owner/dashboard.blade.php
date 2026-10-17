@@ -162,7 +162,7 @@
                 <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
             </button>
 
-            <div x-show="open" x-cloak style="display: none;" class="farm-dashboard-notif-menu mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+            <div x-show="open" x-cloak style="display: none;" class="farm-dashboard-notif-menu absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>
@@ -449,7 +449,7 @@
     </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm p-8">
+<div id="owner-performance-overview" class="bg-white rounded-xl shadow-sm p-8">
     <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
             Performance <span class="italic text-[#4A6741]">Overview</span>
@@ -629,4 +629,67 @@
         }
     }
 </style>
+
+<script>
+(function () {
+    if (window.__brewHubOwnerWindowTabsInitialized) return;
+    window.__brewHubOwnerWindowTabsInitialized = true;
+
+    async function loadOwnerOverview(url, updateHistory) {
+        const currentCard = document.getElementById('owner-performance-overview');
+        if (!currentCard) return false;
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'text/html',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            });
+            if (!response.ok) return false;
+
+            const html = await response.text();
+            const parsed = new DOMParser().parseFromString(html, 'text/html');
+            const nextCard = parsed.getElementById('owner-performance-overview');
+            if (!nextCard) return false;
+
+            currentCard.replaceWith(nextCard);
+            if (updateHistory) {
+                window.history.pushState({ ownerOverviewWindow: true }, '', url);
+            }
+            return true;
+        } catch (error) {
+            console.error('Unable to update owner performance overview:', error);
+            return false;
+        }
+    }
+
+    document.addEventListener('click', async function (event) {
+        const link = event.target.closest('a[href]');
+        if (!link) return;
+
+        let target;
+        try { target = new URL(link.href, window.location.href); } catch (_) { return; }
+        if (!target.searchParams.has('popularity_window') && !target.searchParams.has('order_window')) return;
+        if (target.origin !== window.location.origin) return;
+
+        event.preventDefault();
+        link.setAttribute('aria-busy', 'true');
+        const loaded = await loadOwnerOverview(target.href, true);
+        link.removeAttribute('aria-busy');
+        if (!loaded) window.location.assign(target.href);
+    });
+
+    window.addEventListener('popstate', async function () {
+        const hasWindow = new URL(window.location.href).searchParams.has('popularity_window')
+            || new URL(window.location.href).searchParams.has('order_window');
+        if (hasWindow) {
+            const loaded = await loadOwnerOverview(window.location.href, false);
+            if (!loaded) window.location.reload();
+        }
+    });
+})();
+</script>
+
 @endsection

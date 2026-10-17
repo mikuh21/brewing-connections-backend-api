@@ -4,13 +4,13 @@
     $title = 'Store';
 @endphp
 
-@section('title', 'My Products - BrewHub')
+@section('title', 'Store - BrewHub')
 
 @section('content')
 @php
-    $isRoasterWorkspace = auth()->user()?->role === 'roaster';
+    $isRoasterWorkspace = (($establishment->type ?? null) === 'roaster') || auth()->user()?->role === 'roaster';
     $marketplaceRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
-    $activeFarmId = (int) request('roaster_id', request('farm_id', 0));
+    $activeFarmId = (int) ($establishment->id ?? request('roaster_id', request('farm_id', 0)));
     $productsMeta = $products->map(function ($product) {
         return [
             'id' => $product->id,
@@ -76,7 +76,7 @@
         editImagePreview: '',
         createImagePreview: '',
         createImageObjectUrl: null,
-        activeEstablishmentParam: @js(auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id'),
+        activeEstablishmentParam: @js($isRoasterWorkspace ? 'roaster_id' : 'farm_id'),
         activeTab: 'my-listings',
         activeBrowseSellerType: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
         statusFilter: 'all',
@@ -1122,7 +1122,7 @@
                                         @csrf
                                         @method('PATCH')
                                         @if($activeFarmId > 0)
-                                            <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
+                                            <input type="hidden" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
                                         @endif
                                         <select name="status" @disabled($isCanceled) class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                             <option value="pending" @selected($status === 'pending')>Pending</option>
@@ -1474,7 +1474,7 @@
             @csrf
             @method('PATCH')
             @if($activeFarmId > 0)
-                <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
+                <input type="hidden" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
             @endif
 
             <div class="md:col-span-3">
@@ -1555,7 +1555,7 @@
         <form method="POST" action="{{ route($marketplaceRoutePrefix . '.marketplace.products.store', [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $activeFarmId]) }}" enctype="multipart/form-data" @submit="const priceValue = Number($refs.createPriceInput?.value || 0); if (!Number.isFinite(priceValue) || priceValue <= 0) { $event.preventDefault(); isCreatingProduct = false; $refs.createPriceInput?.setCustomValidity('Price must be greater than 0.'); $refs.createPriceInput?.reportValidity(); return; } $refs.createPriceInput?.setCustomValidity(''); isCreatingProduct = true;" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
             @csrf
             @if($activeFarmId > 0)
-                <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
+                <input type="hidden" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
             @endif
 
             <div class="md:col-span-3">

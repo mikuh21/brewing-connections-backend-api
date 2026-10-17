@@ -8,7 +8,7 @@
 
 @section('content')
 @php
-    $isRoasterWorkspace = auth()->user()?->role === 'cafe_owner';
+    $isRoasterWorkspace = auth()->user()?->role === 'roaster';
     $marketplaceRoutePrefix = $isRoasterWorkspace ? 'roaster-owner' : 'farm-owner';
     $activeFarmId = (int) request('roaster_id', request('farm_id', 0));
     $productsMeta = $products->map(function ($product) {

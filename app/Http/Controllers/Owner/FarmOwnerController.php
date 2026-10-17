@@ -115,7 +115,8 @@ class FarmOwnerController extends Controller
 
     protected function activeFarmIdFromRequest(Request $request): ?int
     {
-        $farmId = (int) $request->input('farm_id', 0);
+        $idParameter = $request->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id';
+        $farmId = (int) $request->input($idParameter, $request->input('farm_id', $request->input('roaster_id', 0)));
 
         return $farmId > 0 ? $farmId : null;
     }

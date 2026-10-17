@@ -196,9 +196,8 @@
             >
                 <img
                     x-show="imagePreviewUrl"
-                    x-bind:hidden="!imagePreviewUrl"
-                    hidden
                     x-cloak
+                    style="display: none;"
                     :src="imagePreviewUrl || null"
                     alt="{{ $workspaceLabel }} cover"
                     class="h-full w-full object-cover"
@@ -217,9 +216,8 @@
                         >
                             <img
                                 x-show="imagePreviewUrl"
-                                x-bind:hidden="!imagePreviewUrl"
-                                hidden
                                 x-cloak
+                                style="display: none;"
                                 :src="imagePreviewUrl || null"
                                 alt="{{ $workspaceLabel }}"
                                 class="absolute inset-0 w-full h-full max-w-none object-cover"
@@ -233,11 +231,11 @@
                             >{{ ucfirst($workspaceLabel) }} image not uploaded</div>
                         </div>
                         <div class="pt-4">
-                            <div x-show="!editMode" x-bind:hidden="editMode" hidden x-cloak>
+                            <div x-show="!editMode" x-cloak style="display: none;" style="display: none;">
                                 <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
                                 <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
                             </div>
-                            <div x-show="editMode" x-bind:hidden="!editMode" hidden x-cloak class="space-y-3 w-full min-w-0">
+                            <div x-show="editMode" x-cloak style="display: none;" style="display: none;" class="space-y-3 w-full min-w-0">
                                 <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="{{ ucfirst($workspaceLabel) }} name" required />
                                 <input name="address" value="{{ old('address', $establishment->address) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Address" />
                             </div>
@@ -251,7 +249,7 @@
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
                         >
                             <span x-show="!editMode" x-bind:hidden="editMode" hidden x-cloak>Edit {{ ucfirst($workspaceLabel) }}</span>
-                            <span x-show="editMode" x-bind:hidden="!editMode" hidden x-cloak>Cancel</span>
+                            <span x-show="editMode" x-cloak style="display: none;">Cancel</span>
                         </button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-bind:hidden="!editMode" hidden x-cloak>
                             Save {{ $workspaceLabel }}

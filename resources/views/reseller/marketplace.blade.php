@@ -12,6 +12,7 @@
         return match (strtolower((string) $ownerType)) {
             'farm_owner', 'farm owner', 'farm' => 'Farm Owner',
             'cafe_owner', 'cafe owner', 'cafe' => 'Cafe Owner',
+            'roaster', 'roaster owner' => 'Roaster',
             'reseller' => 'Reseller',
             default => 'Seller',
         };
@@ -677,7 +678,7 @@
 
                         <p class="text-[11px] text-[#6B5B4A] mb-2">
                             Seller:
-                            <span class="font-semibold text-[#3A2E22]" x-text="(String(product.seller_type || '').toLowerCase() === 'farm_owner' ? 'Farm Owner' : (String(product.seller_type || '').toLowerCase() === 'cafe_owner' ? 'Cafe Owner' : (String(product.seller_type || '').toLowerCase() === 'reseller' ? 'Reseller' : 'Seller')))"></span>
+                            <span class="font-semibold text-[#3A2E22]" x-text="(String(product.seller_type || '').toLowerCase() === 'farm_owner' ? 'Farm Owner' : (String(product.seller_type || '').toLowerCase() === 'cafe_owner' ? 'Cafe Owner' : (String(product.seller_type || '').toLowerCase() === 'reseller' ? 'Reseller' : (String(product.seller_type || '').toLowerCase() === 'roaster' ? 'Roaster' : 'Seller'))))"></span>
                             -
                             <span class="font-semibold text-[#3A2E22]" x-text="product.seller_name || product.reseller_name || 'Unknown'"></span>
                         </p>

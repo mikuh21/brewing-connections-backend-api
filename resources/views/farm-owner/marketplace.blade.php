@@ -1535,8 +1535,6 @@
 
 <div
     x-show="showCreateModal"
-    x-bind:hidden="!showCreateModal"
-    hidden
     x-cloak
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
@@ -1544,11 +1542,15 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    style="display: none;"
+    @click.self="closeCreateModal()"
+    @keydown.escape.window="if (showCreateModal) closeCreateModal()"
+    role="presentation"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="closeCreateModal()" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
+    <div @click.away="closeCreateModal()" role="dialog" aria-modal="true" aria-labelledby="add-product-modal-title" class="relative z-[10000] bg-white rounded-xl shadow-2xl w-full max-w-4xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
+            <h2 id="add-product-modal-title" class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
             <button type="button" @click="closeCreateModal()" class="text-gray-500 hover:text-gray-800 text-2xl leading-none" aria-label="Close Add Product modal">&times;</button>
         </div>
 

@@ -13,7 +13,7 @@
     $farmName = $establishment->name ?? auth()->user()->name ?? ($isRoasterWorkspace ? 'Roaster Owner' : 'Farm Owner');
 @endphp
 
-<div class="farm-dashboard-header flex items-start justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
+<div class="farm-dashboard-header relative flex items-start justify-between mb-8 sticky top-0 z-[1000] bg-[#F5F0E8]">
     <div>
         <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
             Welcome back, <span class="italic text-[#4A6741]">{{ $farmName }}</span>
@@ -153,6 +153,7 @@
         }"
         x-init="open = false; init()"
         @keydown.escape.window="open = false"
+        @click.window="if (!$el.contains($event.target)) open = false"
     >
         <div class="relative flex flex-col items-end" @click.away="open = false">
             <button type="button" @click="open = !open; if (open) fetchNotifications()" class="relative p-2 bg-white rounded-xl hover:bg-gray-50 transition-colors">
@@ -162,7 +163,7 @@
                 <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
             </button>
 
-            <div x-show="open" x-cloak style="display: none;" class="farm-dashboard-notif-menu absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg z-50 overflow-hidden">
+            <div x-show="open" x-cloak style="display: none;" @click.stop class="farm-dashboard-notif-menu absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg z-[1001] overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>

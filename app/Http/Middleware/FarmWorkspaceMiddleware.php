@@ -51,7 +51,7 @@ class FarmWorkspaceMiddleware
         }
 
         $routeName = (string) optional($request->route())->getName();
-        $isRoasterUser = $user->role === 'cafe_owner';
+        $isRoasterUser = $user->role === 'roaster';
         $isFarmWorkspaceRoute = str_starts_with($routeName, 'farm-owner.');
         $isRoasterWorkspaceRoute = str_starts_with($routeName, 'roaster-owner.');
 

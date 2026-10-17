@@ -20,6 +20,7 @@ class MapController extends Controller
     protected function resolveOwnerIdForMappedEstablishment(Request $request): ?int
     {
         if ($request->input('type') !== 'farm') {
+            $expectedOwnerRole = $request->input('type') === 'roaster' ? 'roaster' : 'cafe_owner';
             $normalizedEmail = strtolower(trim((string) $request->input('email', '')));
 
             if ($normalizedEmail === '') {
@@ -29,7 +30,7 @@ class MapController extends Controller
 
                 $ownerPassword = trim((string) $request->input('owner_password', ''));
                 if ($ownerPassword === '') {
-                    $messages['owner_password'] = 'Owner account password is required when creating a new cafe owner account.';
+                    $messages['owner_password'] = 'Owner account password is required when creating a new establishment owner account.';
                 }
 
                 throw ValidationException::withMessages($messages);
@@ -40,9 +41,9 @@ class MapController extends Controller
                 ->first();
 
             if ($owner) {
-                if ($owner->role !== 'cafe_owner') {
+                if ($owner->role !== $expectedOwnerRole) {
                     throw ValidationException::withMessages([
-                        'email' => 'This email is already assigned to a non cafe-owner account. Use a dedicated owner email instead.',
+                        'email' => 'This email is already assigned to a different account type. Use a dedicated establishment owner email instead.',
                     ]);
                 }
 
@@ -61,7 +62,7 @@ class MapController extends Controller
                 'name' => trim((string) $request->input('name', '')),
                 'email' => $normalizedEmail,
                 'password' => Hash::make($ownerPassword),
-                'role' => 'cafe_owner',
+                'role' => $expectedOwnerRole,
                 'email_verified_at' => now(),
             ];
 

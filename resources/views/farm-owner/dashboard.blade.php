@@ -114,7 +114,7 @@
             },
             async fetchNotifications() {
                 try {
-                    const response = await fetch('{{ route('farm-owner.notifications') }}', {
+                    const response = await fetch('{{ route('farm-owner.notifications', [(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id'))]) }}', {
                         headers: {
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'

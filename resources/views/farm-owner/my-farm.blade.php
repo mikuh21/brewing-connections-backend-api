@@ -1,7 +1,7 @@
 @extends('farm-owner.layouts.app')
 
 @php
-    $isRoasterWorkspace = ($establishment->type ?? '') === 'roaster';
+    $isRoasterWorkspace = ($establishment->type ?? '') === 'roaster' || auth()->user()?->role === 'roaster' || request()->routeIs('roaster-owner.*');
     $profileRouteName = $isRoasterWorkspace ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm';
     $profileUpdateRouteName = $isRoasterWorkspace ? 'roaster-owner.my-roaster.update' : 'farm-owner.my-farm.update';
     $workspaceLabel = $isRoasterWorkspace ? 'Roaster' : 'Farm';

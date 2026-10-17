@@ -87,7 +87,7 @@ class User extends Authenticatable implements JWTSubject
         return $query
             ->where('status', 'active')
             ->where(function ($query) {
-                // Farm/Cafe owners must still have a live establishment.
+                // Farm, cafe, and roaster owners must still have a live establishment.
                 // This also handles permanent establishment deletion, where
                 // no deleted establishment row remains to inspect.
                 $query->whereNotIn('role', ['farm_owner', 'roaster', 'cafe_owner'])

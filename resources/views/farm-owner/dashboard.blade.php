@@ -4,11 +4,13 @@
     $title = 'Dashboard';
 @endphp
 
-@section('title', 'Farm Owner Dashboard - BrewHub')
+@section('title', (($establishment->type ?? '') === 'roaster' ? 'Roaster Owner Dashboard' : 'Farm Owner Dashboard') . ' - BrewHub')
 
 @section('content')
 @php
-    $farmName = auth()->user()->farm_name ?? auth()->user()->name ?? 'Farm Owner';
+    $isRoasterWorkspace = ($establishment->type ?? '') === 'roaster';
+    $workspaceLabel = $isRoasterWorkspace ? 'roaster' : 'coffee farm';
+    $farmName = $establishment->name ?? auth()->user()->name ?? ($isRoasterWorkspace ? 'Roaster Owner' : 'Farm Owner');
 @endphp
 
 <div class="farm-dashboard-header flex items-center justify-between mb-8 sticky top-0 z-10 bg-[#F5F0E8]">
@@ -16,7 +18,7 @@
         <h1 class="text-3xl font-display font-bold text-[#3A2E22] mb-1">
             Welcome back, <span class="italic text-[#4A6741]">{{ $farmName }}</span>
         </h1>
-        <p class="text-[#9E8C78] text-sm font-medium">Manage your coffee farm</p>
+        <p class="text-[#9E8C78] text-sm font-medium">Manage your {{ $workspaceLabel }}</p>
     </div>
 
     <div
@@ -393,8 +395,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
-                <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">Manage Farm</h3>
-                <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">Update farm profile</p>
+                <h3 class="font-semibold text-[#3A2E22] group-hover:text-white transition-colors">{{ $isRoasterWorkspace ? 'Manage Roaster' : 'Manage Farm' }}</h3>
+                <p class="text-xs text-[#9E8C78] group-hover:text-white/80 transition-colors mt-1">{{ $isRoasterWorkspace ? 'Update roaster profile' : 'Update farm profile' }}</p>
             </a>
 
             <a href="{{ route('farm-owner.marketplace', $dashboardQuickActionRouteParams) }}#orders" class="group bg-[#FAF7F2] hover:bg-[#4A6741] rounded-xl p-4 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border border-gray-100">

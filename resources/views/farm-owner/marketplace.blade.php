@@ -132,7 +132,15 @@
             owner_name: '',
             seller_type: ''
         },
+        closeAllStoreModals() {
+            this.showCreateModal = false;
+            this.showEditModal = false;
+            this.showViewModal = false;
+            this.showReceiptModal = false;
+            this.showRatingImageModal = false;
+        },
         openViewer(product) {
+            this.closeAllStoreModals();
             this.viewProduct = {
                 id: product.id ?? null,
                 name: product.name || '',
@@ -190,6 +198,7 @@
             return raw;
         },
         openReceiptViewer(payload) {
+            this.closeAllStoreModals();
             const now = new Date();
             this.receiptData = {
                 generatedAt: payload?.generatedAt || now.toLocaleString(),
@@ -282,6 +291,7 @@
                 return;
             }
 
+            this.closeAllStoreModals();
             this.ratingImagePreview = {
                 src,
                 alt: alt || 'Rating photo preview',
@@ -404,6 +414,7 @@
             }, 250);
         },
         openEditor(product) {
+            this.closeAllStoreModals();
             this.form.id = product.id;
             this.form.name = product.name || '';
             this.form.description = product.description || '';
@@ -611,7 +622,7 @@
 
         <button
             type="button"
-            @click="resetCreateForm(); showCreateModal = true"
+            @click="closeAllStoreModals(); resetCreateForm(); showCreateModal = true"
             class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
         >
             <span class="mr-1.5">+</span>Add Product
@@ -1262,15 +1273,16 @@
 <div
     x-show="showRatingImageModal"
     x-cloak
+    style="display: none;"
+    @keydown.escape.window="if (showRatingImageModal) closeRatingImageViewer()"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    @keydown.escape.window="closeRatingImageViewer()"
-    @click="closeRatingImageViewer()"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+    @click.self="closeRatingImageViewer()"
+    class="fixed inset-0 z-[10020] flex items-center justify-center bg-black/80 p-4"
 >
     <div @click.stop class="relative inline-flex max-w-full items-start justify-center">
         <button
@@ -1286,13 +1298,16 @@
 <div
     x-show="showReceiptModal"
     x-cloak
+    style="display: none;"
+    @keydown.escape.window="if (showReceiptModal) closeReceiptViewer()"
+    @click.self="closeReceiptViewer()"
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100"
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/50 p-3 sm:p-4"
+    class="fixed inset-0 z-[10010] flex items-center justify-center overflow-hidden bg-black/50 p-3 sm:p-4"
 >
     <div @click.away="closeReceiptViewer()" class="relative isolate flex w-full max-w-lg md:max-w-2xl flex-col rounded-2xl bg-white shadow-2xl overflow-hidden h-auto max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2rem)]">
         <div x-ref="receiptPrintContent" class="relative z-0 min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -1406,16 +1421,17 @@
 
     <div
         x-show="showViewModal"
-        x-bind:hidden="!showViewModal"
-        hidden
         x-cloak
+        style="display: none;"
+        @click.self="showViewModal = false"
+        @keydown.escape.window="if (showViewModal) showViewModal = false"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
     >
         <div @click.away="showViewModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
             <div class="p-4 border-b border-[#E7DED1] flex items-center justify-between">
@@ -1477,7 +1493,7 @@
     x-transition:leave="transition ease-in duration-150"
     x-transition:leave-start="opacity-100"
     x-transition:leave-end="opacity-0"
-    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
 >
     <div @click.away="showEditModal = false" role="dialog" aria-modal="true" aria-labelledby="edit-product-modal-title" class="relative z-[10000] bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
@@ -1571,7 +1587,7 @@
     @click.self="closeCreateModal()"
     @keydown.escape.window="if (showCreateModal) closeCreateModal()"
     role="presentation"
-    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4"
+    class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 p-4"
 >
     <div @click.away="closeCreateModal()" role="dialog" aria-modal="true" aria-labelledby="add-product-modal-title" class="relative z-[10000] bg-white rounded-xl shadow-2xl w-full max-w-4xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">

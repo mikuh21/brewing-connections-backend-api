@@ -439,13 +439,13 @@
     </div>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6">
+<div class="bg-white rounded-2xl shadow-sm border border-[#E5DDD0] p-6" data-performance-overview>
     <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
         <h2 class="text-2xl font-display font-bold text-[#3A2E22]">
             Order <span class="italic text-[#4A6741]">Overview</span>
         </h2>
 
-        <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1" data-performance-overview>
+        <div class="inline-flex rounded-lg border border-[#E6DCCF] bg-[#FAF7F2] p-1">
             <a
                 href="{{ route('reseller.dashboard', ['order_window' => '7d']) }}"
                 class="px-3 py-1.5 text-xs font-semibold rounded-md transition-colors {{ ($orderWindow ?? '30d') === '7d' ? 'bg-white text-[#3A2E22] shadow-sm' : 'text-[#8A775F] hover:text-[#3A2E22]' }}"

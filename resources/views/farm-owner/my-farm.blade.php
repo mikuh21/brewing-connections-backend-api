@@ -233,7 +233,7 @@
                             >{{ ucfirst($workspaceLabel) }} image not uploaded</div>
                         </div>
                         <div class="pt-4">
-                            <div x-show="!editMode" x-cloak>
+                            <div x-show="!editMode" x-bind:hidden="editMode" hidden x-cloak>
                                 <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
                                 <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
                             </div>
@@ -250,8 +250,8 @@
                             @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
                         >
-                            <span x-show="!editMode" x-cloak>Edit {{ ucfirst($workspaceLabel) }}</span>
-                            <span x-show="editMode" x-cloak>Cancel</span>
+                            <span x-show="!editMode" x-bind:hidden="editMode" hidden x-cloak>Edit {{ ucfirst($workspaceLabel) }}</span>
+                            <span x-show="editMode" x-bind:hidden="!editMode" hidden x-cloak>Cancel</span>
                         </button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-bind:hidden="!editMode" hidden x-cloak>
                             Save {{ $workspaceLabel }}

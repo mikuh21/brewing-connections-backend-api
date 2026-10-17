@@ -179,7 +179,7 @@
         @csrf
         @method('PATCH')
 
-        <input type="hidden" name="{{ auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' }}" value="{{ $establishment->id ?? '' }}">
+        <input type="hidden" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" value="{{ $establishment->id ?? '' }}">
         <input type="hidden" name="latitude" value="{{ old('latitude', $establishment->latitude) }}">
         <input type="hidden" name="longitude" value="{{ old('longitude', $establishment->longitude) }}">
 

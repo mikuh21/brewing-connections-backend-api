@@ -67,6 +67,37 @@ class AuthController extends Controller
             return redirect()->route('reseller.dashboard');
         }
 
+        // Keep legacy accounts working during the role migration, but store roaster
+        // owners under the dedicated "roaster" role going forward.
+        if (in_array($user->role, ['roaster', 'cafe_owner'], true)) {
+            $roasterQuery = Establishment::query()
+                ->where('type', 'roaster')
+                ->whereNull('deleted_at');
+            $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
+            $hasUserId = Schema::hasColumn('establishments', 'user_id');
+
+            if ($hasOwnerId && $hasUserId) {
+                $roasterQuery->where(function ($query) use ($user) {
+                    $query->where('owner_id', $user->id)
+                        ->orWhere('user_id', $user->id);
+                });
+            } elseif ($hasOwnerId) {
+                $roasterQuery->where('owner_id', $user->id);
+            } elseif ($hasUserId) {
+                $roasterQuery->where('user_id', $user->id);
+            } else {
+                $roasterQuery->whereRaw('1 = 0');
+            }
+
+            if ($roasterQuery->exists()) {
+                if ($user->role !== 'roaster') {
+                    $user->forceFill(['role' => 'roaster'])->save();
+                }
+
+                return redirect()->route('roaster-owner.dashboard');
+            }
+        }
+
         switch ($user->role) {
             case 'admin':
                 return redirect()->route('admin.dashboard');

@@ -9,12 +9,13 @@ use Symfony\Component\HttpFoundation\Response;
 class CafeOwnerMiddleware
 {
     /**
-     * Restrict cafe-only pages to actual cafe owners.
-     * Roaster accounts have their own dedicated role and workspace.
+     * Restrict cafe-owner routes to actual cafe-owner accounts.
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || $request->user()->role !== 'cafe_owner') {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'cafe_owner') {
             return redirect()
                 ->route('login')
                 ->with('error', 'You are not authorized to access that page.');

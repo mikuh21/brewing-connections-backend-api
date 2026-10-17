@@ -10,7 +10,7 @@
 
 @section('content')
 @php
-    $isRoasterWorkspace = auth()->user()->role === 'cafe_owner';
+    $isRoasterWorkspace = auth()->user()->role === 'roaster';
     $workspaceLabel = $isRoasterWorkspace ? 'Roaster' : 'Farm';
     $mapStoreRouteName = $isRoasterWorkspace ? 'roaster-owner.roasters.store' : 'farm-owner.farms.store';
 @endphp

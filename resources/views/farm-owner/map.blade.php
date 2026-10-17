@@ -119,7 +119,7 @@
                         @endif
                         <div class="flex justify-end gap-2 border-t border-[#E4D8C6] pt-4">
                             <button type="button" id="cancel-add-farm-location-modal" class="rounded-lg border border-[#D9CDBA] bg-white px-4 py-2 text-sm font-semibold text-[#3A2E22] transition hover:bg-[#ECE1CF]">Cancel</button>
-                            <button type="submit" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1E3A2A]">Add Farm</button>
+                            <button type="submit" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1E3A2A]">Add {{ $workspaceLabel }}</button>
                         </div>
                     </form>
                 </div>

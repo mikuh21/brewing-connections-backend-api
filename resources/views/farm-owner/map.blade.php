@@ -12,10 +12,9 @@
 @php
     $isRoasterWorkspace = auth()->user()?->role === 'roaster'
         || request()->routeIs('roaster-owner.*')
-        || (($establishment->type ?? null) === 'roaster');
+        || (($activeFarm->type ?? null) === 'roaster');
     $workspaceLabel = $isRoasterWorkspace ? 'Roaster' : 'Farm';
     $mapStoreRouteName = $isRoasterWorkspace ? 'roaster-owner.roasters.store' : 'farm-owner.farms.store';
-    $mapEstablishmentIdParam = $isRoasterWorkspace ? 'roaster_id' : 'farm_id';
 @endphp
 
 <div class="farm-owner-map-page h-screen -m-8 p-6 overflow-hidden bg-[#F5F0E8] text-[#3A2E22]">

@@ -162,7 +162,7 @@
                 <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
             </button>
 
-            <div x-show="open" x-bind:hidden="!open" hidden x-cloak class="farm-dashboard-notif-menu mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
+            <div x-show="open" x-cloak style="display: none;" class="farm-dashboard-notif-menu mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-[#3A2E22]">Notifications</h3>

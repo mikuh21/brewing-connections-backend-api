@@ -46,6 +46,7 @@
         showReceiptModal: false,
         showRatingImageModal: false,
         isCreatingProduct: false,
+        createPriceTouched: false,
         receiptData: {
             generatedAt: '-',
             reservationId: '-',
@@ -444,12 +445,12 @@
                 grind_type: '', price_per_unit: '', stock_quantity: '', unit: 'kg', moq: '1', image_url: ''
             };
             this.createImagePreview = '';
+            this.createPriceTouched = false;
             this.isCreatingProduct = false;
             if (this.$refs.createImageInput) this.$refs.createImageInput.value = '';
             if (this.$refs.createPriceInput) this.$refs.createPriceInput.setCustomValidity('');
         },
         closeCreateModal() {
-            if (this.isCreatingProduct) return;
             this.showCreateModal = false;
             this.resetCreateForm();
         },
@@ -1569,8 +1570,8 @@
 
             <div>
                 <label class="block text-xs font-semibold">Price *</label>
-                <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="$refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p x-show="createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-bind:style="createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0 ? '' : 'display: none !important;'" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="createPriceTouched = true; $refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <p x-show="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-bind:style="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0 ? '' : 'display: none !important;'" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>

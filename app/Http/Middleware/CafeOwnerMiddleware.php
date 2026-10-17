@@ -46,7 +46,7 @@ class CafeOwnerMiddleware
 
         if ($ownsRoaster) {
             return redirect()
-                ->route('farm-owner.dashboard')
+                ->route('roaster-owner.dashboard')
                 ->with('status', 'You are viewing your roaster workspace.');
         }
 

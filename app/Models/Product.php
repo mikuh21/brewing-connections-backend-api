@@ -81,6 +81,7 @@ class Product extends Model
         return match($this->seller_type) {
             'farm_owner' => 'Farm Owner',
             'cafe_owner' => 'Café Owner',
+            'roaster' => 'Roaster',
             'reseller' => 'Reseller',
             default => 'Unknown'
         };

@@ -773,7 +773,7 @@ class FarmOwnerController extends Controller
                         'status' => strtolower((string) $order->status),
                         'time' => optional($order->created_at)->diffForHumans(),
                         'timestamp' => optional($order->created_at)?->timestamp ?? 0,
-                        'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.marketplace' : 'farm-owner.marketplace', [$user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' => $establishment->id]) . '#orders',
+                        'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.marketplace' : 'farm-owner.marketplace', [(($user->role === 'cafe_owner') ? 'roaster_id' : 'farm_id') => $establishment->id]) . '#orders',
                     ];
                 });
         }
@@ -832,7 +832,7 @@ class FarmOwnerController extends Controller
                 'time' => optional($latestIncoming->created_at)->diffForHumans(),
                 'timestamp' => optional($latestIncoming->created_at)?->timestamp ?? 0,
                 'unread_count' => $unread,
-                'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', ['conversation' => $conversation->id, $user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' => $establishment?->id]),
+                'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', ['conversation' => $conversation->id, (($user->role === 'cafe_owner') ? 'roaster_id' : 'farm_id') => $establishment?->id]),
             ]);
         }
 

@@ -72,6 +72,8 @@
         },
         editImagePreview: '',
         createImagePreview: '',
+        createImageObjectUrl: null,
+        activeEstablishmentParam: @js(auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id'),
         activeTab: 'my-listings',
         activeBrowseSellerType: @js(in_array(request('seller_type_filter', 'all'), ['farm_owner', 'reseller', 'roaster'], true) ? request('seller_type_filter') : 'all'),
         statusFilter: 'all',
@@ -414,12 +416,40 @@
         },
         handleCreateImageChange(event) {
             const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+            if (this.createImageObjectUrl) {
+                URL.revokeObjectURL(this.createImageObjectUrl);
+                this.createImageObjectUrl = null;
+            }
             if (!file) {
                 this.createImagePreview = '';
                 return;
             }
-
-            this.createImagePreview = URL.createObjectURL(file);
+            if (!file.type || !file.type.startsWith('image/')) {
+                event.target.value = '';
+                this.createImagePreview = '';
+                return;
+            }
+            this.createImageObjectUrl = URL.createObjectURL(file);
+            this.createImagePreview = this.createImageObjectUrl;
+        },
+        resetCreateForm() {
+            if (this.createImageObjectUrl) {
+                URL.revokeObjectURL(this.createImageObjectUrl);
+                this.createImageObjectUrl = null;
+            }
+            this.createForm = {
+                name: '', description: '', category: 'Coffee Beans', roast_level: '',
+                grind_type: '', price_per_unit: '', stock_quantity: '', unit: 'kg', moq: '1', image_url: ''
+            };
+            this.createImagePreview = '';
+            this.isCreatingProduct = false;
+            if (this.$refs.createImageInput) this.$refs.createImageInput.value = '';
+            if (this.$refs.createPriceInput) this.$refs.createPriceInput.setCustomValidity('');
+        },
+        closeCreateModal() {
+            if (this.isCreatingProduct) return;
+            this.showCreateModal = false;
+            this.resetCreateForm();
         },
         clearEditImage() {
             this.editImagePreview = '';
@@ -428,10 +458,12 @@
             }
         },
         clearCreateImage() {
-            this.createImagePreview = '';
-            if (this.$refs.createImageInput) {
-                this.$refs.createImageInput.value = '';
+            if (this.createImageObjectUrl) {
+                URL.revokeObjectURL(this.createImageObjectUrl);
+                this.createImageObjectUrl = null;
             }
+            this.createImagePreview = '';
+            if (this.$refs.createImageInput) this.$refs.createImageInput.value = '';
         },
         init() {
             const hashToTab = {
@@ -474,7 +506,7 @@
             const payload = { is_active: isActive };
 
             if (Number(this.activeFarmId) > 0) {
-                payload.farm_id = Number(this.activeFarmId);
+                payload[this.activeEstablishmentParam] = Number(this.activeFarmId);
             }
 
             const response = await fetch(url, {
@@ -565,7 +597,7 @@
 
         <button
             type="button"
-            @click="showCreateModal = true; createImagePreview = ''; isCreatingProduct = false"
+            @click="resetCreateForm(); showCreateModal = true"
             class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
         >
             <span class="mr-1.5">+</span>Add Product
@@ -1086,7 +1118,7 @@
                                         @csrf
                                         @method('PATCH')
                                         @if($activeFarmId > 0)
-                                            <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+                                            <input type="hidden" name="{{ auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
                                         @endif
                                         <select name="status" @disabled($isCanceled) class="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E] disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed">
                                             <option value="pending" @selected($status === 'pending')>Pending</option>
@@ -1434,7 +1466,7 @@
             @csrf
             @method('PATCH')
             @if($activeFarmId > 0)
-                <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+                <input type="hidden" name="{{ auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
             @endif
 
             <div class="md:col-span-3">
@@ -1504,16 +1536,16 @@
     x-transition:leave-end="opacity-0"
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
 >
-    <div @click.away="if (!isCreatingProduct) showCreateModal = false" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-3 max-h-[90vh] overflow-y-auto">
+    <div @click.away="closeCreateModal()" class="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-4 sm:p-5 max-h-[90vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-display font-bold text-[#3A2E22]">Add Product</h2>
-            <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50">&times;</button>
+            <button type="button" @click="closeCreateModal()" :disabled="isCreatingProduct" class="text-gray-500 hover:text-gray-800 text-2xl leading-none disabled:cursor-not-allowed disabled:opacity-50" aria-label="Close Add Product modal">&times;</button>
         </div>
 
-        <form method="POST" action="{{ route('farm-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="if (Number(createForm.price_per_unit) <= 0) { $event.preventDefault(); } else { isCreatingProduct = true; }" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-1.5">
+        <form method="POST" action="{{ route('farm-owner.marketplace.products.store') }}" enctype="multipart/form-data" @submit="const priceValue = Number($refs.createPriceInput?.value || 0); if (!Number.isFinite(priceValue) || priceValue <= 0) { $event.preventDefault(); isCreatingProduct = false; $refs.createPriceInput?.setCustomValidity('Price must be greater than 0.'); $refs.createPriceInput?.reportValidity(); return; } $refs.createPriceInput?.setCustomValidity(''); isCreatingProduct = true;" :aria-busy="isCreatingProduct.toString()" class="grid grid-cols-1 md:grid-cols-3 gap-3">
             @csrf
             @if($activeFarmId > 0)
-                <input type="hidden" name="farm_id" value="{{ $activeFarmId }}">
+                <input type="hidden" name="{{ auth()->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id' }}" value="{{ $activeFarmId }}">
             @endif
 
             <div class="md:col-span-3">
@@ -1531,8 +1563,8 @@
 
             <div>
                 <label class="block text-[11px] font-semibold">Price *</label>
-                <input x-model="createForm.price_per_unit" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1 text-xs shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p x-show="createForm.price_per_unit !== '' && Number(createForm.price_per_unit) <= 0" x-cloak class="mt-1 text-[11px] font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="$refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                <p x-show="$refs.createPriceInput && $refs.createPriceInput.value !== '' && Number($refs.createPriceInput.value) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>
@@ -1563,10 +1595,10 @@
             <div class="md:col-span-3">
                 <label class="block text-[11px] font-semibold">Product Image</label>
                 <input x-ref="createImageInput" type="file" name="image" accept="image/*" @change="handleCreateImageChange($event)" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#4A6741] file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-white hover:file:bg-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <div x-show="createImagePreview" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
+                <div x-show="createImagePreview && $refs.createImageInput && $refs.createImageInput.files && $refs.createImageInput.files.length > 0" x-cloak class="mt-2 relative rounded-lg border border-gray-200 bg-[#F5F0E8] p-2">
                     <button type="button" @click="clearCreateImage()" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/95 border border-gray-300 text-gray-600 text-xs leading-none hover:bg-red-50 hover:text-red-600" aria-label="Remove selected image">&times;</button>
                     <p class="text-[11px] text-[#9E8C78] mb-1">Live image preview</p>
-                    <img :src="createImagePreview" alt="Live product preview" class="max-h-16 w-full object-contain rounded-md border border-gray-200 bg-white" x-on:error="$el.style.display='none'" x-on:load="$el.style.display='block'" />
+                    <img :src="createImagePreview" alt="Selected product image preview" class="max-h-32 w-full object-contain rounded-md border border-gray-200 bg-white" x-on:error="clearCreateImage()" />
                 </div>
             </div>
 
@@ -1576,7 +1608,7 @@
             </div>
 
             <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-                <button type="button" @click="showCreateModal = false" :disabled="isCreatingProduct" class="px-3 py-1.5 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
+                <button type="button" @click="closeCreateModal()" :disabled="isCreatingProduct" class="px-3 py-2 text-sm rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50">Cancel</button>
                 <button type="submit" :disabled="isCreatingProduct" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[#4A6741] text-white hover:bg-[#3A2E22] whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-80">
                     <svg x-show="isCreatingProduct" x-cloak class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

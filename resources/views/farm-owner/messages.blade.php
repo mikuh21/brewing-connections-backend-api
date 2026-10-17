@@ -505,9 +505,10 @@
         }
         if (event.target.closest('[data-close-new-chat-modal]')) {
             event.preventDefault();
+            event.stopPropagation();
             closeModal();
         }
-    });
+    }, true);
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' && !modal.hidden) closeModal();

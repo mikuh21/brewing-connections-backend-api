@@ -10,7 +10,9 @@
 
 @section('content')
 @php
-    $workspaceLabel = auth()->user()->role === 'cafe_owner' ? 'Roaster' : 'Farm';
+    $isRoasterWorkspace = auth()->user()->role === 'cafe_owner';
+    $workspaceLabel = $isRoasterWorkspace ? 'Roaster' : 'Farm';
+    $mapStoreRouteName = $isRoasterWorkspace ? 'roaster-owner.roasters.store' : 'farm-owner.farms.store';
 @endphp
 
 <div class="farm-owner-map-page h-screen -m-8 p-6 overflow-hidden bg-[#F5F0E8] text-[#3A2E22]">
@@ -100,7 +102,7 @@
                         </div>
                         <button type="button" id="close-add-farm-location-modal" class="rounded-lg p-1 text-xl leading-none text-[#6B5B4A] hover:bg-[#ECE1CF]" aria-label="Close">&times;</button>
                     </div>
-                    <form method="POST" action="{{ route('farm-owner.farms.store') }}" class="space-y-4 px-5 py-5 sm:px-6">
+                    <form method="POST" action="{{ route($mapStoreRouteName) }}" class="space-y-4 px-5 py-5 sm:px-6">
                         @csrf
                         <div>
                             <label for="new-farm-name" class="mb-1 block text-sm font-semibold text-[#3A2E22]">{{ $workspaceLabel }} name *</label>

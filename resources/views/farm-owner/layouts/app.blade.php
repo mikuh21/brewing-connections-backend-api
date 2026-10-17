@@ -268,6 +268,7 @@
         $sidebarProfileX = 50;
         $sidebarProfileY = 50;
         $sidebarUserId = auth()->id();
+        $isRoasterWorkspace = auth()->user()?->role === 'cafe_owner';
         $sidebarManagedFarms = collect();
         $sidebarActiveFarmId = (int) request('farm_id', 0);
         $sidebarRouteParams = [];
@@ -293,7 +294,7 @@
             }
 
             if ($hasType) {
-                $sidebarEstablishmentQuery->where('type', 'farm');
+                $sidebarEstablishmentQuery->where('type', $isRoasterWorkspace ? 'roaster' : 'farm');
             }
 
             // Load the managed farms once and reuse the selected record instead of
@@ -329,7 +330,7 @@
 
                 @if($sidebarManagedFarms->count() > 1)
                     <form method="GET" action="{{ request()->routeIs('farm-owner.map') ? route('farm-owner.map') : route('farm-owner.dashboard') }}" class="mb-4">
-                        <label for="sidebar-farm-switch" class="block text-[11px] font-semibold text-[#D9C9B2] mb-1">Switch Farm</label>
+                        <label for="sidebar-farm-switch" class="block text-[11px] font-semibold text-[#D9C9B2] mb-1">{{ $isRoasterWorkspace ? 'Switch Roaster' : 'Switch Farm' }}</label>
                         <select id="sidebar-farm-switch" name="farm_id" onchange="this.form.submit()" class="w-full rounded-lg border border-[#6B5B4A] bg-[#4E3D2B] text-[#F5F0E8] px-2 py-1.5 text-xs focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                             @foreach($sidebarManagedFarms as $farmOption)
                                 <option value="{{ $farmOption->id }}" @selected((int) $farmOption->id === (int) $sidebarActiveFarmId)>
@@ -351,7 +352,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
-                        Farm
+                        {{ $isRoasterWorkspace ? 'Roaster' : 'Farm' }}
                     </a>
                     <a href="{{ route('farm-owner.marketplace', $sidebarRouteParams) }}" class="flex items-center {{ request()->routeIs('farm-owner.marketplace') ? 'bg-[#4E3D2B]' : '' }} rounded-lg px-4 py-2 text-xs font-medium gap-2 transition-all duration-200 hover:bg-[#4E3D2B] hover:translate-x-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,8 +394,8 @@
                     @endif
                 </div>
                 <div>
-                    <div class="font-medium text-sm">{{ auth()->user()->name ?? 'Farm Owner' }}</div>
-                    <div class="text-xs text-[#9E8C78]">Farm Owner</div>
+                    <div class="font-medium text-sm">{{ auth()->user()->name ?? ($isRoasterWorkspace ? 'Roaster Owner' : 'Farm Owner') }}</div>
+                    <div class="text-xs text-[#9E8C78]">{{ $isRoasterWorkspace ? 'Roaster Owner' : 'Farm Owner' }}</div>
                 </div>
                 </div>
                 <button

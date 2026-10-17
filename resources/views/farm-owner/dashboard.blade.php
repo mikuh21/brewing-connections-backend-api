@@ -114,7 +114,7 @@
             },
             async fetchNotifications() {
                 try {
-                    const response = await fetch('{{ route($isRoasterWorkspace ? 'roaster-owner.notifications' : 'farm-owner.notifications', [(auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id'))]) }}', {
+                    const response = await fetch('{{ route($isRoasterWorkspace ? 'roaster-owner.notifications' : 'farm-owner.notifications', [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id'))]) }}', {
                         headers: {
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
@@ -378,7 +378,7 @@
     @php
         $dashboardQuickActionFarmId = (int) request('roaster_id', request('farm_id', 0));
         $dashboardQuickActionRouteParams = $dashboardQuickActionFarmId > 0
-            ? [(auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id') => $dashboardQuickActionFarmId]
+            ? [($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => $dashboardQuickActionFarmId]
             : [];
     @endphp
 
@@ -457,7 +457,7 @@
 
         @php
             $farmDashboardRouteParams = array_filter([
-                (auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id')),
+                ($isRoasterWorkspace ? 'roaster_id' : 'farm_id') => request('roaster_id', request('farm_id')),
                 'popularity_window' => null,
             ], fn ($value) => !is_null($value) && $value !== '');
         @endphp

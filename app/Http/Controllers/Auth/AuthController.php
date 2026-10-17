@@ -9,6 +9,7 @@ use App\Models\Establishment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 
@@ -69,14 +70,26 @@ class AuthController extends Controller
         }
 
         if ($user->role === 'cafe_owner') {
-            $ownsRoaster = Establishment::query()
+            $roasterQuery = Establishment::query()
                 ->where('type', 'roaster')
-                ->whereNull('deleted_at')
-                ->where(function ($query) use ($user) {
+                ->whereNull('deleted_at');
+            $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
+            $hasUserId = Schema::hasColumn('establishments', 'user_id');
+
+            if ($hasOwnerId && $hasUserId) {
+                $roasterQuery->where(function ($query) use ($user) {
                     $query->where('owner_id', $user->id)
                         ->orWhere('user_id', $user->id);
-                })
-                ->exists();
+                });
+            } elseif ($hasOwnerId) {
+                $roasterQuery->where('owner_id', $user->id);
+            } elseif ($hasUserId) {
+                $roasterQuery->where('user_id', $user->id);
+            } else {
+                $roasterQuery->whereRaw('1 = 0');
+            }
+
+            $ownsRoaster = $roasterQuery->exists();
 
             if ($ownsRoaster) {
                 return redirect()->route('farm-owner.dashboard');

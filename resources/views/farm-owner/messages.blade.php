@@ -17,7 +17,7 @@
                 <div class="p-6 border-b border-gray-100">
                     <div class="flex items-center justify-between mb-4">
                         <h1 class="text-2xl font-display font-bold text-[#3A2E22]">Messages</h1>
-                        <button @click="newChatOpen = true" class="inline-flex items-center gap-2 px-4 py-2 bg-[#2C4A2E] text-white text-xs font-semibold rounded-lg hover:bg-[#1F3620] transition-colors">
+                        <button type="button" @click="newChatOpen = true" class="inline-flex items-center gap-2 px-4 py-2 bg-[#2C4A2E] text-white text-xs font-semibold rounded-lg hover:bg-[#1F3620] transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -82,7 +82,7 @@
                         <div class="flex items-center justify-center h-full text-center px-4">
                             <div>
                                 <p class="text-gray-500 text-sm">No conversations yet</p>
-                                <button @click="newChatOpen = true" class="mt-2 text-[#2C4A2E] text-sm font-semibold hover:text-[#1F3620] transition-colors">
+                                <button type="button" @click="newChatOpen = true" class="mt-2 text-[#2C4A2E] text-sm font-semibold hover:text-[#1F3620] transition-colors">
                                     Start a new chat
                                 </button>
                             </div>
@@ -186,6 +186,9 @@
     <div
         class="fixed inset-0 z-50 flex items-center justify-center px-4"
         x-show="newChatOpen"
+        x-bind:hidden="!newChatOpen"
+        hidden
+        x-cloak
         @keydown.escape="newChatOpen = false"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 scale-95"

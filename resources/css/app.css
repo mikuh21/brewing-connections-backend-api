@@ -1248,3 +1248,9 @@ button:disabled,
     }
 }
 
+
+
+/* Prevent Alpine-controlled modals and conditional fields from flashing before initialization. */
+[x-cloak] {
+    display: none !important;
+}

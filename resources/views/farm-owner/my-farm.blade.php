@@ -20,7 +20,7 @@
     @if(($managedFarms ?? collect())->count() > 1)
         <form method="GET" action="{{ route($profileRouteName) }}" class="mt-4 inline-flex items-center gap-2">
             <label for="farm-switch" class="text-xs font-semibold text-[#6B5B4A]">{{ $isRoasterWorkspace ? 'Switch Roaster' : 'Switch Farm' }}</label>
-            <select id="farm-switch" name="{{ auth()->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id' }}" onchange="this.form.submit()" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
+            <select id="farm-switch" name="{{ $isRoasterWorkspace ? 'roaster_id' : 'farm_id' }}" onchange="this.form.submit()" class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-[#3A2E22] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]">
                 @foreach(($managedFarms ?? collect()) as $farmOption)
                     <option value="{{ $farmOption->id }}" @selected((int) $farmOption->id === (int) ($establishment->id ?? 0))>
                         {{ $farmOption->name }}

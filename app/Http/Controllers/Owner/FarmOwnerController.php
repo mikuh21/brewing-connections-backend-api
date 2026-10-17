@@ -37,7 +37,7 @@ class FarmOwnerController extends Controller
 
     protected function workspaceEstablishmentType(User $user): string
     {
-        return $user->role === 'cafe_owner' ? 'roaster' : 'farm';
+        return $user->role === 'roaster' ? 'roaster' : 'farm';
     }
 
     protected function workspaceEstablishmentLabel(User $user): string
@@ -115,7 +115,7 @@ class FarmOwnerController extends Controller
 
     protected function activeFarmIdFromRequest(Request $request): ?int
     {
-        $idParameter = $request->user()?->role === 'cafe_owner' ? 'roaster_id' : 'farm_id';
+        $idParameter = $request->user()?->role === 'roaster' ? 'roaster_id' : 'farm_id';
         $farmId = (int) $request->input($idParameter, $request->input('farm_id', $request->input('roaster_id', 0)));
 
         return $farmId > 0 ? $farmId : null;
@@ -551,8 +551,8 @@ class FarmOwnerController extends Controller
         // Always bump profile timestamp after a successful profile update flow.
         $establishment->touch();
 
-        $profileRoute = $user->role === 'cafe_owner' ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm';
-        $idParameter = $user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id';
+        $profileRoute = $user->role === 'roaster' ? 'roaster-owner.my-roaster' : 'farm-owner.my-farm';
+        $idParameter = $user->role === 'roaster' ? 'roaster_id' : 'farm_id';
 
         return redirect()
             ->route($profileRoute, [$idParameter => $establishment->id])
@@ -773,7 +773,7 @@ class FarmOwnerController extends Controller
                         'status' => strtolower((string) $order->status),
                         'time' => optional($order->created_at)->diffForHumans(),
                         'timestamp' => optional($order->created_at)?->timestamp ?? 0,
-                        'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.marketplace' : 'farm-owner.marketplace', [(($user->role === 'cafe_owner') ? 'roaster_id' : 'farm_id') => $establishment->id]) . '#orders',
+                        'url' => route($user->role === 'roaster' ? 'roaster-owner.marketplace' : 'farm-owner.marketplace', [(($user->role === 'roaster') ? 'roaster_id' : 'farm_id') => $establishment->id]) . '#orders',
                     ];
                 });
         }
@@ -832,7 +832,7 @@ class FarmOwnerController extends Controller
                 'time' => optional($latestIncoming->created_at)->diffForHumans(),
                 'timestamp' => optional($latestIncoming->created_at)?->timestamp ?? 0,
                 'unread_count' => $unread,
-                'url' => route($user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', ['conversation' => $conversation->id, (($user->role === 'cafe_owner') ? 'roaster_id' : 'farm_id') => $establishment?->id]),
+                'url' => route($user->role === 'roaster' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show', ['conversation' => $conversation->id, (($user->role === 'roaster') ? 'roaster_id' : 'farm_id') => $establishment?->id]),
             ]);
         }
 
@@ -1017,8 +1017,8 @@ class FarmOwnerController extends Controller
         $farm->longitude = null;
         $farm->save();
 
-        $mapRoute = $user->role === 'cafe_owner' ? 'roaster-owner.map' : 'farm-owner.map';
-        $idParameter = $user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id';
+        $mapRoute = $user->role === 'roaster' ? 'roaster-owner.map' : 'farm-owner.map';
+        $idParameter = $user->role === 'roaster' ? 'roaster_id' : 'farm_id';
 
         return redirect()
             ->route($mapRoute, [$idParameter => $farm->id])
@@ -1173,11 +1173,11 @@ class FarmOwnerController extends Controller
                 return response()->json(['conversation_id' => $existingConversation->id]);
             }
 
-            $routeName = $user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show';
+            $routeName = $user->role === 'roaster' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show';
             $routeParams = ['conversation' => $existingConversation->id];
             $activeEstablishmentId = $this->activeFarmIdFromRequest($request);
             if ($activeEstablishmentId) {
-                $routeParams[$user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id'] = $activeEstablishmentId;
+                $routeParams[$user->role === 'roaster' ? 'roaster_id' : 'farm_id'] = $activeEstablishmentId;
             }
 
             return redirect()->route($routeName, $routeParams);
@@ -1190,11 +1190,11 @@ class FarmOwnerController extends Controller
             return response()->json(['conversation_id' => $conversation->id]);
         }
 
-        $routeName = $user->role === 'cafe_owner' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show';
+        $routeName = $user->role === 'roaster' ? 'roaster-owner.messages.show' : 'farm-owner.messages.show';
         $routeParams = ['conversation' => $conversation->id];
         $activeEstablishmentId = $this->activeFarmIdFromRequest($request);
         if ($activeEstablishmentId) {
-            $routeParams[$user->role === 'cafe_owner' ? 'roaster_id' : 'farm_id'] = $activeEstablishmentId;
+            $routeParams[$user->role === 'roaster' ? 'roaster_id' : 'farm_id'] = $activeEstablishmentId;
         }
 
         return redirect()->route($routeName, $routeParams);

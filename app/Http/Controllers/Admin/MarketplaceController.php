@@ -14,8 +14,10 @@ class MarketplaceController extends Controller
 {
     public function index(Request $request)
     {
+        // The Admin Products tab must show listings from every seller type,
+        // including coffee shop menu products. Keep the café exclusions scoped
+        // to order-related views below, where café ordering is not supported.
         $productsQuery = Product::with(['seller', 'establishment']);
-        $this->excludeCafeMenuProducts($productsQuery);
         $products = $productsQuery->paginate(12);
         $resellerProductsQuery = ResellerProduct::with(['product', 'reseller']);
         $resellerProductsQuery->whereHas('product', function ($productQuery) {
@@ -31,8 +33,8 @@ class MarketplaceController extends Controller
         $this->excludeCafeMenuBulkOrders($bulkOrdersQuery);
         $bulkOrders = $bulkOrdersQuery->get();
 
+        // Keep the Total Products statistic consistent with the all-seller Products tab.
         $productCountQuery = Product::query();
-        $this->excludeCafeMenuProducts($productCountQuery);
         $resellerProductCountQuery = ResellerProduct::query()->whereHas('product', function ($productQuery) {
             $this->excludeCafeMenuProducts($productQuery);
         });

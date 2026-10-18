@@ -907,6 +907,13 @@
             addProductButton.addEventListener('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
+                try {
+                    if (window.Alpine && typeof window.Alpine.$data === 'function') {
+                        window.Alpine.$data(root).showCreateModal = true;
+                    }
+                } catch (_error) {
+                    // Keep the native visibility fallback below if Alpine state is unavailable.
+                }
                 addProductModal.hidden = false;
                 addProductModal.removeAttribute('x-cloak');
                 addProductModal.style.display = 'flex';

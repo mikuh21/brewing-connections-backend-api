@@ -970,7 +970,7 @@
                             }
                         });
                     });
-                    const image = viewer.querySelector('img[\u003asrc*="viewProduct.image_url"]');
+                    const image = viewer.querySelector('img');
                     if (image) {
                         if (product.image_url) {
                             image.src = product.image_url;

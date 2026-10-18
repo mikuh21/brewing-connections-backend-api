@@ -926,6 +926,61 @@
             });
         });
 
+        // Browse Marketplace filters are separate from the main Store tabs.
+        // Control cards and the empty state together so the empty state only appears
+        // when the current seller filter/search actually returns zero cards.
+        const browsePanel = root.querySelector('[data-store-tab-panel="browse"]');
+        if (browsePanel) {
+            const filterButtons = Array.from(browsePanel.querySelectorAll('[data-browse-filter]'));
+            const productCards = Array.from(browsePanel.querySelectorAll('[data-browse-product-card]'));
+            const emptyState = browsePanel.querySelector('[data-browse-empty]');
+            let activeSellerFilter = 'all';
+
+            function updateBrowseResults() {
+                const searchInput = root.querySelector('input[placeholder="Search products..."]');
+                const searchTerm = String(searchInput ? searchInput.value : '').trim().toLowerCase();
+                let visibleCount = 0;
+
+                productCards.forEach(function (card) {
+                    const sellerMatches = activeSellerFilter === 'all' || (card.dataset.sellerType || '') === activeSellerFilter;
+                    const searchMatches = (card.dataset.search || '').includes(searchTerm);
+                    const visible = sellerMatches && searchMatches;
+                    card.hidden = !visible;
+                    if (visible) visibleCount += 1;
+                });
+
+                if (emptyState) emptyState.hidden = visibleCount > 0;
+                filterButtons.forEach(function (button) {
+                    const active = button.dataset.browseFilter === activeSellerFilter;
+                    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+                    button.classList.toggle('border-[#4A6741]', active);
+                    button.classList.toggle('bg-[#EEF4EA]', active);
+                    button.classList.toggle('text-[#2C4A2E]', active);
+                    button.classList.toggle('border-[#E7DCCF]', !active);
+                    button.classList.toggle('bg-white', !active);
+                    button.classList.toggle('text-[#8E7B67]', !active);
+                    button.classList.toggle('hover:bg-[#F8F4EE]', !active);
+                    if (active) {
+                        button.classList.remove('border-[#E7DCCF]', 'bg-white', 'text-[#8E7B67]', 'hover:bg-[#F8F4EE]');
+                    } else {
+                        button.classList.remove('border-[#4A6741]', 'bg-[#EEF4EA]', 'text-[#2C4A2E]');
+                    }
+                });
+            }
+
+            filterButtons.forEach(function (button) {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    activeSellerFilter = button.dataset.browseFilter || 'all';
+                    updateBrowseResults();
+                });
+            });
+
+            const searchInput = root.querySelector('input[placeholder="Search products..."]');
+            if (searchInput) searchInput.addEventListener('input', updateBrowseResults);
+            updateBrowseResults();
+        }
+
         const params = new URLSearchParams(window.location.search);
         const initialTab = params.get('tab');
         activate(['my-listings', 'browse', 'orders', 'ratings'].includes(initialTab) ? initialTab : 'my-listings');
@@ -958,10 +1013,8 @@
     @foreach($browseSellerTypeOptions as $filterKey => $filterLabel)
         <button
             type="button"
-            @click="activeBrowseSellerType = '{{ $filterKey }}'"
-            :aria-pressed="activeBrowseSellerType === '{{ $filterKey }}'"
-            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors"
-            :class="activeBrowseSellerType === '{{ $filterKey }}' ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]'"
+            data-browse-filter="{{ $filterKey }}" aria-pressed="{{ $filterKey === 'all' ? 'true' : 'false' }}"
+            class="inline-flex min-h-[38px] items-center justify-center rounded-full border px-4 py-2 text-xs font-semibold transition-colors {{ $filterKey === 'all' ? 'border-[#4A6741] bg-[#EEF4EA] text-[#2C4A2E]' : 'border-[#E7DCCF] bg-white text-[#8E7B67] hover:bg-[#F8F4EE]' }}"
         >
             {{ $filterLabel }}
         </button>
@@ -984,8 +1037,7 @@
             <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden"
                 data-browse-product-card
                 data-search="{{ strtolower(($product->name ?? '') . ' ' . ($product->category ?? '') . ' ' . ($ownerName ?? '')) }}"
-                data-seller-type="{{ strtolower((string) ($product->seller_type ?? '')) }}"
-                x-show="(activeBrowseSellerType === 'all' || ($el.dataset.sellerType || '') === activeBrowseSellerType) && ($el.dataset.search || '').includes(searchTerm.toLowerCase().trim())">
+                data-seller-type="{{ strtolower((string) ($product->seller_type ?? '')) }}">
                 <div class="relative">
                     @if($product->image_url)
                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-36 object-cover" />
@@ -1049,10 +1101,7 @@
             </div>
         @endforeach
     </div>
-    <div
-        x-cloak
-        x-show="!Array.from($root.querySelectorAll('[data-browse-product-card]')).some(card => (activeBrowseSellerType === 'all' || (card.dataset.sellerType || '') === activeBrowseSellerType) && (card.dataset.search || '').includes(searchTerm.toLowerCase().trim()))"
-        class="bg-white rounded-xl shadow-sm p-12 text-center mt-4"
+    <div data-browse-empty hidden class="bg-white rounded-xl shadow-sm p-12 text-center mt-4"
     >
         <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a2 2 0 01-.707-.293L6.586 13H4m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5"/>

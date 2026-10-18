@@ -172,7 +172,7 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
-    x-init="$nextTick(() => { editMode = false })"
+    x-init="editMode = false"
     class="space-y-8"
 >
     <form method="POST" action="{{ route($profileUpdateRouteName) }}" enctype="multipart/form-data" class="space-y-8">
@@ -241,11 +241,10 @@
                     <div class="flex items-center gap-3 pt-4">
                         <button
                             type="button"
-                            @click="editMode ? (editMode = false) : (editMode = true)"
+                            @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
+                            x-text="editMode ? 'Cancel' : 'Edit {{ ucfirst($workspaceLabel) }}'"
                         >
-                            <span x-show="!editMode" x-cloak>Edit {{ ucfirst($workspaceLabel) }}</span>
-                            <span x-show="editMode" x-cloak>Cancel</span>
                         </button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-cloak>
                             Save {{ $workspaceLabel }}

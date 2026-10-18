@@ -916,6 +916,42 @@
             updatePriceError();
         };
         bindPriceValidation();
+
+        // Native fallback for Browse Marketplace product-detail buttons. This ensures
+        // the viewer still opens if Alpine's inline click expression fails to initialize.
+        if (root.dataset.productViewerFallbackBound !== 'true') {
+            root.dataset.productViewerFallbackBound = 'true';
+            root.addEventListener('click', function (event) {
+                const button = event.target.closest('[data-open-product-viewer]');
+                if (!button || !root.contains(button)) return;
+                let product;
+                try {
+                    product = JSON.parse(button.dataset.viewProduct || '{}');
+                } catch (_error) {
+                    return;
+                }
+                let state = null;
+                try {
+                    if (window.Alpine && typeof window.Alpine.$data === 'function') state = window.Alpine.$data(root);
+                } catch (_error) {
+                    state = null;
+                }
+                if (state && typeof state.openViewer === 'function') {
+                    state.openViewer(product);
+                } else if (state) {
+                    state.viewProduct = product;
+                    state.showViewModal = true;
+                }
+                const viewer = root.querySelector('[x-show="showViewModal"]');
+                if (viewer) {
+                    viewer.hidden = false;
+                    viewer.removeAttribute('x-cloak');
+                    viewer.style.display = 'flex';
+                    viewer.style.opacity = '1';
+                    viewer.setAttribute('aria-hidden', 'false');
+                }
+            });
+        }
         if (addProductButton && addProductModal && addProductButton.dataset.modalFallbackBound !== 'true') {
             addProductButton.dataset.modalFallbackBound = 'true';
             const getAddProductState = function () {
@@ -1190,7 +1226,8 @@
                         <h3 class="font-semibold text-sm text-[#2C1A0E] leading-tight truncate" style="font-family: 'Poppins', sans-serif;">{{ $product->name }}</h3>
                         <button
                             type="button"
-                            @click='openViewer({{ json_encode([
+                            data-open-product-viewer
+                            data-view-product="{{ json_encode([
                                 "id" => $product->id,
                                 "name" => $product->name,
                                 "description" => $product->description,
@@ -1205,7 +1242,8 @@
                                 "owner_label" => $ownerLabel,
                                 "owner_name" => $ownerName,
                                 "seller_type" => $product->seller_type,
-                            ]) }})'
+                            ]) }}"
+                            @click='openViewer(JSON.parse($el.dataset.viewProduct))'
                             class="w-8 h-8 inline-flex items-center justify-center rounded-lg border border-[#4A6741] text-[#4A6741] hover:bg-[#4A6741] hover:text-white transition-colors"
                             title="View full details"
                             aria-label="View full details"

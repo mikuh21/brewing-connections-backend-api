@@ -172,8 +172,8 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
-    x-init="editMode = window.location.hash === '#trivia-history-section'"
-    @pageshow.window="editMode = window.location.hash === '#trivia-history-section'"
+    x-init="editMode = false"
+    @pageshow.window="editMode = false"
     class="roaster-farm-profile-page space-y-8"
 >
     <form method="POST" action="{{ route($profileUpdateRouteName) }}" enctype="multipart/form-data" class="space-y-8">
@@ -248,8 +248,10 @@
                             type="button"
                             @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
-                            x-text="editMode ? 'Cancel' : 'Edit {{ ucfirst($workspaceLabel) }}'"
-                        ></button>
+                        >
+                            <span x-show="!editMode">Edit {{ $workspaceLabel }}</span>
+                            <span x-show="editMode">Cancel</span>
+                        </button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-cloak>
                             Save {{ $workspaceLabel }}
                         </button>

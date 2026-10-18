@@ -960,6 +960,11 @@
                     button.classList.toggle('bg-white', !active);
                     button.classList.toggle('text-[#8E7B67]', !active);
                     button.classList.toggle('hover:bg-[#F8F4EE]', !active);
+                    if (active) {
+                        button.classList.remove('border-[#E7DCCF]', 'bg-white', 'text-[#8E7B67]', 'hover:bg-[#F8F4EE]');
+                    } else {
+                        button.classList.remove('border-[#4A6741]', 'bg-[#EEF4EA]', 'text-[#2C4A2E]');
+                    }
                 });
             }
 

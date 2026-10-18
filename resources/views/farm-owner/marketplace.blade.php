@@ -897,6 +897,25 @@
         // Native fallback keeps the Add Product dialog operable if Alpine click bindings fail.
         const addProductButton = root.querySelector('[data-open-add-product-modal]');
         const addProductModal = root.querySelector('[data-add-product-modal]');
+        const bindPriceValidation = function () {
+            if (!addProductModal) return;
+            const priceInput = addProductModal.querySelector('[name="price_per_unit"]');
+            const priceError = addProductModal.querySelector('[data-create-price-error]');
+            if (!priceInput || !priceError || priceInput.dataset.inlinePriceValidationBound === 'true') return;
+            priceInput.dataset.inlinePriceValidationBound = 'true';
+            const updatePriceError = function () {
+                const rawValue = priceInput.value.trim();
+                const invalid = rawValue !== '' && (!Number.isFinite(Number(rawValue)) || Number(rawValue) <= 0);
+                priceError.hidden = !invalid;
+                priceError.style.display = invalid ? 'block' : 'none';
+                priceInput.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+            };
+            priceInput.addEventListener('input', updatePriceError);
+            priceInput.addEventListener('change', updatePriceError);
+            priceInput.addEventListener('blur', updatePriceError);
+            updatePriceError();
+        };
+        bindPriceValidation();
         if (addProductButton && addProductModal && addProductButton.dataset.modalFallbackBound !== 'true') {
             addProductButton.dataset.modalFallbackBound = 'true';
             const getAddProductState = function () {
@@ -1824,7 +1843,7 @@
             <div>
                 <label class="block text-xs font-semibold">Price *</label>
                 <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="createPriceTouched = true; $refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p :class="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0 ? 'block' : 'hidden'" class="hidden mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <p data-create-price-error hidden class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>

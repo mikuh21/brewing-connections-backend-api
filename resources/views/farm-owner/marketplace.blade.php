@@ -930,7 +930,12 @@
                 } catch (_error) {
                     return;
                 }
-                const state = getAddProductState();
+                let state = null;
+                try {
+                    if (window.Alpine && typeof window.Alpine.$data === 'function') state = window.Alpine.$data(root);
+                } catch (_error) {
+                    state = null;
+                }
                 if (state && typeof state.openViewer === 'function') {
                     state.openViewer(product);
                 } else if (state) {

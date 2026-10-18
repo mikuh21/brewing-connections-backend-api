@@ -659,7 +659,7 @@
     <div class="farm-marketplace-tabs flex gap-2 overflow-x-auto pb-1">
         <button
             type="button"
-            @click="activeTab = 'my-listings'"
+            @click="activeTab = 'my-listings'" data-store-tab-button="my-listings"
             class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
             :style="activeTab === 'my-listings'
                 ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F; background: #F5F0E8;'
@@ -670,7 +670,7 @@
 
         <button
             type="button"
-            @click="activeTab = 'browse'"
+            @click="activeTab = 'browse'" data-store-tab-button="browse"
             class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
             :style="activeTab === 'browse'
                 ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F; background: #F5F0E8;'
@@ -681,7 +681,7 @@
 
         <button
             type="button"
-            @click="activeTab = 'orders'"
+            @click="activeTab = 'orders'" data-store-tab-button="orders"
             class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
             :style="activeTab === 'orders'
                 ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F; background: #F5F0E8;'
@@ -692,7 +692,7 @@
 
         <button
             type="button"
-            @click="activeTab = 'ratings'"
+            @click="activeTab = 'ratings'" data-store-tab-button="ratings"
             class="filter-tab px-4 py-2 text-sm font-medium transition-colors"
             :style="activeTab === 'ratings'
                 ? 'color: #3B2F2F; border-bottom: 3px solid #3B2F2F; background: #F5F0E8;'
@@ -703,7 +703,7 @@
     </div>
 </div>
 
-<div x-show="activeTab === 'my-listings'">
+<div data-store-tab-panel="my-listings">
 
 <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
     <div class="flex flex-col md:flex-row gap-3 md:items-center">
@@ -887,7 +887,59 @@
 
 </div>
 
-<div x-show="activeTab === 'browse'" class="mt-6">
+<script>
+(function () {
+    function bindStoreTabs() {
+        const root = document.querySelector('.farm-marketplace-page');
+        if (!root || root.dataset.storeTabsBound === 'true') return;
+        root.dataset.storeTabsBound = 'true';
+
+        const buttons = Array.from(root.querySelectorAll('[data-store-tab-button]'));
+        const panels = Array.from(root.querySelectorAll('[data-store-tab-panel]'));
+        if (!buttons.length || !panels.length) return;
+
+        function activate(tabName) {
+            panels.forEach(function (panel) {
+                panel.hidden = panel.dataset.storeTabPanel !== tabName;
+            });
+            buttons.forEach(function (button) {
+                const active = button.dataset.storeTabButton === tabName;
+                button.setAttribute('aria-selected', active ? 'true' : 'false');
+                button.classList.toggle('store-tab-active', active);
+                button.classList.toggle('store-tab-inactive', !active);
+                button.style.color = active ? '#3B2F2F' : '#9E8C78';
+                button.style.borderBottom = active ? '3px solid #3B2F2F' : '3px solid transparent';
+                button.style.background = active ? '#F5F0E8' : 'transparent';
+            });
+            if (window.history && window.history.replaceState) {
+                const url = new URL(window.location.href);
+                if (tabName === 'my-listings') url.searchParams.delete('tab');
+                else url.searchParams.set('tab', tabName);
+                window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+            }
+        }
+
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                activate(button.dataset.storeTabButton);
+            });
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const initialTab = params.get('tab');
+        activate(['my-listings', 'browse', 'orders', 'ratings'].includes(initialTab) ? initialTab : 'my-listings');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bindStoreTabs, { once: true });
+    } else {
+        bindStoreTabs();
+    }
+})();
+</script>
+
+<div data-store-tab-panel="browse" hidden class="mt-6">
 <div class="mb-4">
     <h2 class="text-xl font-display font-bold text-[#3A2E22]">Browse Marketplace</h2>
     <p class="text-[#9E8C78] text-xs">Products listed by other sellers</p>
@@ -1020,7 +1072,7 @@
 @endif
 </div>
 
-<div x-show="activeTab === 'orders'" class="mt-6">
+<div data-store-tab-panel="orders" hidden class="mt-6">
     @if($orders->count() > 0)
         <div class="farm-marketplace-orders-toolbar flex items-center justify-between mb-4 gap-3 flex-wrap">
             <select x-model="statusFilter" class="text-xs border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-[#2C1A0E] focus:outline-none focus:ring-2 focus:ring-[#2C4A2E]">
@@ -1179,7 +1231,7 @@
     @endif
 </div>
 
-<div x-show="activeTab === 'ratings'" class="mt-6">
+<div data-store-tab-panel="ratings" hidden class="mt-6">
     @if(($productRatings ?? collect())->count() > 0)
         <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             @foreach($productRatings as $rating)

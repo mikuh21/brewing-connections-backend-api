@@ -971,15 +971,20 @@
                         });
                     });
                     const image = viewer.querySelector('img');
+                    const noImage = viewer.querySelector('[x-show="!viewProduct.image_url"]');
                     if (image) {
                         if (product.image_url) {
                             image.src = product.image_url;
                             image.alt = product.name || 'Product image';
-                            image.style.display = '';
+                            image.style.display = 'block';
                         } else {
+                            image.removeAttribute('src');
                             image.style.display = 'none';
                         }
                     }
+                    if (noImage) noImage.style.display = product.image_url ? 'none' : 'flex';
+                    const grindType = viewer.querySelector('[x-text="viewProduct.grind_type || \'N/A\'"]');
+                    if (grindType) grindType.textContent = product.grind_type || 'N/A';
                     viewer.hidden = false;
                     viewer.removeAttribute('x-cloak');
                     viewer.style.display = 'flex';
@@ -1787,14 +1792,10 @@
 
             <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <template x-if="viewProduct.image_url">
-                        <img :src="viewProduct.image_url" :alt="viewProduct.name" class="w-full h-56 object-cover rounded-lg border border-[#E7DED1]" />
-                    </template>
-                    <template x-if="!viewProduct.image_url">
-                        <div class="w-full h-56 bg-gray-100 flex items-center justify-center rounded-lg border border-[#E7DED1]">
-                            <p class="text-xs text-[#9E8C78]">No image available</p>
-                        </div>
-                    </template>
+                    <img x-show="viewProduct.image_url" :src="viewProduct.image_url" :alt="viewProduct.name || 'Product image'" class="w-full h-56 object-cover rounded-lg border border-[#E7DED1]" />
+                    <div x-show="!viewProduct.image_url" class="w-full h-56 bg-gray-100 flex items-center justify-center rounded-lg border border-[#E7DED1]">
+                        <p class="text-xs text-[#9E8C78]">No image available</p>
+                    </div>
                 </div>
 
                 <div class="space-y-2">
@@ -1808,7 +1809,7 @@
                     <div class="pt-2 space-y-1">
                         <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Price:</span> PHP <span x-text="Number(viewProduct.price_per_unit || 0).toFixed(2)"></span></p>
                         <p x-show="viewProduct.roast_level" x-cloak class="text-sm text-[#3A2E22]"><span class="font-semibold">Roast Level:</span> <span x-text="viewProduct.roast_level"></span></p>
-                        <p x-show="viewProduct.grind_type" x-cloak class="text-sm text-[#3A2E22]"><span class="font-semibold">Grind Type:</span> <span x-text="viewProduct.grind_type"></span></p>
+                        <p class="text-sm text-[#3A2E22]"><span class="font-semibold">Grind Type:</span> <span x-text="viewProduct.grind_type || 'N/A'"></span></p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Stock:</span> <span x-text="Number(viewProduct.stock_quantity || 0)"></span> units</p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Unit:</span> <span x-text="viewProduct.unit || 'unit'"></span></p>
                         <p x-show="viewProduct.seller_type !== 'cafe_owner'" class="text-sm text-[#3A2E22]"><span class="font-semibold">Minimum Order Quantity:</span> <span x-text="viewProduct.moq || 'N/A'"></span></p>

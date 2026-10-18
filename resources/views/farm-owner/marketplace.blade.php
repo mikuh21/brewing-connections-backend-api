@@ -622,7 +622,7 @@
 
         <button
             type="button"
-            @click="closeAllStoreModals(); resetCreateForm(); showCreateModal = true"
+            @click.prevent.stop="showCreateModal = true"
             class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
         >
             <span class="mr-1.5">+</span>Add Product

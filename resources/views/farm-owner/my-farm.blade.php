@@ -172,9 +172,9 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
-    x-init="editMode = false"
-    @pageshow.window="editMode = false"
-    class="space-y-8"
+    x-init="editMode = window.location.hash === '#trivia-history-section'"
+    @pageshow.window="editMode = window.location.hash === '#trivia-history-section'"
+    class="roaster-farm-profile-page space-y-8"
 >
     <form method="POST" action="{{ route($profileUpdateRouteName) }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
@@ -228,14 +228,18 @@
                             >{{ ucfirst($workspaceLabel) }} image not uploaded</div>
                         </div>
                         <div class="pt-4">
-                            <div x-show="!editMode" x-cloak>
-                                <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
-                                <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
-                            </div>
-                            <div x-show="editMode" x-cloak class="space-y-3 w-full min-w-0">
-                                <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="{{ ucfirst($workspaceLabel) }} name" required />
-                                <input name="address" value="{{ old('address', $establishment->address) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Address" />
-                            </div>
+                            <template x-if="!editMode">
+                                <div>
+                                    <h2 class="text-3xl font-display font-bold text-[#3A2E22]">{{ $establishment->name ?: 'Unnamed ' . $workspaceLabel }}</h2>
+                                    <p class="text-sm text-[#9E8C78] mt-1">{{ $establishment->address ?: 'No address yet' }}{{ $establishment->barangay ? ', ' . $establishment->barangay : '' }}</p>
+                                </div>
+                            </template>
+                            <template x-if="editMode">
+                                <div class="space-y-3 w-full min-w-0">
+                                    <input name="name" value="{{ old('name', $establishment->name) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="{{ ucfirst($workspaceLabel) }} name" required />
+                                    <input name="address" value="{{ old('address', $establishment->address) }}" class="w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" placeholder="Address" />
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -244,9 +248,8 @@
                             type="button"
                             @click="editMode = !editMode"
                             class="px-4 py-2 rounded-lg bg-[#3A2E22] text-white text-sm font-semibold hover:bg-[#2A2119] transition-colors"
-                        >
-                            <span x-text="editMode ? 'Cancel' : 'Edit {{ ucfirst($workspaceLabel) }}'"></span>
-                        </button>
+                            x-text="editMode ? 'Cancel' : 'Edit {{ ucfirst($workspaceLabel) }}'"
+                        ></button>
                         <button type="submit" class="px-5 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors" x-show="editMode" x-cloak>
                             Save {{ $workspaceLabel }}
                         </button>
@@ -460,4 +463,13 @@
         </div>
     </form>
 </div>
+<style>
+    @media (max-width: 767px) {
+        .roaster-farm-profile-page > .mb-8,
+        .farm-profile-header { margin-bottom: 1rem !important; }
+        .roaster-farm-profile-page .bg-white.rounded-xl.shadow-sm.p-8 { padding: 1.25rem !important; }
+        .roaster-farm-profile-page .grid.grid-cols-1.lg\\:grid-cols-3 { gap: 1rem !important; }
+    }
+</style>
+
 @endsection

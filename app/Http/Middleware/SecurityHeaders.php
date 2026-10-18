@@ -50,6 +50,8 @@ class SecurityHeaders
             $request->is('admin/*') ||
             $request->is('farm-owner') ||
             $request->is('farm-owner/*') ||
+            $request->is('roaster-owner') ||
+            $request->is('roaster-owner/*') ||
             $request->is('cafe-owner') ||
             $request->is('cafe-owner/*') ||
             $request->is('reseller') ||

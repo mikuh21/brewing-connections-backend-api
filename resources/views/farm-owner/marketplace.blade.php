@@ -944,11 +944,81 @@
                 }
                 const viewer = root.querySelector('[x-show="showViewModal"]');
                 if (viewer) {
+                    // Keep the native modal view in sync with Alpine and hydrate fields
+                    // directly so details remain available even if Alpine updates lag.
+                    const productFields = {
+                        name: product.name || 'Unnamed Product',
+                        description: (product.description || '').trim() || 'No description provided.',
+                        category: product.category || '',
+                        roast_level: product.roast_level || '',
+                        grind_type: product.grind_type || '',
+                        price_per_unit: Number(product.price_per_unit || 0).toFixed(2),
+                        stock_quantity: Number(product.stock_quantity || 0),
+                        unit: product.unit || 'unit',
+                        moq: product.moq || 'N/A',
+                        owner_label: product.owner_label || 'Seller',
+                        owner_name: product.owner_name || 'Unknown',
+                    };
+                    Object.entries(productFields).forEach(function ([key, value]) {
+                        viewer.querySelectorAll('[x-text*="viewProduct.' + key + '"]').forEach(function (node) {
+                            if (key === 'category') {
+                                node.textContent = product.category || '';
+                            } else if (key === 'price_per_unit') {
+                                node.textContent = value;
+                            } else {
+                                node.textContent = String(value);
+                            }
+                        });
+                    });
+                    const image = viewer.querySelector('img[\u003asrc*="viewProduct.image_url"]');
+                    if (image) {
+                        if (product.image_url) {
+                            image.src = product.image_url;
+                            image.alt = product.name || 'Product image';
+                            image.style.display = '';
+                        } else {
+                            image.style.display = 'none';
+                        }
+                    }
                     viewer.hidden = false;
                     viewer.removeAttribute('x-cloak');
                     viewer.style.display = 'flex';
                     viewer.style.opacity = '1';
                     viewer.setAttribute('aria-hidden', 'false');
+                }
+            });
+        }
+        // Native dismiss fallback for Product Details. The modal must remain closable
+        // even if Alpine's @click handlers are unavailable or its inline styles were forced.
+        const productViewer = root.querySelector('[x-show="showViewModal"]');
+        if (productViewer && productViewer.dataset.viewerDismissBound !== 'true') {
+            productViewer.dataset.viewerDismissBound = 'true';
+            const closeProductViewer = function () {
+                let state = null;
+                try {
+                    if (window.Alpine && typeof window.Alpine.$data === 'function') state = window.Alpine.$data(root);
+                } catch (_error) {}
+                if (state) state.showViewModal = false;
+                productViewer.style.display = 'none';
+                productViewer.hidden = true;
+                productViewer.setAttribute('aria-hidden', 'true');
+            };
+            productViewer.querySelectorAll('button').forEach(function (button) {
+                const label = (button.getAttribute('aria-label') || button.title || button.textContent || '').trim().toLowerCase();
+                if (label === '×' || label === 'close' || label === 'close product details') {
+                    button.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        closeProductViewer();
+                    });
+                }
+            });
+            productViewer.addEventListener('click', function (event) {
+                if (event.target === productViewer) closeProductViewer();
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && productViewer.getAttribute('aria-hidden') !== 'true' && productViewer.style.display !== 'none') {
+                    closeProductViewer();
                 }
             });
         }

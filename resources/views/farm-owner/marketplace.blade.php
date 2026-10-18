@@ -938,7 +938,44 @@
                     }
                     state.showCreateModal = true;
                     state.isCreatingProduct = false;
+                    state.createPriceTouched = false;
                 }
+                // Reset the live form DOM too, not only Alpine's model.
+                const createFormElement = addProductModal.querySelector('form');
+                if (createFormElement) {
+                    createFormElement.reset();
+                    createFormElement.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(function (field) {
+                        if (field.type === 'file') {
+                            field.value = '';
+                        } else if (field.name === 'category') {
+                            field.value = 'Coffee Beans';
+                        } else if (field.name === 'unit') {
+                            field.value = 'kg';
+                        } else if (field.name === 'moq') {
+                            field.value = '1';
+                        } else {
+                            field.value = '';
+                        }
+                        field.setCustomValidity('');
+                    });
+                }
+
+                // Alpine controls this button's spinner/label; force both its state and DOM to idle.
+                const submitButton = addProductModal.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.removeAttribute('aria-busy');
+                    submitButton.style.opacity = '';
+                    submitButton.style.cursor = '';
+                    const spinner = submitButton.querySelector('svg');
+                    if (spinner) {
+                        spinner.style.display = 'none';
+                        spinner.setAttribute('hidden', '');
+                    }
+                    const label = submitButton.querySelector('span[x-text]');
+                    if (label) label.textContent = 'Create Product';
+                }
+
                 addProductModal.hidden = false;
                 addProductModal.removeAttribute('x-cloak');
                 addProductModal.style.display = 'flex';

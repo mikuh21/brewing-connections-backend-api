@@ -899,7 +899,22 @@
         const addProductModal = root.querySelector('[data-add-product-modal]');
         if (addProductButton && addProductModal && addProductButton.dataset.modalFallbackBound !== 'true') {
             addProductButton.dataset.modalFallbackBound = 'true';
+            const getAddProductState = function () {
+                try {
+                    if (window.Alpine && typeof window.Alpine.$data === 'function') {
+                        return window.Alpine.$data(root);
+                    }
+                } catch (_error) {
+                    // Use native visibility if Alpine state is unavailable.
+                }
+                return null;
+            };
             const closeAddProductModal = function () {
+                const state = getAddProductState();
+                if (state) {
+                    state.showCreateModal = false;
+                    state.isCreatingProduct = false;
+                }
                 addProductModal.style.display = 'none';
                 addProductModal.hidden = true;
                 addProductModal.setAttribute('aria-hidden', 'true');
@@ -907,18 +922,31 @@
             addProductButton.addEventListener('click', function (event) {
                 event.preventDefault();
                 event.stopPropagation();
-                try {
-                    if (window.Alpine && typeof window.Alpine.$data === 'function') {
-                        window.Alpine.$data(root).showCreateModal = true;
+                const state = getAddProductState();
+                if (state) {
+                    // Start every opening from the same clean state as Farm Owner's modal.
+                    if (typeof state.resetCreateForm === 'function') {
+                        state.resetCreateForm();
+                    } else {
+                        state.isCreatingProduct = false;
+                        state.createImagePreview = '';
+                        if (state.createForm && typeof state.createForm === 'object') {
+                            Object.keys(state.createForm).forEach(function (key) { state.createForm[key] = ''; });
+                            state.createForm.unit = 'kg';
+                            state.createForm.moq = 1;
+                        }
                     }
-                } catch (_error) {
-                    // Keep the native visibility fallback below if Alpine state is unavailable.
+                    state.showCreateModal = true;
+                    state.isCreatingProduct = false;
                 }
                 addProductModal.hidden = false;
                 addProductModal.removeAttribute('x-cloak');
                 addProductModal.style.display = 'flex';
                 addProductModal.style.opacity = '1';
                 addProductModal.setAttribute('aria-hidden', 'false');
+                addProductModal.scrollTop = 0;
+                const dialog = addProductModal.querySelector('[role="dialog"]');
+                if (dialog) dialog.scrollTop = 0;
                 const firstField = addProductModal.querySelector('input:not([type="hidden"]), select, textarea');
                 if (firstField) firstField.focus({ preventScroll: true });
             });

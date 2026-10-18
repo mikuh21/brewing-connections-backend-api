@@ -1824,7 +1824,7 @@
             <div>
                 <label class="block text-xs font-semibold">Price *</label>
                 <input x-ref="createPriceInput" x-model="createForm.price_per_unit" @input="createPriceTouched = true; $refs.createPriceInput?.setCustomValidity('')" type="number" min="0.01" step="0.01" name="price_per_unit" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
-                <p style="display: none;" x-show="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0" x-cloak class="mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
+                <p :class="createPriceTouched && createForm.price_per_unit !== '' && createForm.price_per_unit !== null && createForm.price_per_unit !== undefined && Number(createForm.price_per_unit) <= 0 ? 'block' : 'hidden'" class="hidden mt-1 text-xs font-medium text-red-600" role="alert">Price must be greater than 0.</p>
             </div>
 
             <div>

@@ -159,7 +159,7 @@
                 <svg class="w-6 h-6 text-[#3A2E22]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                 </svg>
-                <span x-show="unreadCount > 0" x-cloak class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center" x-text="unreadCount > 99 ? '99+' : unreadCount"></span>
+                
             </button>
 
             <div data-owner-notifications-panel hidden class="farm-dashboard-notif-menu absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl border border-gray-200 shadow-lg z-[10000] overflow-hidden">
@@ -169,17 +169,14 @@
                         <p class="text-xs text-[#9E8C78]">Updates for orders and chats</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button type="button" @click="showUnreadOnly = !showUnreadOnly" class="text-xs font-semibold whitespace-nowrap" :class="showUnreadOnly ? 'text-[#3A2E22]' : 'text-[#4A6741] hover:text-[#3A2E22]'" x-text="showUnreadOnly ? 'Show all' : 'Unread only'"></button>
-                        <button type="button" x-show="unreadCount > 0" @click="markAllAsRead()" class="text-xs text-[#4A6741] font-semibold hover:text-[#3A2E22] whitespace-nowrap">Mark all read</button>
+                        <button type="button" @click="showUnreadOnly = !showUnreadOnly" class="text-xs font-semibold whitespace-nowrap text-[#3A2E22] hover:text-[#4A6741]" x-text="showUnreadOnly ? 'Show all' : 'Unread only'"></button>
                     </div>
                 </div>
 
                 <div class="max-h-80 overflow-y-auto notif-scrollbar">
-                    <template x-if="visibleItems().length === 0">
-                        <div class="px-4 py-6 text-center">
-                            <p class="text-sm text-gray-500">No new notifications</p>
-                        </div>
-                    </template>
+                    <div x-show="visibleItems().length === 0" x-cloak class="px-4 py-6 text-center">
+                        <p class="text-sm text-gray-500" x-text="showUnreadOnly ? 'No new notifications' : 'No notifications yet'">No new notifications</p>
+                    </div>
 
                     <template x-if="orderItems().length > 0">
                         <div>
@@ -429,11 +426,9 @@
         <p class="text-[#9E8C78] text-sm mb-6">Latest updates and notifications</p>
 
         <div class="space-y-4">
-            <template x-if="combinedActivities().length === 0">
-                <div class="py-6 text-center">
-                    <p class="text-[#9E8C78] text-sm">No recent activity yet.</p>
-                </div>
-            </template>
+            <div x-show="combinedActivities().length === 0" x-cloak class="py-6 text-center">
+                <p class="text-[#9E8C78] text-sm">No recent activity yet.</p>
+            </div>
 
             <template x-for="activity in combinedActivities()" :key="activity.id">
                 <div class="flex items-start space-x-3">

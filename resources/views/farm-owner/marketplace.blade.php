@@ -622,7 +622,7 @@
 
         <button
             type="button"
-            @click.prevent.stop="showCreateModal = true"
+            data-open-add-product-modal
             class="px-4 py-2 rounded-lg bg-[#4A6741] text-white text-sm font-semibold hover:bg-[#3A2E22] transition-colors"
         >
             <span class="mr-1.5">+</span>Add Product
@@ -893,6 +893,38 @@
         const root = document.querySelector('.farm-marketplace-page');
         if (!root || root.dataset.storeTabsBound === 'true') return;
         root.dataset.storeTabsBound = 'true';
+
+        // Native fallback keeps the Add Product dialog operable if Alpine click bindings fail.
+        const addProductButton = root.querySelector('[data-open-add-product-modal]');
+        const addProductModal = root.querySelector('[data-add-product-modal]');
+        if (addProductButton && addProductModal && addProductButton.dataset.modalFallbackBound !== 'true') {
+            addProductButton.dataset.modalFallbackBound = 'true';
+            const closeAddProductModal = function () {
+                addProductModal.style.display = 'none';
+                addProductModal.hidden = true;
+                addProductModal.setAttribute('aria-hidden', 'true');
+            };
+            addProductButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                addProductModal.hidden = false;
+                addProductModal.removeAttribute('x-cloak');
+                addProductModal.style.display = 'flex';
+                addProductModal.style.opacity = '1';
+                addProductModal.setAttribute('aria-hidden', 'false');
+                const firstField = addProductModal.querySelector('input:not([type="hidden"]), select, textarea');
+                if (firstField) firstField.focus({ preventScroll: true });
+            });
+            addProductModal.addEventListener('click', function (event) {
+                if (event.target === addProductModal) closeAddProductModal();
+            });
+            addProductModal.querySelectorAll('[aria-label="Close Add Product modal"]').forEach(function (button) {
+                button.addEventListener('click', closeAddProductModal);
+            });
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && addProductModal.getAttribute('aria-hidden') === 'false') closeAddProductModal();
+            });
+        }
 
         const buttons = Array.from(root.querySelectorAll('[data-store-tab-button]'));
         const panels = Array.from(root.querySelectorAll('[data-store-tab-panel]'));
@@ -1676,6 +1708,8 @@
 </div>
 
 <div
+    id="add-product-modal"
+    data-add-product-modal
     x-show="showCreateModal"
     x-cloak
     x-transition:enter="transition ease-out duration-200"

@@ -1010,7 +1010,21 @@
                 if (event.target === addProductModal) closeAddProductModal();
             });
             addProductModal.querySelectorAll('[aria-label="Close Add Product modal"]').forEach(function (button) {
-                button.addEventListener('click', closeAddProductModal);
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    closeAddProductModal();
+                });
+            });
+            // The Cancel button also needs a native fallback when Alpine click handlers are unavailable.
+            addProductModal.querySelectorAll('button[type="button"]').forEach(function (button) {
+                if (button.textContent.trim().toLowerCase() !== 'cancel' || button.dataset.cancelFallbackBound === 'true') return;
+                button.dataset.cancelFallbackBound = 'true';
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    closeAddProductModal();
+                });
             });
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape' && addProductModal.getAttribute('aria-hidden') === 'false') closeAddProductModal();

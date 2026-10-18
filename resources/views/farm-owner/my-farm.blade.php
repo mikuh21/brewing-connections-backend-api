@@ -172,7 +172,8 @@
             window.addEventListener('pointerup', this.fitDragUpHandler);
         }
     }"
-    x-init="$nextTick(() => { editMode = false; })"
+    x-init="editMode = false"
+    @pageshow.window="editMode = false"
     class="space-y-8"
 >
     <form method="POST" action="{{ route($profileUpdateRouteName) }}" enctype="multipart/form-data" class="space-y-8">
@@ -423,8 +424,7 @@
                                 <input
                                     type="checkbox"
                                     name="varieties[]"
-                                        :disabled="!editMode"
-                                    value="{{ $variety->id }}"
+                                        value="{{ $variety->id }}"
                                     @checked($selected)
                                     :disabled="!editMode"
                                     class="rounded border-gray-300 text-[#4A6741] focus:ring-[#4A6741]"
@@ -435,7 +435,6 @@
                                     <input
                                         type="radio"
                                         name="primary_variety"
-                                        :disabled="!editMode"
                                         value="{{ $variety->id }}"
                                         @checked((int) $oldPrimary === (int) $variety->id)
                                         :disabled="!editMode"

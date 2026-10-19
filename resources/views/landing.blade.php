@@ -1483,13 +1483,18 @@
                                     @php
                                         $availableStock = max(0, (int) ($product->stock_quantity ?? 0));
                                         $isOutOfStock = $availableStock <= 0 || $product->is_active === false;
+                                        $establishmentAddress = trim((string) ($product->establishment?->address ?? ''));
+                                        $establishmentBarangay = trim((string) ($product->establishment?->barangay ?? ''));
+                                        if ($establishmentAddress !== '' && $establishmentBarangay !== '' && !str_contains(strtolower($establishmentAddress), strtolower($establishmentBarangay))) {
+                                            $establishmentAddress .= ', ' . $establishmentBarangay;
+                                        }
                                     @endphp
                                     <option
                                         value="{{ $product->name }}"
                                         data-product-id="{{ $product->id }}"
                                         data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}"
                                         data-seller="{{ $product->establishment?->name ?? 'Verified Farm Seller' }}"
-                                        data-establishment-address="{{ trim(($product->establishment?->address ?? '') . (($product->establishment?->barangay ?? '') !== '' && !str_contains(strtolower($product->establishment?->address ?? ''), strtolower($product->establishment?->barangay ?? '')) ? ', ' . $product->establishment->barangay : '')) }}"
+                                        data-establishment-address="{{ $establishmentAddress }}"
                                         data-establishment-latitude="{{ $product->establishment?->latitude ?? '' }}"
                                         data-establishment-longitude="{{ $product->establishment?->longitude ?? '' }}"
                                         data-stock="{{ $availableStock }}"

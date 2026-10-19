@@ -4313,37 +4313,83 @@ async function populateAdminAddressFields(latitude, longitude) {
     clearFieldError('address');
     clearFieldError('barangay');
 
-    try {
-        const response = await fetch('/admin/map/reverse-geocode', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': window.CSRF_TOKEN,
-            },
-            body: JSON.stringify({ latitude, longitude }),
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-            throw new Error(payload.message || 'Could not retrieve the address for this map pin.');
+    // Always bound network waits so a failed route or geocoder cannot leave the form
+    // permanently stuck in its loading state.
+    const fetchJsonWithTimeout = async (url, options = {}, timeoutMs = 9000) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(payload.message || `Address lookup failed (HTTP ${response.status}).`);
+            }
+            return payload;
+        } finally {
+            clearTimeout(timeoutId);
         }
-        if (requestId !== addressLookupRequestId) return;
+    };
 
+    try {
+        let payload;
+        let usedFallback = false;
+        try {
+            payload = await fetchJsonWithTimeout('/admin/map/reverse-geocode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': window.CSRF_TOKEN || '',
+                },
+                body: JSON.stringify({ latitude, longitude }),
+            });
+        } catch (primaryError) {
+            // If the app endpoint is unavailable, try the same OpenStreetMap reverse
+            // geocoder directly rather than leaving the fields in a loading state.
+            const query = new URLSearchParams({
+                format: 'jsonv2',
+                lat: String(latitude),
+                lon: String(longitude),
+                addressdetails: '1',
+                zoom: '18',
+            });
+            const fallback = await fetchJsonWithTimeout(
+                `https://nominatim.openstreetmap.org/reverse?${query.toString()}`,
+                { headers: { 'Accept': 'application/json' } },
+                7000
+            );
+            const parts = fallback.address || {};
+            payload = {
+                address: fallback.display_name || '',
+                barangay: parts.suburb || parts.neighbourhood || parts.quarter
+                    || parts.village || parts.hamlet || parts.city_district
+                    || parts.municipality || parts.county || parts.town || parts.city || '',
+            };
+            usedFallback = true;
+        }
+
+        if (requestId !== addressLookupRequestId) return;
         addressField.value = payload.address || '';
         barangayField.value = payload.barangay || '';
+
         if (!addressField.value || !barangayField.value) {
             showMapToast('warning', 'Address partially retrieved', 'Review the address and barangay fields before saving. You can correct any missing details.');
+        } else if (usedFallback) {
+            showMapToast('success', 'Address filled automatically', 'Address and barangay were retrieved using the map coordinates.');
         } else {
             showMapToast('success', 'Address filled automatically', 'Address and barangay were retrieved from the selected map pin.');
         }
     } catch (error) {
         if (requestId !== addressLookupRequestId) return;
-        showMapToast('error', 'Address lookup failed', error.message || 'Please try selecting the map pin again.');
+        const message = error.name === 'AbortError'
+            ? 'The address service took too long to respond. Please select the pin again or enter the address and barangay manually.'
+            : (error.message || 'Please try selecting the map pin again.');
+        showMapToast('error', 'Address lookup failed', message);
     } finally {
         if (requestId === addressLookupRequestId) {
             addressLookupInProgress = false;
-            addressField.placeholder = '';
-            barangayField.placeholder = '';
+            addressField.placeholder = 'Enter or verify the address';
+            barangayField.placeholder = 'Enter or verify the barangay';
             addressField.removeAttribute('aria-busy');
             barangayField.removeAttribute('aria-busy');
         }

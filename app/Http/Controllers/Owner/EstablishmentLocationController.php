@@ -79,8 +79,15 @@ class EstablishmentLocationController extends Controller
                         $establishment->barangay = mb_substr($barangay, 0, 255);
                     }
 
+                    $userLocation = [];
+                    if (Schema::hasColumn('users', 'address')) {
+                        $userLocation['address'] = mb_substr($formattedAddress, 0, 255);
+                    }
                     if (Schema::hasColumn('users', 'barangay') && $barangay !== null) {
-                        $user->forceFill(['barangay' => mb_substr($barangay, 0, 255)])->save();
+                        $userLocation['barangay'] = mb_substr($barangay, 0, 255);
+                    }
+                    if ($userLocation !== []) {
+                        $user->forceFill($userLocation)->save();
                     }
                 }
             }

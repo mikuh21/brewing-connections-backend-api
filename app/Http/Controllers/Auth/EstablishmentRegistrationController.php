@@ -62,10 +62,12 @@ class EstablishmentRegistrationController extends Controller
             'barangay' => ['required', 'string', 'max:255'],
             'website' => ['nullable', 'url', 'max:255'],
             'terms_agreed' => ['accepted'],
+            'privacy_agreed' => ['accepted'],
         ], [
             'password.regex' => 'Password must contain at least one special character.',
             'contact_number.regex' => 'Enter a valid contact number containing 7 to 15 digits, with optional spaces, +, hyphens, or parentheses.',
             'terms_agreed.accepted' => 'You must agree to the Terms & Conditions to continue.',
+            'privacy_agreed.accepted' => 'You must agree to the Privacy Policy to continue.',
         ]);
 
         $role = match ($validated['establishment_type']) {

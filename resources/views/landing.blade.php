@@ -15,22 +15,27 @@
         min-height: 0;
         overflow-y: auto;
     }
-    #reservationDeliveryMap {
+    #reservationDeliveryMap,
+    #reservationPickupMap {
         height: min(42vh, 340px);
         min-height: 210px;
     }
     #reservationDeliveryMap .leaflet-top,
-    #reservationDeliveryMap .leaflet-bottom {
+    #reservationDeliveryMap .leaflet-bottom,
+    #reservationPickupMap .leaflet-top,
+    #reservationPickupMap .leaflet-bottom {
         margin: 10px;
     }
-    #reservationDeliveryMap .leaflet-control-zoom {
+    #reservationDeliveryMap .leaflet-control-zoom,
+    #reservationPickupMap .leaflet-control-zoom {
         border: 1px solid #E7DED1 !important;
         box-shadow: 0 8px 24px rgba(58, 46, 34, 0.10) !important;
         border-radius: 14px !important;
         overflow: hidden;
         background: #FFFFFF !important;
     }
-    #reservationDeliveryMap .leaflet-control-zoom a {
+    #reservationDeliveryMap .leaflet-control-zoom a,
+    #reservationPickupMap .leaflet-control-zoom a {
         width: 40px !important;
         height: 40px !important;
         line-height: 40px !important;
@@ -40,17 +45,20 @@
         background: #FFFFFF !important;
         transition: background 0.2s ease, color 0.2s ease;
     }
-    #reservationDeliveryMap .leaflet-control-zoom a:hover {
+    #reservationDeliveryMap .leaflet-control-zoom a:hover,
+    #reservationPickupMap .leaflet-control-zoom a:hover {
         background: #F3EEE6 !important;
         color: #4A6741 !important;
     }
-    #reservationDeliveryMap .leaflet-control-zoom a:first-child {
+    #reservationDeliveryMap .leaflet-control-zoom a:first-child,
+    #reservationPickupMap .leaflet-control-zoom a:first-child {
         border-bottom: 1px solid #EEE4D7 !important;
     }
     @media (max-height: 650px) {
         .reservation-delivery-map-card { max-height: calc(100dvh - 0.75rem); }
         .reservation-delivery-map-content { padding-top: 0.65rem; padding-bottom: 0.65rem; }
-        #reservationDeliveryMap { height: 34vh; min-height: 170px; }
+        #reservationDeliveryMap,
+        #reservationPickupMap { height: 34vh; min-height: 170px; }
     }
 
     /* Featured establishment carousel */
@@ -2171,6 +2179,20 @@
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
+        const reservationPickupLocationField = document.getElementById('reservationPickupLocationField');
+        const reservationViewPickupLocationButton = document.getElementById('reservationViewPickupLocationButton');
+        const reservationPickupLocationHint = document.getElementById('reservationPickupLocationHint');
+        const reservationPickupMapModal = document.getElementById('reservationPickupMapModal');
+        const reservationPickupMapClose = document.getElementById('reservationPickupMapClose');
+        const reservationPickupMapDone = document.getElementById('reservationPickupMapDone');
+        const reservationPickupMapStatus = document.getElementById('reservationPickupMapStatus');
+        const reservationPickupMapSubtitle = document.getElementById('reservationPickupMapSubtitle');
+        const reservationPickupMapAddress = document.getElementById('reservationPickupMapAddress');
+        let reservationPickupMap = null;
+        let reservationPickupMarker = null;
+        let reservationPickupMapCoordinates = null;
+        let reservationBuyerAddressBeforePickup = '';
+        let reservationWasPickupMode = false;
         const reservationDeliveryLocationField = document.getElementById('reservationDeliveryLocationField');
         const reservationPinLocationButton = document.getElementById('reservationPinLocationButton');
         const reservationPinLocationButtonText = document.getElementById('reservationPinLocationButtonText');
@@ -2217,6 +2239,108 @@
                 script.onerror = () => reject(new Error("Unable to load map. Check your connection and try again.")); document.head.appendChild(script);
             }); return leafletLoadPromise;
         }
+        function getSelectedPickupEstablishment() {
+            const option = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+            const latitude = Number(option?.dataset?.establishmentLatitude);
+            const longitude = Number(option?.dataset?.establishmentLongitude);
+            const hasCoordinates = option?.dataset?.establishmentLatitude !== undefined
+                && option?.dataset?.establishmentLatitude !== ''
+                && option?.dataset?.establishmentLongitude !== undefined
+                && option?.dataset?.establishmentLongitude !== ''
+                && Number.isFinite(latitude) && Number.isFinite(longitude)
+                && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+            return {
+                name: String(option?.dataset?.seller || 'Seller').trim(),
+                address: String(option?.dataset?.establishmentAddress || '').trim(),
+                latitude: hasCoordinates ? latitude : null,
+                longitude: hasCoordinates ? longitude : null,
+            };
+        }
+
+        function updatePickupEstablishmentAddress() {
+            if (!reservationAddressInput || String(reservationPaymentModeSelect?.value || '').toLowerCase() !== 'pickup') return;
+            const establishment = getSelectedPickupEstablishment();
+            reservationAddressInput.value = establishment.address
+                || (establishment.latitude !== null && establishment.longitude !== null
+                    ? `Pinned establishment location (${establishment.latitude.toFixed(6)}, ${establishment.longitude.toFixed(6)})`
+                    : '');
+            reservationPickupMapCoordinates = establishment.latitude !== null && establishment.longitude !== null
+                ? { latitude: establishment.latitude, longitude: establishment.longitude, name: establishment.name, address: establishment.address }
+                : null;
+            if (reservationPickupLocationHint) {
+                reservationPickupLocationHint.textContent = establishment.address
+                    ? `Pickup address is taken from ${establishment.name}'s saved establishment details.`
+                    : (reservationPickupMapCoordinates
+                        ? `The seller's address is not set; the saved map coordinates are shown instead.`
+                        : `No saved address or pinned coordinates are available for ${establishment.name}. Please contact the seller before reserving.`);
+            }
+            if (reservationViewPickupLocationButton) {
+                reservationViewPickupLocationButton.disabled = !reservationPickupMapCoordinates;
+                reservationViewPickupLocationButton.classList.toggle('opacity-50', !reservationPickupMapCoordinates);
+                reservationViewPickupLocationButton.classList.toggle('cursor-not-allowed', !reservationPickupMapCoordinates);
+                reservationViewPickupLocationButton.title = reservationPickupMapCoordinates
+                    ? 'View the seller’s saved pinned location'
+                    : 'This seller has no saved map coordinates';
+            }
+        }
+
+        async function openReservationPickupMap() {
+            const establishment = getSelectedPickupEstablishment();
+            if (establishment.latitude === null || establishment.longitude === null) {
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'This seller has no saved pinned coordinates yet.';
+                return;
+            }
+            reservationPickupMapCoordinates = {
+                latitude: establishment.latitude,
+                longitude: establishment.longitude,
+                name: establishment.name,
+                address: establishment.address,
+            };
+            reservationPickupMapModal?.classList.remove('hidden');
+            reservationPickupMapModal?.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+            if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'Loading seller location…';
+            if (reservationPickupMapSubtitle) reservationPickupMapSubtitle.textContent = `Saved pinned location for ${establishment.name}.`;
+            if (reservationPickupMapAddress) reservationPickupMapAddress.textContent = establishment.address || `Coordinates: ${establishment.latitude.toFixed(6)}, ${establishment.longitude.toFixed(6)}`;
+            try {
+                const L = await loadReservationLeaflet();
+                const point = [establishment.latitude, establishment.longitude];
+                if (!reservationPickupMap) {
+                    reservationPickupMap = L.map('reservationPickupMap', { scrollWheelZoom: true }).setView(point, 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors',
+                        maxZoom: 19,
+                    }).addTo(reservationPickupMap);
+                    reservationPickupMarker = L.marker(point, { draggable: false }).addTo(reservationPickupMap);
+                } else {
+                    reservationPickupMap.setView(point, 16);
+                    reservationPickupMarker.setLatLng(point).addTo(reservationPickupMap);
+                }
+                setTimeout(() => reservationPickupMap?.invalidateSize(), 180);
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'This marker shows the seller’s saved establishment pin. Buyers cannot move it.';
+            } catch (error) {
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = error.message || 'Unable to load the seller location map.';
+            }
+        }
+
+        function closeReservationPickupMap() {
+            reservationPickupMapModal?.classList.add('hidden');
+            reservationPickupMapModal?.classList.remove('flex');
+            if (!hasVisibleModal(reservationDeliveryMapModal) && !hasVisibleModal(reservationConfirmModal) && !hasVisibleModal(receiptModal)) {
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+        reservationViewPickupLocationButton?.addEventListener('click', openReservationPickupMap);
+        [reservationPickupMapClose, reservationPickupMapDone].forEach(button => button?.addEventListener('click', closeReservationPickupMap));
+        reservationPickupMapModal?.addEventListener('click', event => {
+            if (event.target === reservationPickupMapModal) closeReservationPickupMap();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && reservationPickupMapModal && !reservationPickupMapModal.classList.contains('hidden')) {
+                closeReservationPickupMap();
+            }
+        });
+
         function setReservationDeliveryPin(lat, lng) {
             reservationDeliveryPin = { latitude: Number(lat), longitude: Number(lng), label: "" };
             if (reservationDeliveryMarker) reservationDeliveryMarker.setLatLng([lat, lng]);

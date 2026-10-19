@@ -498,7 +498,7 @@ class MapController extends Controller
                 'address' => mb_substr($formattedAddress, 0, 255),
                 'barangay' => $barangay ? mb_substr($barangay, 0, 255) : null,
             ];
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             report($exception);
             return null;
         }

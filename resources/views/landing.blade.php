@@ -1586,7 +1586,7 @@
 
                         <div>
                             <label class="block text-sm text-[#3A2E22] font-body mb-1">
-                                Address (House No., Street, Barangay, City, Province)
+                                Pickup/Seller Address
                             </label>
                             <textarea id="reservationAddressInput" rows="2" placeholder="Enter complete address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required></textarea>
                             <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
@@ -2322,7 +2322,7 @@
                     reservationPickupMarker.setLatLng(point).addTo(reservationPickupMap);
                 }
                 setTimeout(() => reservationPickupMap?.invalidateSize(), 180);
-                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'This marker shows the seller’s saved establishment pin. Buyers cannot move it.';
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = '';
             } catch (error) {
                 if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = error.message || 'Unable to load the seller location map.';
             }

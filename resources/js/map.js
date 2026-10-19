@@ -146,6 +146,8 @@ function showMapToast(type, title, message) {
   titleEl.textContent = title
   msgEl.textContent = message
 
+  // The Add Establishment modal uses z-index 99999/100000. Keep toast above it.
+  toast.style.zIndex = '100010'
   toast.style.pointerEvents = 'auto'
   toast.style.opacity = '1'
   toast.style.transform = 'translateY(0)'

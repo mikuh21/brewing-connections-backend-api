@@ -392,7 +392,7 @@
                           top: 20px;
                           right: 20px;
                           bottom: auto;
-                          z-index: 1100;
+                          z-index: 100010;
                           min-width: 280px;
                           max-width: 360px;
                           background: white;

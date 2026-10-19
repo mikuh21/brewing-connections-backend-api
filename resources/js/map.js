@@ -4310,8 +4310,27 @@ async function populateAdminAddressFields(latitude, longitude) {
     barangayField.placeholder = 'Retrieving barangay…';
     addressField.setAttribute('aria-busy', 'true');
     barangayField.setAttribute('aria-busy', 'true');
-    clearFieldError('address');
-    clearFieldError('barangay');
+
+    // This function is outside the add-form initializer's scope, so it must not
+    // call that initializer's locally scoped clearFieldError() helper.
+    const clearAddressFieldError = (fieldName) => {
+        const errorNode = form.querySelector(`[data-field-error="${fieldName}"]`);
+        const field = form.elements.namedItem(fieldName);
+
+        if (errorNode) {
+            errorNode.textContent = '';
+            errorNode.classList.add('hidden');
+        }
+
+        if (field) {
+            field.setAttribute('aria-invalid', 'false');
+            field.classList.remove('border-red-500', 'focus:ring-red-500');
+            field.classList.add('border-gray-300', 'focus:ring-[#4A6741]');
+        }
+    };
+
+    clearAddressFieldError('address');
+    clearAddressFieldError('barangay');
 
     // Always bound network waits so a failed route or geocoder cannot leave the form
     // permanently stuck in its loading state.

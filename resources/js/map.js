@@ -2160,6 +2160,7 @@ function saveEdit() {
         })
         .catch((error) => {
             console.error('Error updating establishment location:', error);
+            if (originalLatLng && markerRef) markerRef.setLatLng(originalLatLng);
             showToast(error.message || 'Error updating location', true);
             if (saveButton) saveButton.disabled = false;
         })

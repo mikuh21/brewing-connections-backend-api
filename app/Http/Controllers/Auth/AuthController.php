@@ -41,20 +41,19 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
-
-        // Regenerate session
         $request->session()->regenerate();
 
         $user = Auth::user();
         if (!$user) {
             Auth::logout();
+
             return back()
                 ->withErrors(['email' => 'Unauthorized access.'])
                 ->withInput($request->except('password'));
         }
 
-        $request->session()->flash('show_privacy_policy_modal', true);
-
+        // Resolve the user's destination first, but keep them on the login page
+        // until they acknowledge the Privacy Policy modal.
         if ($user->role === 'reseller' && $user->status === 'deactivated') {
             if (!empty($user->deactivation_notice_seen_at)) {
                 Auth::logout();
@@ -67,60 +66,75 @@ class AuthController extends Controller
             User::query()
                 ->whereKey($user->id)
                 ->update(['deactivation_notice_seen_at' => now()]);
+            $destination = route('reseller.dashboard');
+        } else {
+            $destination = null;
 
-            return redirect()->route('reseller.dashboard');
-        }
+            // Keep legacy accounts working during the role migration, but store roaster
+            // owners under the dedicated "roaster" role going forward.
+            if (in_array($user->role, ['roaster', 'cafe_owner'], true)) {
+                $roasterQuery = Establishment::query()
+                    ->where('type', 'roaster')
+                    ->whereNull('deleted_at');
+                $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
+                $hasUserId = Schema::hasColumn('establishments', 'user_id');
 
-        // Keep legacy accounts working during the role migration, but store roaster
-        // owners under the dedicated "roaster" role going forward.
-        if (in_array($user->role, ['roaster', 'cafe_owner'], true)) {
-            $roasterQuery = Establishment::query()
-                ->where('type', 'roaster')
-                ->whereNull('deleted_at');
-            $hasOwnerId = Schema::hasColumn('establishments', 'owner_id');
-            $hasUserId = Schema::hasColumn('establishments', 'user_id');
-
-            if ($hasOwnerId && $hasUserId) {
-                $roasterQuery->where(function ($query) use ($user) {
-                    $query->where('owner_id', $user->id)
-                        ->orWhere('user_id', $user->id);
-                });
-            } elseif ($hasOwnerId) {
-                $roasterQuery->where('owner_id', $user->id);
-            } elseif ($hasUserId) {
-                $roasterQuery->where('user_id', $user->id);
-            } else {
-                $roasterQuery->whereRaw('1 = 0');
-            }
-
-            if ($roasterQuery->exists()) {
-                if ($user->role !== 'roaster') {
-                    $user->forceFill(['role' => 'roaster'])->save();
+                if ($hasOwnerId && $hasUserId) {
+                    $roasterQuery->where(function ($query) use ($user) {
+                        $query->where('owner_id', $user->id)
+                            ->orWhere('user_id', $user->id);
+                    });
+                } elseif ($hasOwnerId) {
+                    $roasterQuery->where('owner_id', $user->id);
+                } elseif ($hasUserId) {
+                    $roasterQuery->where('user_id', $user->id);
+                } else {
+                    $roasterQuery->whereRaw('1 = 0');
                 }
 
-                return redirect()->route('roaster-owner.dashboard');
+                if ($roasterQuery->exists()) {
+                    if ($user->role !== 'roaster') {
+                        $user->forceFill(['role' => 'roaster'])->save();
+                    }
+
+                    $destination = route('roaster-owner.dashboard');
+                }
+            }
+
+            if (!$destination) {
+                switch ($user->role) {
+                    case 'admin':
+                        $destination = route('admin.dashboard');
+                        break;
+                    case 'farm_owner':
+                        $destination = route('farm-owner.dashboard');
+                        break;
+                    case 'roaster':
+                        $destination = route('roaster-owner.dashboard');
+                        break;
+                    case 'cafe_owner':
+                        $destination = route('cafe-owner.dashboard');
+                        break;
+                    case 'reseller':
+                        $destination = route('reseller.dashboard');
+                        break;
+                    case 'consumer':
+                        $destination = route('home');
+                        break;
+                    default:
+                        Auth::logout();
+
+                        return back()
+                            ->withErrors(['email' => 'Unauthorized access.'])
+                            ->withInput($request->except('password'));
+                }
             }
         }
 
-        switch ($user->role) {
-            case 'admin':
-                return redirect()->route('admin.dashboard');
-            case 'farm_owner':
-                return redirect()->route('farm-owner.dashboard');
-            case 'roaster':
-                return redirect()->route('roaster-owner.dashboard');
-            case 'cafe_owner':
-                return redirect()->route('cafe-owner.dashboard');
-            case 'reseller':
-                return redirect()->route('reseller.dashboard');
-            case 'consumer':
-                return redirect()->route('home');
-            default:
-                Auth::logout();
-                return back()
-                    ->withErrors(['email' => 'Unauthorized access.'])
-                    ->withInput($request->except('password'));
-        }
+        $request->session()->put('privacy_policy_pending_redirect', $destination);
+        $request->session()->flash('show_privacy_policy_modal', true);
+
+        return redirect()->route('login');
     }
 
     // Handle logout POST

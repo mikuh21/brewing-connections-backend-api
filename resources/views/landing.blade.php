@@ -3484,9 +3484,29 @@
             const isPickup = String(mode || '').toLowerCase() === 'pickup';
             const isCod = String(mode || '').toLowerCase() === 'cod';
 
+            if (isPickup && !reservationWasPickupMode && reservationAddressInput) {
+                reservationBuyerAddressBeforePickup = String(reservationAddressInput.value || '');
+            }
+
             if (reservationPickupFields) {
                 reservationPickupFields.classList.toggle('hidden', !isPickup);
             }
+            if (reservationPickupLocationField) {
+                reservationPickupLocationField.classList.toggle('hidden', !isPickup);
+            }
+            if (reservationAddressInput) {
+                reservationAddressInput.readOnly = isPickup;
+                reservationAddressInput.classList.toggle('bg-[#F8F4EC]', isPickup);
+                reservationAddressInput.classList.toggle('cursor-default', isPickup);
+                if (isPickup) {
+                    updatePickupEstablishmentAddress();
+                } else if (reservationWasPickupMode) {
+                    // Restore the customer's own address when switching back to COD.
+                    reservationAddressInput.value = reservationBuyerAddressBeforePickup;
+                    reservationPickupMapCoordinates = null;
+                }
+            }
+            reservationWasPickupMode = isPickup;
 
             if (reservationCodSummary) {
                 reservationCodSummary.classList.toggle('hidden', !isCod);
@@ -3510,6 +3530,9 @@
             reservationProductSelect.addEventListener('change', () => {
                 const selectedOption = reservationProductSelect.options[reservationProductSelect.selectedIndex];
                 applyReservationLimits(selectedOption?.dataset?.moq || 1, selectedOption?.dataset?.stock || 0);
+                if (String(reservationPaymentModeSelect?.value || '').toLowerCase() === 'pickup') {
+                    updatePickupEstablishmentAddress();
+                }
             });
             // update COD summary when product changes
             reservationProductSelect.addEventListener('change', () => {

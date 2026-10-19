@@ -91,7 +91,7 @@ class EstablishmentLocationController extends Controller
                     }
                 }
             }
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             // Saving the map pin must still work if the reverse-geocoding service is unavailable.
             report($exception);
         }

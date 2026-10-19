@@ -425,9 +425,9 @@ class MapController extends Controller
             (float) $validated['longitude']
         );
 
-        if (!$address) {
+        if (!$address || !$address['barangay']) {
             return response()->json([
-                'message' => 'The address could not be retrieved for this pin. Try another nearby point or retry.',
+                'message' => 'The address or barangay could not be retrieved for this pin. Try another nearby point or enter the missing details manually.',
             ], 422);
         }
 
@@ -509,9 +509,9 @@ class MapController extends Controller
             (float) $validated['longitude']
         );
 
-        if (!$address) {
+        if (!$address || !$address['barangay']) {
             return response()->json([
-                'message' => 'The location was not saved because its address could not be retrieved. Please try a nearby pin or save again.',
+                'message' => 'The location was not saved because its address or barangay could not be retrieved. Please try a nearby pin and save again.',
             ], 422);
         }
 

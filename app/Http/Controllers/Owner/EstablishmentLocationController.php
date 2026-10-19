@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Establishment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 
 class EstablishmentLocationController extends Controller
@@ -42,17 +43,70 @@ class EstablishmentLocationController extends Controller
             ], 404);
         }
 
+        $addressDetails = null;
+        $reverseGeocodeSucceeded = false;
+
+        try {
+            $geocodeResponse = Http::withHeaders([
+                'User-Agent' => 'BrewHub/1.0 (https://brewing-hub.online)',
+                'Accept' => 'application/json',
+            ])->timeout(5)->get('https://nominatim.openstreetmap.org/reverse', [
+                'format' => 'jsonv2',
+                'lat' => (float) $validated['latitude'],
+                'lon' => (float) $validated['longitude'],
+                'addressdetails' => 1,
+                'zoom' => 18,
+            ]);
+
+            if ($geocodeResponse->successful()) {
+                $geocodeData = $geocodeResponse->json();
+                $addressDetails = is_array($geocodeData['address'] ?? null) ? $geocodeData['address'] : [];
+                $reverseGeocodeSucceeded = !empty($geocodeData['display_name']);
+
+                if ($reverseGeocodeSucceeded) {
+                    $formattedAddress = trim((string) $geocodeData['display_name']);
+                    $barangay = null;
+
+                    foreach (['suburb', 'neighbourhood', 'quarter', 'village', 'hamlet', 'city_district', 'municipality'] as $candidate) {
+                        if (!empty($addressDetails[$candidate])) {
+                            $barangay = trim((string) $addressDetails[$candidate]);
+                            break;
+                        }
+                    }
+
+                    $establishment->address = mb_substr($formattedAddress, 0, 255);
+                    if ($barangay !== null) {
+                        $establishment->barangay = mb_substr($barangay, 0, 255);
+                    }
+
+                    if (Schema::hasColumn('users', 'barangay') && $barangay !== null) {
+                        $user->forceFill(['barangay' => mb_substr($barangay, 0, 255)])->save();
+                    }
+                }
+            }
+        } catch (\\Throwable $exception) {
+            // Saving the map pin must still work if the reverse-geocoding service is unavailable.
+            report($exception);
+        }
+
         $establishment->forceFill([
             'latitude' => (float) $validated['latitude'],
             'longitude' => (float) $validated['longitude'],
         ])->save();
 
+        $message = $reverseGeocodeSucceeded
+            ? 'Your establishment location and address have been saved.'
+            : 'Your establishment location has been saved, but the address could not be retrieved automatically. Please try saving the pin again later.';
+
         return response()->json([
-            'message' => 'Your establishment location has been saved.',
+            'message' => $message,
+            'address_updated' => $reverseGeocodeSucceeded,
             'establishment' => [
                 'id' => $establishment->id,
                 'name' => $establishment->name,
                 'type' => $establishment->type,
+                'address' => $establishment->address,
+                'barangay' => $establishment->barangay,
                 'latitude' => (float) $establishment->latitude,
                 'longitude' => (float) $establishment->longitude,
             ],

@@ -15,22 +15,27 @@
         min-height: 0;
         overflow-y: auto;
     }
-    #reservationDeliveryMap {
+    #reservationDeliveryMap,
+    #reservationPickupMap {
         height: min(42vh, 340px);
         min-height: 210px;
     }
     #reservationDeliveryMap .leaflet-top,
-    #reservationDeliveryMap .leaflet-bottom {
+    #reservationDeliveryMap .leaflet-bottom,
+    #reservationPickupMap .leaflet-top,
+    #reservationPickupMap .leaflet-bottom {
         margin: 10px;
     }
-    #reservationDeliveryMap .leaflet-control-zoom {
+    #reservationDeliveryMap .leaflet-control-zoom,
+    #reservationPickupMap .leaflet-control-zoom {
         border: 1px solid #E7DED1 !important;
         box-shadow: 0 8px 24px rgba(58, 46, 34, 0.10) !important;
         border-radius: 14px !important;
         overflow: hidden;
         background: #FFFFFF !important;
     }
-    #reservationDeliveryMap .leaflet-control-zoom a {
+    #reservationDeliveryMap .leaflet-control-zoom a,
+    #reservationPickupMap .leaflet-control-zoom a {
         width: 40px !important;
         height: 40px !important;
         line-height: 40px !important;
@@ -40,17 +45,20 @@
         background: #FFFFFF !important;
         transition: background 0.2s ease, color 0.2s ease;
     }
-    #reservationDeliveryMap .leaflet-control-zoom a:hover {
+    #reservationDeliveryMap .leaflet-control-zoom a:hover,
+    #reservationPickupMap .leaflet-control-zoom a:hover {
         background: #F3EEE6 !important;
         color: #4A6741 !important;
     }
-    #reservationDeliveryMap .leaflet-control-zoom a:first-child {
+    #reservationDeliveryMap .leaflet-control-zoom a:first-child,
+    #reservationPickupMap .leaflet-control-zoom a:first-child {
         border-bottom: 1px solid #EEE4D7 !important;
     }
     @media (max-height: 650px) {
         .reservation-delivery-map-card { max-height: calc(100dvh - 0.75rem); }
         .reservation-delivery-map-content { padding-top: 0.65rem; padding-bottom: 0.65rem; }
-        #reservationDeliveryMap { height: 34vh; min-height: 170px; }
+        #reservationDeliveryMap,
+        #reservationPickupMap { height: 34vh; min-height: 170px; }
     }
 
     /* Featured establishment carousel */
@@ -1475,12 +1483,20 @@
                                     @php
                                         $availableStock = max(0, (int) ($product->stock_quantity ?? 0));
                                         $isOutOfStock = $availableStock <= 0 || $product->is_active === false;
+                                        $establishmentAddress = trim((string) ($product->establishment?->address ?? ''));
+                                        $establishmentBarangay = trim((string) ($product->establishment?->barangay ?? ''));
+                                        if ($establishmentAddress !== '' && $establishmentBarangay !== '' && !str_contains(strtolower($establishmentAddress), strtolower($establishmentBarangay))) {
+                                            $establishmentAddress .= ', ' . $establishmentBarangay;
+                                        }
                                     @endphp
                                     <option
                                         value="{{ $product->name }}"
                                         data-product-id="{{ $product->id }}"
                                         data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}"
                                         data-seller="{{ $product->establishment?->name ?? 'Verified Farm Seller' }}"
+                                        data-establishment-address="{{ $establishmentAddress }}"
+                                        data-establishment-latitude="{{ $product->establishment?->latitude ?? '' }}"
+                                        data-establishment-longitude="{{ $product->establishment?->longitude ?? '' }}"
                                         data-stock="{{ $availableStock }}"
                                         data-price-per-unit="{{ $product->price_per_unit ?? 0 }}"
                                         data-unit="{{ $product->unit ?? '' }}"
@@ -1574,6 +1590,13 @@
                             </label>
                             <textarea id="reservationAddressInput" rows="2" placeholder="Enter complete address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required></textarea>
                             <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                            <div id="reservationPickupLocationField" class="mt-2 hidden">
+                                <button id="reservationViewPickupLocationButton" type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#2E5A3D] bg-white px-4 py-2.5 text-sm font-medium text-[#2E5A3D] transition-colors hover:bg-[#F3E9D7]">
+                                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                                    View Full Map
+                                </button>
+                                <p id="reservationPickupLocationHint" class="mt-2 text-xs text-[#6B5B4A] font-body" aria-live="polite">Pickup address is based on the seller's saved establishment location.</p>
+                            </div>
                         </div>
 
                         <div id="reservationDeliveryLocationField" class="hidden mt-2">
@@ -1635,6 +1658,27 @@
                 <div id="reservationDeliveryMap" class="w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
                 <p id="reservationPinnedLocationDisplay" class="mt-2 text-xs text-[#6B5B4A] break-words" aria-live="polite" hidden></p>
                 <div class="mt-3 flex justify-end gap-2"><button id="reservationDeliveryMapCancel" type="button" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button><button id="reservationDeliveryMapConfirm" type="button" disabled class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50">Confirm Location</button></div></div>
+        </div>
+    </div>
+
+    <!-- Read-only seller pin for Pickup; matches the COD map modal styling without allowing buyers to move the seller's location. -->
+    <div id="reservationPickupMapModal" class="fixed inset-0 z-[101] hidden items-center justify-center bg-black/60 p-2 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="reservationPickupMapTitle">
+        <div class="reservation-delivery-map-card w-full max-w-3xl overflow-hidden rounded-2xl bg-[#F3E9D7] shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#DCCBB2] px-4 py-3 sm:px-5">
+                <div>
+                    <h3 id="reservationPickupMapTitle" class="font-display text-lg font-bold text-[#3A2E22] sm:text-xl">Pickup Establishment Location</h3>
+                    <p id="reservationPickupMapSubtitle" class="mt-1 text-xs text-[#6B5B4A]">View the seller's saved pinned location.</p>
+                </div>
+                <button id="reservationPickupMapClose" type="button" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">×</button>
+            </div>
+            <div class="reservation-delivery-map-content p-3 sm:p-4">
+                <p id="reservationPickupMapStatus" class="mb-2 text-xs text-[#6B5B4A]" aria-live="polite">Loading seller location…</p>
+                <div id="reservationPickupMap" class="w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
+                <p id="reservationPickupMapAddress" class="mt-2 break-words text-xs text-[#6B5B4A]"></p>
+                <div class="mt-3 flex justify-end">
+                    <button id="reservationPickupMapDone" type="button" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A]">Close Map</button>
+                </div>
+            </div>
         </div>
     </div>
     <!-- About / Barako Features -->
@@ -2140,6 +2184,20 @@
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
+        const reservationPickupLocationField = document.getElementById('reservationPickupLocationField');
+        const reservationViewPickupLocationButton = document.getElementById('reservationViewPickupLocationButton');
+        const reservationPickupLocationHint = document.getElementById('reservationPickupLocationHint');
+        const reservationPickupMapModal = document.getElementById('reservationPickupMapModal');
+        const reservationPickupMapClose = document.getElementById('reservationPickupMapClose');
+        const reservationPickupMapDone = document.getElementById('reservationPickupMapDone');
+        const reservationPickupMapStatus = document.getElementById('reservationPickupMapStatus');
+        const reservationPickupMapSubtitle = document.getElementById('reservationPickupMapSubtitle');
+        const reservationPickupMapAddress = document.getElementById('reservationPickupMapAddress');
+        let reservationPickupMap = null;
+        let reservationPickupMarker = null;
+        let reservationPickupMapCoordinates = null;
+        let reservationBuyerAddressBeforePickup = '';
+        let reservationWasPickupMode = false;
         const reservationDeliveryLocationField = document.getElementById('reservationDeliveryLocationField');
         const reservationPinLocationButton = document.getElementById('reservationPinLocationButton');
         const reservationPinLocationButtonText = document.getElementById('reservationPinLocationButtonText');
@@ -2186,6 +2244,108 @@
                 script.onerror = () => reject(new Error("Unable to load map. Check your connection and try again.")); document.head.appendChild(script);
             }); return leafletLoadPromise;
         }
+        function getSelectedPickupEstablishment() {
+            const option = reservationProductSelect?.options?.[reservationProductSelect.selectedIndex] || null;
+            const latitude = Number(option?.dataset?.establishmentLatitude);
+            const longitude = Number(option?.dataset?.establishmentLongitude);
+            const hasCoordinates = option?.dataset?.establishmentLatitude !== undefined
+                && option?.dataset?.establishmentLatitude !== ''
+                && option?.dataset?.establishmentLongitude !== undefined
+                && option?.dataset?.establishmentLongitude !== ''
+                && Number.isFinite(latitude) && Number.isFinite(longitude)
+                && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180;
+            return {
+                name: String(option?.dataset?.seller || 'Seller').trim(),
+                address: String(option?.dataset?.establishmentAddress || '').trim(),
+                latitude: hasCoordinates ? latitude : null,
+                longitude: hasCoordinates ? longitude : null,
+            };
+        }
+
+        function updatePickupEstablishmentAddress() {
+            if (!reservationAddressInput || String(reservationPaymentModeSelect?.value || '').toLowerCase() !== 'pickup') return;
+            const establishment = getSelectedPickupEstablishment();
+            reservationAddressInput.value = establishment.address
+                || (establishment.latitude !== null && establishment.longitude !== null
+                    ? `Pinned establishment location (${establishment.latitude.toFixed(6)}, ${establishment.longitude.toFixed(6)})`
+                    : '');
+            reservationPickupMapCoordinates = establishment.latitude !== null && establishment.longitude !== null
+                ? { latitude: establishment.latitude, longitude: establishment.longitude, name: establishment.name, address: establishment.address }
+                : null;
+            if (reservationPickupLocationHint) {
+                reservationPickupLocationHint.textContent = establishment.address
+                    ? `Pickup address is taken from ${establishment.name}'s saved establishment details.`
+                    : (reservationPickupMapCoordinates
+                        ? `The seller's address is not set; the saved map coordinates are shown instead.`
+                        : `No saved address or pinned coordinates are available for ${establishment.name}. Please contact the seller before reserving.`);
+            }
+            if (reservationViewPickupLocationButton) {
+                reservationViewPickupLocationButton.disabled = !reservationPickupMapCoordinates;
+                reservationViewPickupLocationButton.classList.toggle('opacity-50', !reservationPickupMapCoordinates);
+                reservationViewPickupLocationButton.classList.toggle('cursor-not-allowed', !reservationPickupMapCoordinates);
+                reservationViewPickupLocationButton.title = reservationPickupMapCoordinates
+                    ? 'View the seller’s saved pinned location'
+                    : 'This seller has no saved map coordinates';
+            }
+        }
+
+        async function openReservationPickupMap() {
+            const establishment = getSelectedPickupEstablishment();
+            if (establishment.latitude === null || establishment.longitude === null) {
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'This seller has no saved pinned coordinates yet.';
+                return;
+            }
+            reservationPickupMapCoordinates = {
+                latitude: establishment.latitude,
+                longitude: establishment.longitude,
+                name: establishment.name,
+                address: establishment.address,
+            };
+            reservationPickupMapModal?.classList.remove('hidden');
+            reservationPickupMapModal?.classList.add('flex');
+            document.body.classList.add('overflow-hidden');
+            if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'Loading seller location…';
+            if (reservationPickupMapSubtitle) reservationPickupMapSubtitle.textContent = `Saved pinned location for ${establishment.name}.`;
+            if (reservationPickupMapAddress) reservationPickupMapAddress.textContent = establishment.address || `Coordinates: ${establishment.latitude.toFixed(6)}, ${establishment.longitude.toFixed(6)}`;
+            try {
+                const L = await loadReservationLeaflet();
+                const point = [establishment.latitude, establishment.longitude];
+                if (!reservationPickupMap) {
+                    reservationPickupMap = L.map('reservationPickupMap', { scrollWheelZoom: true }).setView(point, 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors',
+                        maxZoom: 19,
+                    }).addTo(reservationPickupMap);
+                    reservationPickupMarker = L.marker(point, { draggable: false }).addTo(reservationPickupMap);
+                } else {
+                    reservationPickupMap.setView(point, 16);
+                    reservationPickupMarker.setLatLng(point).addTo(reservationPickupMap);
+                }
+                setTimeout(() => reservationPickupMap?.invalidateSize(), 180);
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = 'This marker shows the seller’s saved establishment pin. Buyers cannot move it.';
+            } catch (error) {
+                if (reservationPickupMapStatus) reservationPickupMapStatus.textContent = error.message || 'Unable to load the seller location map.';
+            }
+        }
+
+        function closeReservationPickupMap() {
+            reservationPickupMapModal?.classList.add('hidden');
+            reservationPickupMapModal?.classList.remove('flex');
+            if (!hasVisibleModal(reservationDeliveryMapModal) && !hasVisibleModal(reservationConfirmModal) && !hasVisibleModal(receiptModal)) {
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+        reservationViewPickupLocationButton?.addEventListener('click', openReservationPickupMap);
+        [reservationPickupMapClose, reservationPickupMapDone].forEach(button => button?.addEventListener('click', closeReservationPickupMap));
+        reservationPickupMapModal?.addEventListener('click', event => {
+            if (event.target === reservationPickupMapModal) closeReservationPickupMap();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && reservationPickupMapModal && !reservationPickupMapModal.classList.contains('hidden')) {
+                closeReservationPickupMap();
+            }
+        });
+
         function setReservationDeliveryPin(lat, lng) {
             reservationDeliveryPin = { latitude: Number(lat), longitude: Number(lng), label: "" };
             if (reservationDeliveryMarker) reservationDeliveryMarker.setLatLng([lat, lng]);
@@ -3329,9 +3489,29 @@
             const isPickup = String(mode || '').toLowerCase() === 'pickup';
             const isCod = String(mode || '').toLowerCase() === 'cod';
 
+            if (isPickup && !reservationWasPickupMode && reservationAddressInput) {
+                reservationBuyerAddressBeforePickup = String(reservationAddressInput.value || '');
+            }
+
             if (reservationPickupFields) {
                 reservationPickupFields.classList.toggle('hidden', !isPickup);
             }
+            if (reservationPickupLocationField) {
+                reservationPickupLocationField.classList.toggle('hidden', !isPickup);
+            }
+            if (reservationAddressInput) {
+                reservationAddressInput.readOnly = isPickup;
+                reservationAddressInput.classList.toggle('bg-[#F8F4EC]', isPickup);
+                reservationAddressInput.classList.toggle('cursor-default', isPickup);
+                if (isPickup) {
+                    updatePickupEstablishmentAddress();
+                } else if (reservationWasPickupMode) {
+                    // Restore the customer's own address when switching back to COD.
+                    reservationAddressInput.value = reservationBuyerAddressBeforePickup;
+                    reservationPickupMapCoordinates = null;
+                }
+            }
+            reservationWasPickupMode = isPickup;
 
             if (reservationCodSummary) {
                 reservationCodSummary.classList.toggle('hidden', !isCod);
@@ -3355,6 +3535,9 @@
             reservationProductSelect.addEventListener('change', () => {
                 const selectedOption = reservationProductSelect.options[reservationProductSelect.selectedIndex];
                 applyReservationLimits(selectedOption?.dataset?.moq || 1, selectedOption?.dataset?.stock || 0);
+                if (String(reservationPaymentModeSelect?.value || '').toLowerCase() === 'pickup') {
+                    updatePickupEstablishmentAddress();
+                }
             });
             // update COD summary when product changes
             reservationProductSelect.addEventListener('change', () => {

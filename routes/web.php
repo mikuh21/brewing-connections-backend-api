@@ -351,6 +351,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/api/public/establishments/geojson', [PublicEstablishmentGeoJsonController::class, 'index']);
     // Map routes
     Route::get('/admin/map', [MapController::class, 'index'])->name('admin.map');
+    Route::post('/admin/map/reverse-geocode', [MapController::class, 'reverseGeocode'])->name('admin.map.reverse-geocode');
     Route::get('/admin/map/resellers/verified', [MapController::class, 'verifiedResellers'])->name('admin.map.resellers.verified');
     Route::post('/admin/map', [MapController::class, 'store'])->name('admin.map.store');
     Route::patch('/admin/map/{id}', [MapController::class, 'update'])->name('admin.map.update');

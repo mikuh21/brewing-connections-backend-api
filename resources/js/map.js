@@ -19,6 +19,8 @@ let resellerTempMarker = null;
 let toastTimer = null;
 let barangaySuggestTimer = null;
 let barangaySuggestAbortController = null;
+let addressLookupRequestId = 0;
+let addressLookupInProgress = false;
 
 // Fallback icons for placement/edit mode
 const newPinIcon = L.divIcon({
@@ -2097,22 +2099,38 @@ function saveEdit() {
         return;
     }
 
+    const saveButton = document.getElementById('edit-save');
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving…';
+    }
+
     fetch(`/admin/map/${id}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': window.CSRF_TOKEN
+            'X-CSRF-TOKEN': window.CSRF_TOKEN,
+            'Accept': 'application/json',
         },
         body: JSON.stringify({
             latitude: latlng.lat.toFixed(8),
             longitude: latlng.lng.toFixed(8)
         })
     })
-        .then((response) => response.json())
+        .then(async (response) => {
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const validationErrors = data?.errors ? Object.values(data.errors).flat().join(' ') : '';
+                throw new Error(validationErrors || data?.message || 'Could not update the establishment location.');
+            }
+            return data;
+        })
         .then((data) => {
-            if (data.message) {
+            if (data.establishment) {
                 window.markerIndex[id].feature.properties.latitude = latlng.lat;
                 window.markerIndex[id].feature.properties.longitude = latlng.lng;
+                window.markerIndex[id].feature.properties.address = data.establishment.address;
+                window.markerIndex[id].feature.properties.barangay = data.establishment.barangay;
 
                 if (markerRef?.dragging) {
                     markerRef.dragging.disable();
@@ -2133,15 +2151,24 @@ function saveEdit() {
                 const banner = document.getElementById('edit-banner');
                 if (banner) banner.classList.add('hidden');
 
-                showToast('Location updated successfully');
+                showToast('Location, address, and barangay updated successfully');
                 exitEditMode();
-            } else {
-                showToast('Error updating location', true);
+                if (window.currentPanelFeature?.properties?.id === Number(id) || String(window.currentPanelFeature?.properties?.id) === String(id)) {
+                    renderDetailsPanel(window.currentPanelFeature);
+                }
             }
         })
         .catch((error) => {
-            console.error('Error:', error);
-            showToast('Error updating location', true);
+            console.error('Error updating establishment location:', error);
+            if (originalLatLng && markerRef) markerRef.setLatLng(originalLatLng);
+            showToast(error.message || 'Error updating location', true);
+            if (saveButton) saveButton.disabled = false;
+        })
+        .finally(() => {
+            if (saveButton) {
+                saveButton.textContent = 'Save';
+                saveButton.disabled = false;
+            }
         });
 }
 
@@ -4004,6 +4031,11 @@ function setupStaticEventListeners() {
             const typeValue = form.type?.value || '';
             const requiredFieldErrors = [];
 
+            if (addressLookupInProgress) {
+                showMapToast('info', 'Retrieving address', 'Please wait for the address and barangay lookup to finish before saving.');
+                return;
+            }
+
             ['name', 'address', 'barangay'].forEach((fieldName) => {
                 const el = form.querySelector(`[name="${fieldName}"]`);
                 if (el && !el.value.trim()) {
@@ -4264,6 +4296,60 @@ function exitPlacementMode() {
   }
 }
 
+async function populateAdminAddressFields(latitude, longitude) {
+    const form = document.getElementById('add-establishment-form');
+    const addressField = form?.elements.namedItem('address');
+    const barangayField = form?.elements.namedItem('barangay');
+    if (!addressField || !barangayField) return;
+
+    const requestId = ++addressLookupRequestId;
+    addressLookupInProgress = true;
+    addressField.value = '';
+    barangayField.value = '';
+    addressField.placeholder = 'Retrieving address from map pin…';
+    barangayField.placeholder = 'Retrieving barangay…';
+    addressField.setAttribute('aria-busy', 'true');
+    barangayField.setAttribute('aria-busy', 'true');
+    clearFieldError('address');
+    clearFieldError('barangay');
+
+    try {
+        const response = await fetch('/admin/map/reverse-geocode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': window.CSRF_TOKEN,
+            },
+            body: JSON.stringify({ latitude, longitude }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(payload.message || 'Could not retrieve the address for this map pin.');
+        }
+        if (requestId !== addressLookupRequestId) return;
+
+        addressField.value = payload.address || '';
+        barangayField.value = payload.barangay || '';
+        if (!addressField.value || !barangayField.value) {
+            showMapToast('warning', 'Address partially retrieved', 'Review the address and barangay fields before saving. You can correct any missing details.');
+        } else {
+            showMapToast('success', 'Address filled automatically', 'Address and barangay were retrieved from the selected map pin.');
+        }
+    } catch (error) {
+        if (requestId !== addressLookupRequestId) return;
+        showMapToast('error', 'Address lookup failed', error.message || 'Please try selecting the map pin again.');
+    } finally {
+        if (requestId === addressLookupRequestId) {
+            addressLookupInProgress = false;
+            addressField.placeholder = '';
+            barangayField.placeholder = '';
+            addressField.removeAttribute('aria-busy');
+            barangayField.removeAttribute('aria-busy');
+        }
+    }
+}
+
 function onMapClick(e) {
     if (!addBtn || !cancelBtn || !map) return
   if (!placementMode) return
@@ -4274,11 +4360,16 @@ function onMapClick(e) {
   if (tempMarker) map.removeLayer(tempMarker)
   tempMarker = L.marker([lat, lng]).addTo(map)
   
-  // Fill lat/lng fields in the form
+  // Fill coordinates and start reverse-geocoding the address fields.
   const latField = document.getElementById('latitude-input')
   const lngField = document.getElementById('longitude-input')
   if (latField) latField.value = lat.toFixed(8)
   if (lngField) lngField.value = lng.toFixed(8)
+
+  // Reset any address left over from a previously opened form.
+  const addForm = document.getElementById('add-establishment-form')
+  if (addForm?.elements.namedItem('address')) addForm.elements.namedItem('address').value = ''
+  if (addForm?.elements.namedItem('barangay')) addForm.elements.namedItem('barangay').value = ''
   
   // Reset UI state but DO NOT remove tempMarker
   placementMode = false
@@ -4290,8 +4381,9 @@ function onMapClick(e) {
   map.getContainer().style.cursor = ''
   map.off('click', onMapClick)
   
-  // Open the modal LAST
+  // Open the modal immediately; address fields fill when reverse-geocoding completes.
   openMapSidebar()
+  populateAdminAddressFields(lat, lng)
 }
 
 if (addBtn && cancelBtn) {

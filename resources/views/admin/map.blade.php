@@ -324,11 +324,13 @@
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="block text-sm font-semibold">Address *</label>
-                                    <input name="address" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <input name="address" required autocomplete="street-address" placeholder="Automatically filled after selecting a map pin" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <p class="mt-1 text-xs text-[#8C7A68]">Select a location on the map to fill this address automatically. You can correct it if needed.</p>
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="block text-sm font-semibold">Barangay *</label>
-                                    <input name="barangay" required class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <input name="barangay" required autocomplete="address-level3" placeholder="Automatically filled from the selected map pin" class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#4A6741]" />
+                                    <p class="mt-1 text-xs text-[#8C7A68]">The barangay is retrieved from the selected coordinates. Verify it before saving.</p>
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="block text-sm font-semibold">Description</label>

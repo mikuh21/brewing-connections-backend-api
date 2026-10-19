@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Database\Seeders\CoffeeVarietySeeder;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminMapEstablishmentValidationTest extends TestCase
@@ -139,6 +140,33 @@ class AdminMapEstablishmentValidationTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['email', 'owner_password']);
+    }
+
+    public function test_admin_map_reverse_geocoding_returns_address_and_barangay_for_selected_pin(): void
+    {
+        Http::fake([
+            'nominatim.openstreetmap.org/reverse*' => Http::response([
+                'display_name' => '123 Coffee Road, Mataas na Lupa, Lipa, Batangas, Philippines',
+                'address' => [
+                    'road' => 'Coffee Road',
+                    'suburb' => 'Mataas na Lupa',
+                    'city' => 'Lipa',
+                    'state' => 'Batangas',
+                    'country' => 'Philippines',
+                ],
+            ], 200),
+        ]);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->postJson('/admin/map/reverse-geocode', [
+            'latitude' => 13.95,
+            'longitude' => 121.12,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('address', '123 Coffee Road, Mataas na Lupa, Lipa, Batangas, Philippines')
+            ->assertJsonPath('barangay', 'Mataas na Lupa');
     }
 
     public function test_invalid_contact_number_is_rejected(): void

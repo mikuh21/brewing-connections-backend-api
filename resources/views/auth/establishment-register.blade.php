@@ -499,15 +499,14 @@
                                     <label for="registration_contact_number" class="mb-1 block text-sm font-medium text-[#3A2E22]">Contact number *</label>
                                     <input id="registration_contact_number" name="contact_number" type="tel" value="{{ old('contact_number') }}" maxlength="30" autocomplete="tel" inputmode="tel" pattern="[0-9+() -]{7,30}" title="Enter a valid contact number using digits and optional +, spaces, hyphens, or parentheses." class="registration-field" placeholder="09XX XXX XXXX">
                                 </div>
-                                <div>
+                                <div class="registration-reseller-only hidden">
                                     <label for="registration_barangay" class="mb-1 block text-sm font-medium text-[#3A2E22]">Barangay *</label>
                                     <input id="registration_barangay" name="barangay" value="{{ old('barangay') }}" maxlength="255" autocomplete="address-level3" class="registration-field" placeholder="Barangay, Lipa City">
                                 </div>
                             </div>
-                            <div class="registration-establishment-only">
-                                <label for="registration_address" class="mb-1 block text-sm font-medium text-[#3A2E22]">Street / full address *</label>
-                                <input id="registration_address" name="address" value="{{ old('address') }}" maxlength="255" autocomplete="street-address" class="registration-field" placeholder="Street and area">
-                            </div>
+                            <p class="registration-establishment-only rounded-lg border border-[#D9CBB9] bg-white/50 px-3 py-2.5 text-xs leading-5 text-[#7B6A59]">
+                                Your barangay and full address will be filled in automatically after you pin and save your establishment location on the map.
+                            </p>
                             <div class="registration-establishment-only">
                                 <label for="registration_website" class="mb-1 block text-sm font-medium text-[#3A2E22]">Website <span class="text-xs font-normal text-[#8C7A68]">(Optional)</span></label>
                                 <input id="registration_website" name="website" type="url" data-optional="true" value="{{ old('website') }}" maxlength="255" autocomplete="url" class="registration-field" placeholder="https://">
@@ -901,12 +900,12 @@ document.addEventListener('DOMContentLoaded', () => {
         stepLine.classList.toggle('is-complete', step === 2);
 
         setRequired('#owner_name, #reseller_name, #registration_email, #registration_password, #registration_password_confirmation', step === 1);
-        setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address', step === 2);
+        setRequired('#establishment_name, #registration_contact_number', step === 2);
         setRequired('#registration_website', false);
         setRequired('#registration_terms, #registration_privacy', step === 2);
 
         if (typeInput.value === 'reseller') {
-            setRequired('#owner_name, #establishment_name, #registration_address', false);
+            setRequired('#owner_name, #establishment_name', false);
             setRequired('#reseller_name', step === 1);
             setRequired('#registration_contact_number, #registration_barangay', step === 2);
         } else {

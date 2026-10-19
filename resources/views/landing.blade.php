@@ -1585,7 +1585,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm text-[#3A2E22] font-body mb-1">
+                            <label id="reservationAddressLabel" class="block text-sm text-[#3A2E22] font-body mb-1">
                                 Pickup/Seller Address
                             </label>
                             <textarea id="reservationAddressInput" rows="2" placeholder="Enter complete address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required></textarea>
@@ -2184,6 +2184,7 @@
         const reservationFullNameInput = document.getElementById('reservationFullNameInput');
         const reservationEmailInput = document.getElementById('reservationEmailInput');
         const reservationAddressInput = document.getElementById('reservationAddressInput');
+        const reservationAddressLabel = document.getElementById('reservationAddressLabel');
         const reservationPickupLocationField = document.getElementById('reservationPickupLocationField');
         const reservationViewPickupLocationButton = document.getElementById('reservationViewPickupLocationButton');
         const reservationPickupLocationHint = document.getElementById('reservationPickupLocationHint');
@@ -2403,10 +2404,15 @@
             if (!reservationDeliveryPin) return; const pin = { ...reservationDeliveryPin }; reservationMapStatus.textContent = "Confirming location…";
             const label = await reverseGeocodeReservationPin(pin); reservationDeliveryPin = { ...pin, label: label };
             const pinnedDisplay = document.getElementById("reservationPinnedLocationDisplay");
+            const resolvedAddress = label || ("Pinned location (" + pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6) + ")");
             if (pinnedDisplay) { pinnedDisplay.hidden = false; pinnedDisplay.textContent = "Pinned: " + (label || (pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6))); }
             if (reservationDeliveryLocationSummary) { reservationDeliveryLocationSummary.textContent = (label || "Pinned map location") + " (" + pin.latitude.toFixed(6) + ", " + pin.longitude.toFixed(6) + ")"; reservationDeliveryLocationSummary.classList.remove("hidden"); }
             if (reservationPinLocationButtonText) reservationPinLocationButtonText.textContent = "Change Pinned Location";
-            // Keep the customer's manually entered address intact; store the reverse-geocoded pin label separately.
+            // Use the confirmed map location to prefill the editable COD address; buyers can revise it afterward.
+            if (reservationAddressInput && String(reservationPaymentModeSelect?.value || "").toLowerCase() === "cod") {
+                reservationAddressInput.value = resolvedAddress;
+                reservationAddressInput.dispatchEvent(new Event("input", { bubbles: true }));
+            }
             if (reservationDeliveryLocationError) reservationDeliveryLocationError.classList.add("hidden");
             updateCodSummary();
             closeReservationDeliveryMap();
@@ -3498,6 +3504,9 @@
             }
             if (reservationPickupLocationField) {
                 reservationPickupLocationField.classList.toggle('hidden', !isPickup);
+            }
+            if (reservationAddressLabel) {
+                reservationAddressLabel.textContent = isPickup ? "Pickup/Seller Address" : "Address";
             }
             if (reservationAddressInput) {
                 reservationAddressInput.readOnly = isPickup;

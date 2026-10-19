@@ -513,11 +513,6 @@
                                 <input id="registration_website" name="website" type="url" data-optional="true" value="{{ old('website') }}" maxlength="255" autocomplete="url" class="registration-field" placeholder="https://">
                             </div>
 
-                            <p class="text-sm leading-5 text-[#5D4B3A]">
-                                Please review BrewHub's
-                                <button type="button" id="openRegistrationPrivacyModal" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Privacy Policy</button>
-                                before creating your account.
-                            </p>
                             <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
                                 <input id="registration_privacy" type="checkbox" name="privacy_agreed" value="1" @checked(old('privacy_agreed')) class="mt-1 h-4 w-4 shrink-0 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
                                 <span>I have read and agree to BrewHub's <button type="button" id="openRegistrationPrivacyModalFromCheckbox" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Privacy Policy</button>.</span>

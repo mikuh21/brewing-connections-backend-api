@@ -240,6 +240,17 @@
                             </div>
 
                             <div class="md:col-span-2 mt-1">
+                                <label class="flex items-start gap-2 text-sm text-[#3A2E22] font-body">
+                                    <input type="checkbox" id="privacy_agreed" name="privacy_agreed" value="1" class="mt-1 h-4 w-4 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]" {{ old('privacy_agreed') ? 'checked' : '' }}>
+                                    <span>I have read and agree to BrewHub's <button type="button" id="openResellerPrivacyPolicy" class="font-medium text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Privacy Policy</button>.</span>
+                                </label>
+                                <p id="resellerPrivacyClientError" class="hidden text-red-500 text-xs mt-1">You must agree to the Privacy Policy to continue.</p>
+                                @if($errors->resellerRegistration->has('privacy_agreed'))
+                                    <p class="text-red-500 text-xs mt-1">{{ $errors->resellerRegistration->first('privacy_agreed') }}</p>
+                                @endif
+                            </div>
+
+                            <div class="md:col-span-2 mt-1">
                                 <input type="checkbox" id="terms_agreed" name="terms_agreed" value="1" class="sr-only" {{ old('terms_agreed') ? 'checked' : '' }}>
                                 <div class="text-sm text-[#3A2E22] font-body">
                                     I agree to the
@@ -570,6 +581,55 @@
 }
 </style>
 
+<div id="resellerPrivacyModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-[#2E5A3D]/40 px-4 py-4" role="dialog" aria-modal="true" aria-labelledby="resellerPrivacyTitle">
+    <div class="flex max-h-[min(88svh,720px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-[#D9CDBA] bg-[#F3E9D7] shadow-2xl">
+        <div class="flex items-center justify-between border-b border-[#D9CDBA] px-5 py-4 sm:px-6">
+            <h3 id="resellerPrivacyTitle" class="font-display text-lg font-bold text-[#3A2E22]">Privacy Policy — Data Privacy Act of 2012</h3>
+            <button type="button" id="closeResellerPrivacyModal" class="text-2xl leading-none text-[#3A2E22] hover:text-[#1E3A2A]" aria-label="Close Privacy Policy">&times;</button>
+        </div>
+        <div id="resellerPrivacyModalBody" class="overflow-y-auto px-5 py-5 text-sm leading-relaxed text-[#3A2E22] sm:px-6">
+            <p class="mb-4">BrewHub respects your privacy and handles personal information in accordance with Republic Act No. 10173, the <strong>Data Privacy Act of 2012</strong>, its Implementing Rules and Regulations, and applicable National Privacy Commission issuances. This notice explains how information submitted during registration and use of BrewHub may be processed.</p>
+
+            <p class="mb-2"><strong>1. Personal information we collect</strong></p>
+            <p class="mb-4">Depending on the account type and features used, BrewHub may collect your name, email address, account credentials, contact number, establishment name and type, barangay, street or business address, website, map location, and information you submit through listings, ratings, reservations, orders, messages, or other platform features. Do not submit information that is not required or relevant to the service.</p>
+
+            <p class="mb-2"><strong>2. Why we use your information</strong></p>
+            <p class="mb-4">Information may be used to create and secure your account; verify and manage establishment registrations; display establishment details and locations; provide mapping, coffee-trail, rating, recommendation, promotion, store, reservation, and order features; communicate service or account notices; prevent fraud, abuse, and security incidents; maintain records; and meet legal obligations. BrewHub should use information only for declared, legitimate purposes and in a manner proportionate to those purposes.</p>
+
+            <p class="mb-2"><strong>3. Lawful basis and consent</strong></p>
+            <p class="mb-4">Personal information is processed only where a lawful basis under applicable law exists, such as steps needed to provide the service you request, compliance with a legal obligation, legitimate interests where permitted, or your consent where required. Where consent is relied upon, it should be freely given, specific, informed, and evidenced appropriately.</p>
+
+            <p class="mb-2"><strong>4. Sharing and disclosure</strong></p>
+            <p class="mb-4">BrewHub may make establishment information you choose to publish visible to platform users and may use service providers that support hosting, storage, communications, security, and platform operation. Information may also be disclosed when required by law or to protect rights and platform security. Personal information should not be sold or disclosed for unrelated purposes without an appropriate lawful basis.</p>
+
+            <p class="mb-2"><strong>5. Storage, security, and retention</strong></p>
+            <p class="mb-4">BrewHub applies reasonable organizational, physical, and technical safeguards intended to protect personal information against unauthorized access, loss, misuse, alteration, or disclosure. Information is retained only for as long as reasonably necessary for the stated purposes, account administration, dispute resolution, security, and legal obligations, after which it should be securely deleted or anonymized where appropriate.</p>
+
+            <p class="mb-2"><strong>6. Your data privacy rights</strong></p>
+            <p class="mb-4">Subject to applicable law and its conditions, you may have the right to be informed about processing, access your personal information, request correction or erasure/blocking where justified, object to or withdraw consent from certain processing, request data portability where applicable, and lodge a complaint with the National Privacy Commission. These rights are not absolute and may be subject to legal exceptions.</p>
+
+            <p class="mb-2"><strong>7. Contact and concerns</strong></p>
+            <p class="mb-4">For questions, access or correction requests, or privacy concerns, contact BrewHub through its <a class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]" href="https://www.facebook.com/profile.php?id=61560676899683" target="_blank" rel="noopener noreferrer">official Facebook page</a> or email <a class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]" href="mailto:brewhub1@gmail.com">brewhub1@gmail.com</a>. Identify the account involved without sending your password. If your concern remains unresolved, you may consult the National Privacy Commission through its official website.</p>
+
+            <p class="mb-2"><strong>8. Legal references</strong></p>
+            <p class="mb-2">This notice is a BrewHub-specific summary and is not the text of the law or a claim of government endorsement. Read the official sources:</p>
+            <ul class="mb-4 list-disc space-y-2 pl-5">
+                <li><a class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]" href="https://officialgazette.gov.ph/2012/08/15/republic-act-no-10173/" target="_blank" rel="noopener noreferrer">Republic Act No. 10173 — Official Gazette of the Philippines</a></li>
+                <li><a class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]" href="https://privacy.gov.ph/implementing-rules%20regulations-data-privacy-act-2012/" target="_blank" rel="noopener noreferrer">Implementing Rules and Regulations — National Privacy Commission</a></li>
+                <li><a class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]" href="https://privacy.gov.ph/" target="_blank" rel="noopener noreferrer">National Privacy Commission official website</a></li>
+            </ul>
+            <p class="text-xs text-[#8C7A68]">Please review this notice before creating your account. BrewHub should update this policy if its actual data practices or contact details change.</p>
+        </div>
+        <div class="flex flex-col gap-3 border-t border-[#D9CDBA] px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <label class="flex items-start gap-2 text-sm leading-5 text-[#3A2E22]">
+                <input id="resellerPrivacyModalAccepted" type="checkbox" class="mt-1 h-4 w-4 shrink-0 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
+                <span>I have read and agree to the Data Privacy Policy</span>
+            </label>
+            <button type="button" id="dismissResellerPrivacyModal" disabled class="shrink-0 cursor-not-allowed rounded-lg bg-[#8C8C8C] px-5 py-2.5 text-sm font-semibold text-white transition">I Accept</button>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentSlide = 0;
 const slides = document.querySelectorAll('.slide');
@@ -732,6 +792,50 @@ showLoginForm.addEventListener('click', (event) => {
     showLogin();
 });
 
+const resellerPrivacyModal = document.getElementById('resellerPrivacyModal');
+const resellerPrivacyCheckbox = document.getElementById('privacy_agreed');
+const resellerPrivacyModalAccepted = document.getElementById('resellerPrivacyModalAccepted');
+const resellerPrivacyAcceptButton = document.getElementById('dismissResellerPrivacyModal');
+const openResellerPrivacyButton = document.getElementById('openResellerPrivacyPolicy');
+const closeResellerPrivacyButton = document.getElementById('closeResellerPrivacyModal');
+const syncResellerPrivacyAccept = () => {
+    if (!resellerPrivacyAcceptButton || !resellerPrivacyModalAccepted) return;
+    const accepted = resellerPrivacyModalAccepted.checked;
+    resellerPrivacyAcceptButton.disabled = !accepted;
+    resellerPrivacyAcceptButton.classList.toggle('cursor-not-allowed', !accepted);
+    resellerPrivacyAcceptButton.classList.toggle('bg-[#8C8C8C]', !accepted);
+    resellerPrivacyAcceptButton.classList.toggle('bg-[#2E5A3D]', accepted);
+    resellerPrivacyAcceptButton.classList.toggle('hover:bg-[#1E3A2A]', accepted);
+};
+const openResellerPrivacy = () => {
+    if (!resellerPrivacyModal) return;
+    resellerPrivacyModal.classList.remove('hidden');
+    resellerPrivacyModal.classList.add('flex');
+    if (resellerPrivacyModalAccepted) resellerPrivacyModalAccepted.checked = false;
+    syncResellerPrivacyAccept();
+    const body = document.getElementById('resellerPrivacyModalBody');
+    if (body) body.scrollTop = 0;
+};
+openResellerPrivacyButton?.addEventListener('click', openResellerPrivacy);
+closeResellerPrivacyButton?.addEventListener('click', () => {
+    resellerPrivacyModal?.classList.add('hidden');
+    resellerPrivacyModal?.classList.remove('flex');
+});
+resellerPrivacyModalAccepted?.addEventListener('change', syncResellerPrivacyAccept);
+resellerPrivacyAcceptButton?.addEventListener('click', () => {
+    if (!resellerPrivacyModalAccepted?.checked || !resellerPrivacyCheckbox) return;
+    resellerPrivacyCheckbox.checked = true;
+    resellerPrivacyCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+    resellerPrivacyModal?.classList.add('hidden');
+    resellerPrivacyModal?.classList.remove('flex');
+});
+resellerPrivacyModal?.addEventListener('click', (event) => {
+    if (event.target === resellerPrivacyModal) {
+        resellerPrivacyModal.classList.add('hidden');
+        resellerPrivacyModal.classList.remove('flex');
+    }
+});
+
 const termsModal = document.getElementById('termsModal');
 const openTermsModal = document.getElementById('openTermsModal');
 const closeTermsModal = document.getElementById('closeTermsModal');
@@ -828,6 +932,13 @@ registerPasswordConfirmation.addEventListener('input', validateRegistrationPassw
 
 resellerRegistrationForm.addEventListener('submit', (event) => {
     let isFormValid = true;
+
+    if (!document.getElementById('privacy_agreed')?.checked) {
+        document.getElementById('resellerPrivacyClientError')?.classList.remove('hidden');
+        isFormValid = false;
+    } else {
+        document.getElementById('resellerPrivacyClientError')?.classList.add('hidden');
+    }
 
     if (!validateRegistrationPassword()) {
         isFormValid = false;

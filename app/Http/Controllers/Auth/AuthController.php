@@ -53,6 +53,8 @@ class AuthController extends Controller
                 ->withInput($request->except('password'));
         }
 
+        $request->session()->flash('show_privacy_policy_modal', true);
+
         if ($user->role === 'reseller' && $user->status === 'deactivated') {
             if (!empty($user->deactivation_notice_seen_at)) {
                 Auth::logout();

@@ -14,7 +14,7 @@
     $emailRegistrationError = $isResellerRegistration
         ? $resellerErrors->first('email')
         : $errors->first('email');
-    $stepTwoErrorKeys = ['establishment_name', 'contact_number', 'address', 'barangay', 'website', 'terms_agreed'];
+    $stepTwoErrorKeys = ['establishment_name', 'contact_number', 'address', 'barangay', 'website', 'terms_agreed', 'privacy_agreed'];
     $registrationStep = $errors->hasAny($stepTwoErrorKeys)
         || ($hasResellerErrors && $resellerErrors->hasAny(['contact_number', 'barangay', 'terms_agreed']))
         ? 2 : 1;
@@ -519,6 +519,11 @@
                                 before creating your account.
                             </p>
                             <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
+                                <input id="registration_privacy" type="checkbox" name="privacy_agreed" value="1" @checked(old('privacy_agreed')) class="mt-1 h-4 w-4 shrink-0 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
+                                <span>I have read and agree to BrewHub's <button type="button" id="openRegistrationPrivacyModalFromCheckbox" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Privacy Policy</button>.</span>
+                            </label>
+
+                            <label class="flex items-start gap-3 text-sm leading-5 text-[#5D4B3A]">
                                 <input id="registration_terms" type="checkbox" name="terms_agreed" value="1" @checked(old('terms_agreed')) class="mt-1 h-4 w-4 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
                                 <span>I confirm the information is accurate and agree to BrewHub's <button type="button" id="openRegistrationTermsModal" class="font-semibold text-[#2E5A3D] underline underline-offset-2 hover:text-[#1E3A2A]">Terms &amp; Conditions</button>.</span>
                             </label>
@@ -576,8 +581,12 @@
             </ul>
             <p class="text-xs text-[#8C7A68]">Please review this notice before creating your account. BrewHub should update this policy if its actual data practices or contact details change.</p>
         </div>
-        <div class="border-t border-[#D9CDBA] px-5 py-3 text-right sm:px-6">
-            <button type="button" id="dismissRegistrationPrivacyModal" class="rounded-lg bg-[#2E5A3D] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E3A2A]">Close</button>
+        <div class="flex flex-col gap-3 border-t border-[#D9CDBA] px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <label class="flex items-start gap-2 text-sm leading-5 text-[#3A2E22]">
+                <input id="registrationPrivacyModalAccepted" type="checkbox" class="mt-1 h-4 w-4 shrink-0 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
+                <span>I have read and agree to the Data Privacy Policy</span>
+            </label>
+            <button type="button" id="dismissRegistrationPrivacyModal" disabled class="shrink-0 cursor-not-allowed rounded-lg bg-[#8C8C8C] px-5 py-2.5 text-sm font-semibold text-white transition">I Accept</button>
         </div>
     </div>
 </div>
@@ -627,19 +636,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const registrationPrivacyOpenButton = document.getElementById('openRegistrationPrivacyModal');
     const registrationPrivacyCloseButton = document.getElementById('closeRegistrationPrivacyModal');
     const registrationPrivacyDismissButton = document.getElementById('dismissRegistrationPrivacyModal');
+    const registrationPrivacyModalAccepted = document.getElementById('registrationPrivacyModalAccepted');
+    const registrationPrivacyCheckbox = document.getElementById('registration_privacy');
+    const openPrivacyFromCheckbox = document.getElementById('openRegistrationPrivacyModalFromCheckbox');
     const closeRegistrationPrivacy = () => {
         registrationPrivacyModal?.classList.add('hidden');
         registrationPrivacyModal?.classList.remove('flex');
     };
-    registrationPrivacyOpenButton?.addEventListener('click', () => {
+    const syncRegistrationPrivacyAccept = () => {
+        if (!registrationPrivacyDismissButton || !registrationPrivacyModalAccepted) return;
+        const accepted = registrationPrivacyModalAccepted.checked;
+        registrationPrivacyDismissButton.disabled = !accepted;
+        registrationPrivacyDismissButton.classList.toggle('cursor-not-allowed', !accepted);
+        registrationPrivacyDismissButton.classList.toggle('bg-[#8C8C8C]', !accepted);
+        registrationPrivacyDismissButton.classList.toggle('bg-[#2E5A3D]', accepted);
+        registrationPrivacyDismissButton.classList.toggle('hover:bg-[#1E3A2A]', accepted);
+    };
+    const openRegistrationPrivacy = () => {
         if (!registrationPrivacyModal) return;
         registrationPrivacyModal.classList.remove('hidden');
         registrationPrivacyModal.classList.add('flex');
+        if (registrationPrivacyModalAccepted) registrationPrivacyModalAccepted.checked = false;
+        syncRegistrationPrivacyAccept();
         const body = document.getElementById('registrationPrivacyModalBody');
         if (body) body.scrollTop = 0;
-    });
+    };
+    registrationPrivacyOpenButton?.addEventListener('click', openRegistrationPrivacy);
+    openPrivacyFromCheckbox?.addEventListener('click', openRegistrationPrivacy);
     registrationPrivacyCloseButton?.addEventListener('click', closeRegistrationPrivacy);
-    registrationPrivacyDismissButton?.addEventListener('click', closeRegistrationPrivacy);
+    registrationPrivacyModalAccepted?.addEventListener('change', syncRegistrationPrivacyAccept);
+    registrationPrivacyDismissButton?.addEventListener('click', () => {
+        if (!registrationPrivacyModalAccepted?.checked || !registrationPrivacyCheckbox) return;
+        registrationPrivacyCheckbox.checked = true;
+        registrationPrivacyCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+        closeRegistrationPrivacy();
+    });
     registrationPrivacyModal?.addEventListener('click', (event) => {
         if (event.target === registrationPrivacyModal) closeRegistrationPrivacy();
     });
@@ -877,7 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setRequired('#owner_name, #reseller_name, #registration_email, #registration_password, #registration_password_confirmation', step === 1);
         setRequired('#establishment_name, #registration_contact_number, #registration_barangay, #registration_address', step === 2);
         setRequired('#registration_website', false);
-        setRequired('#registration_terms', step === 2);
+        setRequired('#registration_terms, #registration_privacy', step === 2);
 
         if (typeInput.value === 'reseller') {
             setRequired('#owner_name, #establishment_name, #registration_address', false);
@@ -947,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 continue;
             }
             if (field.type === 'checkbox') {
-                field.setCustomValidity(field.checked ? '' : 'Please accept the Terms & Conditions to continue.');
+                field.setCustomValidity(field.checked ? '' : (field.name === 'privacy_agreed' ? 'Please agree to the Privacy Policy to continue.' : 'Please accept the Terms & Conditions to continue.'));
             } else if (!field.value.trim()) {
                 field.setCustomValidity('This field is required.');
             } else {

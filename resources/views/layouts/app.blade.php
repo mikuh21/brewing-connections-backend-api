@@ -318,7 +318,7 @@
                         <input id="loginPrivacyAccepted" type="checkbox" class="mt-1 h-4 w-4 shrink-0 rounded border-[#B9A58D] text-[#2E5A3D] focus:ring-[#2E5A3D]">
                         <span>I have read and agree to the Data Privacy Policy</span>
                     </label>
-                    <button type="button" id="loginPrivacyAcceptButton" disabled class="shrink-0 cursor-not-allowed rounded-lg bg-[#8C8C8C] px-5 py-2.5 text-sm font-semibold text-white transition">I Accept</button>
+                    <button type="button" id="loginPrivacyAcceptButton" data-redirect="{{ session()->pull('privacy_policy_pending_redirect', route('home')) }}" disabled class="shrink-0 cursor-not-allowed rounded-lg bg-[#8C8C8C] px-5 py-2.5 text-sm font-semibold text-white transition">I Accept</button>
                 </div>
             </div>
         </div>
@@ -336,7 +336,7 @@
                     button.classList.toggle('hover:bg-[#1E3A2A]', accepted);
                 };
                 checkbox.addEventListener('change', sync);
-                button.addEventListener('click', () => { if (checkbox.checked) modal.remove(); });
+                button.addEventListener('click', () => { if (checkbox.checked) window.location.assign(button.dataset.redirect || '/'); });
                 sync();
             });
         </script>

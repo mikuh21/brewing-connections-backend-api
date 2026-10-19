@@ -436,9 +436,9 @@ class MapController extends Controller
             (float) $validated['longitude']
         );
 
-        if (!$address || !$address['barangay']) {
+        if (!$address) {
             return response()->json([
-                'message' => 'The address or barangay could not be retrieved for this pin. Try another nearby point or enter the missing details manually.',
+                'message' => 'The address could not be retrieved for this pin. Try another nearby point or retry.',
             ], 422);
         }
 

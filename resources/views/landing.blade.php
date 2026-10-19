@@ -1481,6 +1481,9 @@
                                         data-product-id="{{ $product->id }}"
                                         data-moq="{{ max(1, (int) ($product->moq ?? 1)) }}"
                                         data-seller="{{ $product->establishment?->name ?? 'Verified Farm Seller' }}"
+                                        data-establishment-address="{{ trim(($product->establishment?->address ?? '') . (($product->establishment?->barangay ?? '') !== '' && !str_contains(strtolower($product->establishment?->address ?? ''), strtolower($product->establishment?->barangay ?? '')) ? ', ' . $product->establishment->barangay : '')) }}"
+                                        data-establishment-latitude="{{ $product->establishment?->latitude ?? '' }}"
+                                        data-establishment-longitude="{{ $product->establishment?->longitude ?? '' }}"
                                         data-stock="{{ $availableStock }}"
                                         data-price-per-unit="{{ $product->price_per_unit ?? 0 }}"
                                         data-unit="{{ $product->unit ?? '' }}"
@@ -1574,6 +1577,13 @@
                             </label>
                             <textarea id="reservationAddressInput" rows="2" placeholder="Enter complete address" class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-sm resize-none text-[#3A2E22] font-body focus:outline-none focus:ring-2 focus:ring-[#2E5A3D]" required></textarea>
                             <p id="reservationAddressError" class="mt-1 text-xs text-[#B43F3F] font-body hidden"></p>
+                            <div id="reservationPickupLocationField" class="mt-2 hidden">
+                                <button id="reservationViewPickupLocationButton" type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#2E5A3D] bg-white px-4 py-2.5 text-sm font-medium text-[#2E5A3D] transition-colors hover:bg-[#F3E9D7]">
+                                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+                                    View Full Map
+                                </button>
+                                <p id="reservationPickupLocationHint" class="mt-2 text-xs text-[#6B5B4A] font-body" aria-live="polite">Pickup address is based on the seller's saved establishment location.</p>
+                            </div>
                         </div>
 
                         <div id="reservationDeliveryLocationField" class="hidden mt-2">
@@ -1635,6 +1645,27 @@
                 <div id="reservationDeliveryMap" class="w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
                 <p id="reservationPinnedLocationDisplay" class="mt-2 text-xs text-[#6B5B4A] break-words" aria-live="polite" hidden></p>
                 <div class="mt-3 flex justify-end gap-2"><button id="reservationDeliveryMapCancel" type="button" class="rounded-lg border border-[#DCCBB2] bg-white px-4 py-2 text-sm text-[#3A2E22]">Cancel</button><button id="reservationDeliveryMapConfirm" type="button" disabled class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A] disabled:opacity-50">Confirm Location</button></div></div>
+        </div>
+    </div>
+
+    <!-- Read-only seller pin for Pickup; matches the COD map modal styling without allowing buyers to move the seller's location. -->
+    <div id="reservationPickupMapModal" class="fixed inset-0 z-[101] hidden items-center justify-center bg-black/60 p-2 sm:p-4" role="dialog" aria-modal="true" aria-labelledby="reservationPickupMapTitle">
+        <div class="reservation-delivery-map-card w-full max-w-3xl overflow-hidden rounded-2xl bg-[#F3E9D7] shadow-2xl">
+            <div class="flex items-center justify-between border-b border-[#DCCBB2] px-4 py-3 sm:px-5">
+                <div>
+                    <h3 id="reservationPickupMapTitle" class="font-display text-lg font-bold text-[#3A2E22] sm:text-xl">Pickup Establishment Location</h3>
+                    <p id="reservationPickupMapSubtitle" class="mt-1 text-xs text-[#6B5B4A]">View the seller's saved pinned location.</p>
+                </div>
+                <button id="reservationPickupMapClose" type="button" class="rounded-lg px-3 py-2 text-xl text-[#6B5B4A] hover:bg-white" aria-label="Close map">×</button>
+            </div>
+            <div class="reservation-delivery-map-content p-3 sm:p-4">
+                <p id="reservationPickupMapStatus" class="mb-2 text-xs text-[#6B5B4A]" aria-live="polite">Loading seller location…</p>
+                <div id="reservationPickupMap" class="w-full rounded-xl border border-[#DCCBB2] bg-white"></div>
+                <p id="reservationPickupMapAddress" class="mt-2 break-words text-xs text-[#6B5B4A]"></p>
+                <div class="mt-3 flex justify-end">
+                    <button id="reservationPickupMapDone" type="button" class="rounded-lg bg-[#2E5A3D] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1E3A2A]">Close Map</button>
+                </div>
+            </div>
         </div>
     </div>
     <!-- About / Barako Features -->

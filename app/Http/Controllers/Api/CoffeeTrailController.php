@@ -221,7 +221,13 @@ class CoffeeTrailController extends Controller
 
         // Find candidate establishments (capped to max_stops * 2). We keep top 2x by distance.
         $candidates = Establishment::getNearbyForTrail($lat, $lng, $varieties, $types, $maxStops * 2)
-            ->load('varieties');
+            ->load([
+                'varieties',
+                'products' => fn ($query) => $query
+                    ->where('is_active', true)
+                    ->where('stock_quantity', '>', 0)
+                    ->orderBy('name'),
+            ]);
 
         if ($candidates->isEmpty()) {
             return response()->json(['message' => 'No coffee establishments found in range for selected varieties'], 404);
@@ -315,6 +321,14 @@ class CoffeeTrailController extends Controller
                 'type' => $establishment->type,
                 'trivia_history' => $establishment->trivia_history,
                 'address' => $establishment->address,
+                'visit_hours' => (string) ($establishment->visit_hours ?? ''),
+                'offered_products' => $establishment->products
+                    ->pluck('name')
+                    ->map(fn ($name) => trim((string) $name))
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all(),
                 'latitude' => $establishment->latitude,
                 'longitude' => $establishment->longitude,
                 'why_recommended' => $this->inferRecommendationReason($establishment, $varieties),

@@ -390,6 +390,17 @@ class MapController extends Controller
 
         $establishment->save();
 
+        $ownerLocation = [];
+        if (Schema::hasColumn('users', 'address')) {
+            $ownerLocation['address'] = $establishment->address;
+        }
+        if (Schema::hasColumn('users', 'barangay')) {
+            $ownerLocation['barangay'] = $establishment->barangay;
+        }
+        if ($ownerLocation !== []) {
+            User::query()->whereKey($resolvedOwnerId)->update($ownerLocation);
+        }
+
         $varieties = $request->input('varieties', []);
         $primaryVariety = $request->input('primary_variety');
 
@@ -523,9 +534,20 @@ class MapController extends Controller
         }
         $establishment->save();
 
+        $ownerLocation = [];
+        if (Schema::hasColumn('users', 'address')) {
+            $ownerLocation['address'] = $establishment->address;
+        }
+        if (Schema::hasColumn('users', 'barangay')) {
+            $ownerLocation['barangay'] = $establishment->barangay;
+        }
+        if ($ownerLocation !== [] && $establishment->owner_id) {
+            User::query()->whereKey($establishment->owner_id)->update($ownerLocation);
+        }
+
         return response()->json([
             'message' => 'Establishment location, address, and barangay updated successfully.',
-            'establishment' => $establishment,
+            'establishment' => $establishment->fresh(),
         ]);
     }
 

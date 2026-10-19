@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use App\Services\MapDetailsService;
 use App\Services\EstablishmentDeletionService;
 
@@ -410,21 +411,122 @@ class MapController extends Controller
     }
 
     /**
-     * Update establishment position (latitude, longitude, geom).
+     * Reverse-geocode an admin-selected map point for the Add Establishment form.
+     */
+    public function reverseGeocode(Request $request)
+    {
+        $validated = $request->validate([
+            'latitude' => 'required|numeric|min:13.85|max:14.05',
+            'longitude' => 'required|numeric|min:121.05|max:121.30',
+        ]);
+
+        $address = $this->resolveAddressFromCoordinates(
+            (float) $validated['latitude'],
+            (float) $validated['longitude']
+        );
+
+        if (!$address) {
+            return response()->json([
+                'message' => 'The address could not be retrieved for this pin. Try another nearby point or retry.',
+            ], 422);
+        }
+
+        return response()->json([
+            'address' => $address['address'],
+            'barangay' => $address['barangay'],
+        ]);
+    }
+
+    /**
+     * Resolve a readable address and barangay from coordinates using OpenStreetMap Nominatim.
+     */
+    private function resolveAddressFromCoordinates(float $latitude, float $longitude): ?array
+    {
+        try {
+            $response = Http::withHeaders([
+                'User-Agent' => 'BrewHub/1.0 (https://brewing-hub.online)',
+                'Accept' => 'application/json',
+            ])->timeout(5)->get('https://nominatim.openstreetmap.org/reverse', [
+                'format' => 'jsonv2',
+                'lat' => $latitude,
+                'lon' => $longitude,
+                'addressdetails' => 1,
+                'zoom' => 18,
+            ]);
+
+            if (!$response->successful()) {
+                return null;
+            }
+
+            $data = $response->json();
+            $formattedAddress = trim((string) ($data['display_name'] ?? ''));
+            if ($formattedAddress === '') {
+                return null;
+            }
+
+            $details = is_array($data['address'] ?? null) ? $data['address'] : [];
+            $barangay = null;
+
+            foreach (['suburb', 'neighbourhood', 'quarter', 'village', 'hamlet', 'city_district', 'municipality'] as $candidate) {
+                if (!empty($details[$candidate])) {
+                    $barangay = trim((string) $details[$candidate]);
+                    break;
+                }
+            }
+
+            if (!$barangay) {
+                foreach (['county', 'town', 'city', 'state_district'] as $candidate) {
+                    if (!empty($details[$candidate])) {
+                        $barangay = trim((string) $details[$candidate]);
+                        break;
+                    }
+                }
+            }
+
+            return [
+                'address' => mb_substr($formattedAddress, 0, 255),
+                'barangay' => $barangay ? mb_substr($barangay, 0, 255) : null,
+            ];
+        } catch (\\Throwable $exception) {
+            report($exception);
+            return null;
+        }
+    }
+
+    /**
+     * Update establishment position and synchronize its address fields from the new map pin.
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'latitude' => 'required|numeric|min:13.85|max:14.05',
             'longitude' => 'required|numeric|min:121.05|max:121.30',
         ]);
 
         $establishment = Establishment::findOrFail($id);
-        $establishment->latitude = $request->latitude;
-        $establishment->longitude = $request->longitude;
+        $address = $this->resolveAddressFromCoordinates(
+            (float) $validated['latitude'],
+            (float) $validated['longitude']
+        );
+
+        if (!$address) {
+            return response()->json([
+                'message' => 'The location was not saved because its address could not be retrieved. Please try a nearby pin or save again.',
+            ], 422);
+        }
+
+        $establishment->latitude = (float) $validated['latitude'];
+        $establishment->longitude = (float) $validated['longitude'];
+        $establishment->address = $address['address'];
+        if ($address['barangay'] !== null) {
+            $establishment->barangay = $address['barangay'];
+        }
         $establishment->save();
 
-        return response()->json(['message' => 'Establishment updated successfully', 'establishment' => $establishment]);
+        return response()->json([
+            'message' => 'Establishment location, address, and barangay updated successfully.',
+            'establishment' => $establishment,
+        ]);
     }
 
     /**
